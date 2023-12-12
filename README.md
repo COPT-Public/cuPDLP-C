@@ -2,10 +2,10 @@
 
 Code for solving LP on GPU using first-order methods. 
 
-This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl) developed by Haihao Lu and [Jinwen Yang](https://github.com/jinwen-yang).
+This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl) (originally by Haihao Lu and [Jinwen Yang](https://github.com/jinwen-yang)).
 
 ## Compile
-We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependendcies therein.
+We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein.
 
 Once you setup CLP and CUDA, set the following environment variables.
 
