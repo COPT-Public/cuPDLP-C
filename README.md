@@ -1,6 +1,8 @@
 # cuPDLP-C
 
-Code for solving LP on GPU using first-order methods.
+Code for solving LP on GPU using first-order methods. 
+
+This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl) developed by Haihao Lu and [Jinwen Yang](https://github.com/jinwen-yang).
 
 ## Compile
 We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependendcies therein.
@@ -112,7 +114,7 @@ $$
 \geq 0 & l_i<-\infty, u_i=+\infty\\ 
 \text{free} & l_i>-\infty, u_i<+\infty  \end{cases}.$$
 
-$\\|\cdot\\|$ can be 2-norm or inf-norm, and $|\cdot|$ is absolute value.
+$\\|\cdot\\|$ is 2-norm, and $|\cdot|$ is absolute value.
 
 ## Authors
 
