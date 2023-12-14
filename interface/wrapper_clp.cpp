@@ -2,20 +2,47 @@
 
 // #ifdef __cplusplus
 #include "ClpModel.hpp"
+#include <ClpPresolve.hpp>
+#include "ClpSimplex.hpp"
+
 using namespace std;
-extern "C" void *createModel() { return new ClpModel(); }
+// extern "C" void *createModel() { return new ClpModel(); }
+
+// extern "C" void deleteModel(void *model) {
+//   if (model != NULL) delete (ClpModel *)model;
+//   // free(model);
+// }
+
+// extern "C" void loadMps(void *model, const char *filename) {
+//   // model is lhs <= Ax <= rhs, l <= x <= u
+//   cout << std::string(filename) << endl;
+//   ((ClpModel *)model)->readMps(filename, true);
+// }
+
+extern "C" void *createModel() { return new ClpSimplex(); }
 
 extern "C" void deleteModel(void *model) {
-  if (model != NULL) delete (ClpModel *)model;
+  if (model != NULL) delete (ClpSimplex *)model;
   // free(model);
 }
 
 extern "C" void loadMps(void *model, const char *filename) {
   // model is lhs <= Ax <= rhs, l <= x <= u
   cout << std::string(filename) << endl;
-  ((ClpModel *)model)->readMps(filename, true);
+  ((ClpSimplex *)model)->readMps(filename, true);
 }
 
+
+extern "C" void *createPresolve() { return new ClpPresolve(); }
+
+extern "C" void deletePresolve(void *presolve) {
+  if (presolve != NULL) delete (ClpPresolve *)presolve;
+}
+
+extern "C" void *presolvedModel(void *presolve, void *model) {
+  ClpSimplex * newModel = ((ClpPresolve *)presolve)->presolvedModel(*((ClpSimplex *)model)); 
+  return newModel;
+}
 /*
  * formulate lhs <= Ax <= rhs, l <= x <= u
  * as Ax - z = 0, l <= x <= u, lhs <= z <= rhs

@@ -48,6 +48,7 @@ cupdlp_retcode main(int argc, char **argv) {
   CUPDLPcsc *csc_cpu = cupdlp_NULL;
   CUPDLPproblem *prob = cupdlp_NULL;
 
+  int ifPresolve = 1;
   int niters = 0;
   // load parameters
   for (cupdlp_int i = 0; i < argc - 1; i++) {
@@ -77,36 +78,32 @@ cupdlp_retcode main(int argc, char **argv) {
 
   model = createModel();
   loadMps(model, fname);
+
+  void *model2solve = model;
+
+  void *presolvedmodel = NULL;
+  void *presolveinfo = NULL;
+  if (ifPresolve) {
+    presolveinfo = createPresolve();
+    presolvedmodel = presolvedModel(presolveinfo, model);
+    model2solve = presolvedmodel;
+  }
   // CUPDLP_CALL(formulateLP(model, &cost, &nCols, &nRows, &nnz, &nEqs,
   // &csc_beg,
   //                         &csc_idx, &csc_val, &rhs, &lower, &upper,
   //                         &offset));
-  CUPDLP_CALL(formulateLP_new(
-      model, &cost, &nCols, &nRows, &nnz, &nEqs, &csc_beg, &csc_idx, &csc_val,
-      &rhs, &lower, &upper, &offset, &nCols_origin, &constraint_new_idx));
+
+  // CUPDLP_CALL(formulateLP_new(
+  //     model, &cost, &nCols, &nRows, &nnz, &nEqs, &csc_beg, &csc_idx,
+  //     &csc_val, &rhs, &lower, &upper, &offset, &nCols_origin,
+  //     &constraint_new_idx));
+
+  CUPDLP_CALL(formulateLP_new(model2solve, &cost, &nCols, &nRows, &nnz, &nEqs,
+                              &csc_beg, &csc_idx, &csc_val, &rhs, &lower,
+                              &upper, &offset, &nCols_origin,
+                              &constraint_new_idx));
+
   cupdlp_printf("offset: %.3f\n", offset);
-  // goto exit_cleanup;
-  // cupdlp_printf("------------------------------------------------\n");
-  // cupdlp_printf("%s (Trans):\n", "csc");
-  // cupdlp_int deltaRow = 0;
-  // for (cupdlp_int iCol = 0; iCol < nCols; ++iCol)
-  // {
-  //     for (cupdlp_int iElem = csc_beg[iCol]; iElem < csc_beg[iCol + 1];
-  //     ++iElem)
-  //     {
-  //         if (iElem == csc_beg[iCol])
-  //             deltaRow = csc_idx[iElem];
-  //         else
-  //             deltaRow = csc_idx[iElem] - csc_idx[iElem - 1] - 1;
-  //         for (cupdlp_int i = 0; i < deltaRow; ++i)
-  //         {
-  //             cupdlp_printf("       ");
-  //         }
-  //         cupdlp_printf("%6.3f ", csc_val[iElem]);
-  //     }
-  //     cupdlp_printf("\n");
-  // }
-  // cupdlp_printf("------------------------------------------------\n");
 
   /*
       min cTx
@@ -227,6 +224,11 @@ cupdlp_retcode main(int argc, char **argv) {
 
 exit_cleanup:
   deleteModel(model);
+  if (ifPresolve) {
+    deletePresolve(presolveinfo);
+    deleteModel(presolvedmodel);
+  }
+
   if (scaling) {
     scaling_clear(scaling);
   }

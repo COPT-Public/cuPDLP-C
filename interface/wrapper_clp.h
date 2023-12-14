@@ -35,6 +35,11 @@ void loadMps(void *model, const char *filename);
 
 void deleteModel(void *model);
 void *createModel();
+
+void *createPresolve();
+void deletePresolve(void *presolve);
+void *presolvedModel(void *presolve, void *model);
+
 #ifdef __cplusplus
 }
 #endif
