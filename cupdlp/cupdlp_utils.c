@@ -477,6 +477,12 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("                default: true\n");
   cupdlp_printf("                range:   true or false\n");
   cupdlp_printf("\n");
+
+  cupdlp_printf("    -ifPresolve: whether to presolve problem\n");
+  cupdlp_printf("                type:    bool\n");
+  cupdlp_printf("                default: true\n");
+  cupdlp_printf("                range:   true or false\n");
+  cupdlp_printf("\n");
 }
 
 cupdlp_retcode getUserParam(int argc, char **argv,
@@ -548,6 +554,9 @@ cupdlp_retcode getUserParam(int argc, char **argv,
     } else if (strcmp(argv[i], "-nLogInt") == 0) {
       ifChangeIntParam[N_LOG_INTERVAL] = true;
       intParam[N_LOG_INTERVAL] = atoi(argv[i + 1]);
+    } else if (strcmp(argv[i], "-ifPresolve") == 0) {
+      ifChangeIntParam[IF_PRESOLVE] = true;
+      intParam[IF_PRESOLVE] = atoi(argv[i + 1]);
     }
   }
 

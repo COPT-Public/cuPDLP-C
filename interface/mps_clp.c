@@ -48,7 +48,6 @@ cupdlp_retcode main(int argc, char **argv) {
   CUPDLPcsc *csc_cpu = cupdlp_NULL;
   CUPDLPproblem *prob = cupdlp_NULL;
 
-  int ifPresolve = 1;
   int niters = 0;
   // load parameters
   for (cupdlp_int i = 0; i < argc - 1; i++) {
@@ -83,6 +82,8 @@ cupdlp_retcode main(int argc, char **argv) {
 
   void *presolvedmodel = NULL;
   void *presolveinfo = NULL;
+  int ifPresolve = intParam[IF_PRESOLVE];
+
   if (ifPresolve) {
     presolveinfo = createPresolve();
     presolvedmodel = presolvedModel(presolveinfo, model);
