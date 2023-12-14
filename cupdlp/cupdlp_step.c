@@ -148,7 +148,7 @@ void PDHG_Update_Iterate_Constant_Step_Size(CUPDLPwork *pdhg) {
   CUPDLPstepsize *stepsize = pdhg->stepsize;
 
   // Ax(pdhg, iterates->ax, iterates->x);
-  // Aty(pdhg, iterates->aty, iterates->y);
+  // ATyCPU(pdhg, iterates->aty, iterates->y);
   Ax(pdhg, iterates->ax, iterates->x);
   ATy(pdhg, iterates->aty, iterates->y);
 
@@ -163,7 +163,7 @@ void PDHG_Update_Iterate_Constant_Step_Size(CUPDLPwork *pdhg) {
   PDHG_dualGradientStep(pdhg, stepsize->dDualStep);
 
   PDHG_Project_Row_Duals(pdhg, iterates->yUpdate->data);
-  // Aty(pdhg, iterates->atyUpdate, iterates->yUpdate);
+  // ATyCPU(pdhg, iterates->atyUpdate, iterates->yUpdate);
   ATy(pdhg, iterates->atyUpdate, iterates->yUpdate);
 }
 
@@ -366,7 +366,7 @@ void PDHG_Compute_Average_Iterate(CUPDLPwork *work) {
   cupdlp_scaleVector(work, dDualScale, iterates->yAverage->data, lp->nRows);
 
   // Ax(work, iterates->axAverage, iterates->xAverage);
-  // Aty(work, iterates->atyAverage, iterates->yAverage);
+  // ATyCPU(work, iterates->atyAverage, iterates->yAverage);
   Ax(work, iterates->axAverage, iterates->xAverage);
   ATy(work, iterates->atyAverage, iterates->yAverage);
 }

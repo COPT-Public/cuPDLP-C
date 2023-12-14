@@ -70,7 +70,7 @@ void AxCPU(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x) {
   // #endif
 }
 
-void Aty(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y) {
+void ATyCPU(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y) {
   // #if PDHG_USE_TIMERS
   //     ++w->timers->nAtyCalls;
   //     cupdlp_float dStartTime = getTimeStamp();
@@ -379,46 +379,6 @@ void cupdlp_init_vector(cupdlp_float *x, const cupdlp_float val,
 
 #if !(CUPDLP_CPU)
 
-// void Ax_single_gpu(CUDAmv *MV, cupdlp_float *ax, const cupdlp_float *x, const
-// CUPDLP_MATRIX_FORMAT matrix_format, CUPDLPtimers *timers)
-// {
-//     cupdlp_float alpha = 1.0;
-//     cupdlp_float beta = 0.0;
-//     cupdlp_float begin = getTimeStamp();
-
-//     // copy data from host to device
-//     cuda_copy_data_from_host_to_device(MV->dx, x, MV->A_num_cols);
-//     if (beta != 0.0)
-//     {
-//         cuda_copy_data_from_host_to_device(MV->dAx, ax, MV->A_num_rows);
-//     }
-//     timers->CopyVecToDeviceTime += getTimeStamp() - begin;
-
-//     begin = getTimeStamp();
-//     switch (matrix_format)
-//     {
-//     case CSR_CSC:
-//         cuda_csc_Ax(MV, alpha, beta);
-//         break;
-//     case CSC:
-//         cuda_csc_Ax(MV, alpha, beta);
-//         break;
-//     case CSR:
-//         cuda_csr_Ax(MV, alpha, beta);
-//         break;
-//     default:
-//         printf("Error: Unknown matrix format in Ax_single_gpu\n");
-//         exit(1);
-//     }
-//     timers->DeviceMatVecProdTime += getTimeStamp() - begin;
-
-//     begin = getTimeStamp();
-//     // copy data from device to host
-//     cuda_copy_data_from_device_to_host(ax, MV->dAx, MV->A_num_rows);
-//     timers->CopyVecToHostTime += getTimeStamp() - begin;
-//     // timers->CopyVecToHostTime += 10.0;
-// }
-
 void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
                    cusparseDnVecDescr_t vecAx) {
   cupdlp_float begin = getTimeStamp();
@@ -427,7 +387,10 @@ void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
 
   switch (w->problem->data->matrix_format) {
     case CSR_CSC:
-      cuda_csc_Ax(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
+      // cuda_csc_Ax(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
+      //             vecX, vecAx, w->dBuffer, alpha, beta);
+
+      cuda_csr_Ax(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
                   vecX, vecAx, w->dBuffer, alpha, beta);
       break;
     case CSC:
@@ -439,52 +402,16 @@ void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
                   vecX, vecAx, w->dBuffer, alpha, beta);
       break;
     default:
-      printf("Error: Unknown matrix format in Ax_single_gpu\n");
+      cupdlp_printf("Error: Unknown matrix format in Ax_single_gpu\n");
       exit(1);
   }
   w->timers->DeviceMatVecProdTime += getTimeStamp() - begin;
 }
 
-void Ax_multi_gpu(CUPDLPdata *d, cupdlp_float *ax, const cupdlp_float *x) {}
-
-// void ATy_single_gpu(CUDAmv *MV, cupdlp_float *aty, const cupdlp_float *y,
-// const CUPDLP_MATRIX_FORMAT matrix_format, CUPDLPtimers *timers)
-// {
-//     cupdlp_float alpha = 1.0;
-//     cupdlp_float beta = 0.0;
-//     cupdlp_float begin = getTimeStamp();
-
-//     // copy data from host to device
-//     cuda_copy_data_from_host_to_device(MV->dy, y, MV->A_num_rows);
-//     if (beta != 0.0)
-//     {
-//         cuda_copy_data_from_host_to_device(MV->dATy, aty, MV->A_num_cols);
-//     }
-//     timers->CopyVecToDeviceTime += getTimeStamp() - begin;
-
-//     begin = getTimeStamp();
-//     switch (matrix_format)
-//     {
-//     case CSR_CSC:
-//         cuda_csr_ATy(MV, alpha, beta);
-//         break;
-//     case CSC:
-//         cuda_csc_Ax(MV, alpha, beta);
-//         break;
-//     case CSR:
-//         cuda_csr_ATy(MV, alpha, beta);
-//         break;
-//     default:
-//         printf("Error: Unknown matrix format in Ax_single_gpu\n");
-//         exit(1);
-//     }
-//     timers->DeviceMatVecProdTime += getTimeStamp() - begin;
-
-//     begin = getTimeStamp();
-//     // copy data from device to host
-//     cuda_copy_data_from_device_to_host(aty, MV->dATy, MV->A_num_cols);
-//     timers->CopyVecToHostTime += getTimeStamp() - begin;
-// }
+void Ax_multi_gpu(CUPDLPdata *d, cupdlp_float *ax, const cupdlp_float *x) {
+  cupdlp_printf("Error: Ax_multi_gpu not implemented\n");
+  exit(1);
+}
 
 void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
                     cusparseDnVecDescr_t vecATy) {
@@ -495,7 +422,9 @@ void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
 
   switch (w->problem->data->matrix_format) {
     case CSR_CSC:
-      cuda_csr_ATy(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
+      // cuda_csr_ATy(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
+      //              vecY, vecATy, w->dBuffer, alpha, beta);
+      cuda_csc_ATy(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
                    vecY, vecATy, w->dBuffer, alpha, beta);
       break;
     case CSC:
@@ -514,26 +443,24 @@ void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
   w->timers->DeviceMatVecProdTime += getTimeStamp() - begin;
 }
 
-void ATy_multi_gpu(CUPDLPdata *d, cupdlp_float *aty, const cupdlp_float *y) {}
+void ATy_multi_gpu(CUPDLPdata *d, cupdlp_float *aty, const cupdlp_float *y) {
+  cupdlp_printf("Error: ATy_multi_gpu not implemented\n");
+  exit(1);
+}
+
 #endif
 
-// void Ax(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x)
-// void Ax(CUPDLPwork *w, cupdlp_float *ax, void* vecAx, const cupdlp_float *x,
-// void *vecX)
 void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
   cupdlp_float begin = getTimeStamp();
 
   CUPDLPdata *d = w->problem->data;
   switch (d->device) {
     case CPU:
-      // TODO:modify the argument 'CUPDLPwork *w' of Ax to 'CUPDLPdata *d'
       AxCPU(w, ax->data, x->data);
       break;
     case SINGLE_GPU:
 
 #if !(CUPDLP_CPU)
-      // Ax_single_gpu(w->MV, ax, x, w->problem->data->matrix_format,
-      // w->timers);
       Ax_single_gpu(w, x->cuda_vec, ax->cuda_vec);
 #else
       printf("GPU not supported in CPU build\n");
@@ -559,9 +486,6 @@ void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
 #endif
 }
 
-// void ATy(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y)
-// void ATy(CUPDLPwork *w, cupdlp_float *aty, void *vecATy, const cupdlp_float
-// *y, void *vecY)
 void ATy(CUPDLPwork *w, CUPDLPvec *aty, const CUPDLPvec *y)
 
 {
@@ -570,13 +494,10 @@ void ATy(CUPDLPwork *w, CUPDLPvec *aty, const CUPDLPvec *y)
   CUPDLPdata *d = w->problem->data;
   switch (d->device) {
     case CPU:
-      // TODO:modify the argument 'CUPDLPwork *w' of Aty to 'CUPDLPdata *d'
-      Aty(w, aty->data, y->data);
+      ATyCPU(w, aty->data, y->data);
       break;
     case SINGLE_GPU:
 #if !(CUPDLP_CPU)
-      // ATy_single_gpu(w->MV, aty, y, w->problem->data->matrix_format,
-      // w->timers);
       ATy_single_gpu(w, y->cuda_vec, aty->cuda_vec);
 #else
       printf("GPU not supported in CPU build\n");

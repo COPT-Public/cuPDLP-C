@@ -224,7 +224,7 @@ void PDHG_Init_Variables(CUPDLPwork *work) {
   CUPDLP_ZERO_VEC(iterates->y->data, cupdlp_float, lp->nRows);
 
   // Ax(work, iterates->ax, iterates->x);
-  // Aty(work, iterates->aty, iterates->y);
+  // ATyCPU(work, iterates->aty, iterates->y);
   Ax(work, iterates->ax, iterates->x);
   ATy(work, iterates->aty, iterates->y);
 

@@ -15,7 +15,7 @@ void ScatterRow(CUPDLPwork *w, cupdlp_int iRow, cupdlp_float multiplier,
 
 void AxCPU(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x);
 
-void Aty(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y);
+void ATyCPU(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y);
 
 extern double nrm2(cupdlp_int n, const double *x, cupdlp_int incx);
 
