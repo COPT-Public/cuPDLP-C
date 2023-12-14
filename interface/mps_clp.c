@@ -37,6 +37,9 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_float *y_origin = cupdlp_NULL;
 
   void *model = NULL;
+  void *model2solve = model;
+  void *presolvedmodel = NULL;
+  void *presolveinfo = NULL;
 
   CUPDLPscaling *scaling =
       (CUPDLPscaling *)cupdlp_malloc(sizeof(CUPDLPscaling));
@@ -78,10 +81,6 @@ cupdlp_retcode main(int argc, char **argv) {
   model = createModel();
   loadMps(model, fname);
 
-  void *model2solve = model;
-
-  void *presolvedmodel = NULL;
-  void *presolveinfo = NULL;
   cupdlp_int ifPresolve = 1;
   if (ifChangeIntParam[IF_PRESOLVE]) {
     ifPresolve = intParam[IF_PRESOLVE];
