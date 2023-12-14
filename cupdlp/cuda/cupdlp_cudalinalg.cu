@@ -15,7 +15,7 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
   cupdlp_float alpha = 1.0;
   cupdlp_float beta = 0.0;
   // cusparseSpSVAlg_t alg = CUSPARSE_SPSV_ALG_DEFAULT;
-  cusparseSpSVAlg_t alg = CUSPARSE_SPMV_CSR_ALG2; //deterministic
+  cusparseSpMVAlg_t alg = CUSPARSE_SPMV_CSR_ALG2; //deterministic
 
   // get the buffer size needed by csr Ax
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
