@@ -87,11 +87,14 @@ cupdlp_retcode main(int argc, char **argv) {
     ifPresolve = intParam[IF_PRESOLVE];
   }
 
+  cupdlp_float presolve_time = getTimeStamp();
   if (ifPresolve) {
     presolveinfo = createPresolve();
     presolvedmodel = presolvedModel(presolveinfo, model);
     model2solve = presolvedmodel;
   }
+  presolve_time = getTimeStamp() - presolve_time;
+
   // CUPDLP_CALL(formulateLP(model, &cost, &nCols, &nRows, &nnz, &nEqs,
   // &csc_beg,
   //                         &csc_idx, &csc_val, &rhs, &lower, &upper,
@@ -191,6 +194,7 @@ cupdlp_retcode main(int argc, char **argv) {
 
   PDHG_Alloc(w);
   w->timers->dScalingTime = scaling_time;
+  w->timers->dPresolveTime = presolve_time;
   CUPDLP_COPY_VEC(w->rowScale, scaling->rowScale, cupdlp_float, nRows);
   CUPDLP_COPY_VEC(w->colScale, scaling->colScale, cupdlp_float, nCols);
 

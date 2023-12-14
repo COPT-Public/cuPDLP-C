@@ -897,6 +897,7 @@ cupdlp_retcode timers_Alloc(CUPDLPtimers *timers) {
   timers->dSolvingTime = 0.0;
   timers->dSolvingBeg = 0.0;
   timers->dScalingTime = 0.0;
+  timers->dPresolveTime = 0.0;
 
 #if PDHG_USE_TIMERS
   timers->dAtyTime = 0.0;

@@ -543,14 +543,16 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
   cupdlp_printf("Timing information:\n");
   // cupdlp_printf("%20s %e in %d iterations\n", "Total solver time",
   //               timers->dSolvingTime, timers->nIter);
-  cupdlp_printf("%20s %e in %d iterations\n", "Total solver time",
-                timers->dSolvingTime + timers->dScalingTime, timers->nIter);
+  cupdlp_printf(
+      "%20s %e in %d iterations\n", "Total solver time",
+      timers->dSolvingTime + timers->dScalingTime + timers->dPresolveTime,
+      timers->nIter);
   cupdlp_printf("%20s %e in %d iterations\n", "Solve time",
                 timers->dSolvingTime, timers->nIter);
   cupdlp_printf("%20s %e \n", "Iters per sec",
                 timers->nIter / timers->dSolvingTime);
   cupdlp_printf("%20s %e\n", "Scaling time", timers->dScalingTime);
-
+  cupdlp_printf("%20s %e\n", "Presolve time", timers->dPresolveTime);
   cupdlp_printf("%20s %e in %d calls\n", "Ax", timers->dAxTime,
                 timers->nAxCalls);
   cupdlp_printf("%20s %e in %d calls\n", "Aty", timers->dAtyTime,

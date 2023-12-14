@@ -323,6 +323,7 @@ struct CUPDLP_TIMERS {
   cupdlp_float dSolvingTime;
   cupdlp_float dSolvingBeg;
   cupdlp_float dScalingTime;
+  cupdlp_float dPresolveTime;
 #if PDHG_USE_TIMERS
   cupdlp_float dAtyTime;
   cupdlp_float dAxTime;
