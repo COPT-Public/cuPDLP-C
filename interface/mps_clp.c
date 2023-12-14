@@ -82,7 +82,10 @@ cupdlp_retcode main(int argc, char **argv) {
 
   void *presolvedmodel = NULL;
   void *presolveinfo = NULL;
-  int ifPresolve = intParam[IF_PRESOLVE];
+  cupdlp_int ifPresolve = 1;
+  if (ifChangeIntParam[IF_PRESOLVE]) {
+    ifPresolve = intParam[IF_PRESOLVE];
+  }
 
   if (ifPresolve) {
     presolveinfo = createPresolve();
@@ -123,16 +126,6 @@ cupdlp_retcode main(int argc, char **argv) {
 
   CUPDLP_CALL(Init_Scaling(scaling, nCols, nRows, cost, rhs));
   cupdlp_int ifScaling = 1;
-
-  // already in func Init_Scaling
-  // scaling->ifRuizScaling = 1;
-  // scaling->ifL2Scaling = 0;
-  // scaling->ifPcScaling = 1;
-
-  // // todo, read these paras
-  // scaling->RuizTimes = 10;
-  // scaling->RuizNorm = INFINITY;
-  // scaling->PcAlpha = 1.0;
 
   if (ifChangeIntParam[IF_SCALING]) {
     ifScaling = intParam[IF_SCALING];
