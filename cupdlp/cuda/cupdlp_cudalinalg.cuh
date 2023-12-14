@@ -22,6 +22,12 @@ extern "C" {
 
 #ifdef __cplusplus
 
+extern "C" cupdlp_int cuda_alloc_MVbuffer(
+    cusparseHandle_t handle, cusparseSpMatDescr_t cuda_csc,
+    cusparseDnVecDescr_t vecX, cusparseDnVecDescr_t vecAx,
+    cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
+    cusparseDnVecDescr_t vecATy, void **dBuffer);
+
 extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csc,
                                   cusparseDnVecDescr_t vecX,
