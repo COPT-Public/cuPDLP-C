@@ -370,12 +370,12 @@ cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, int bool_print) {
   }
 
 #endif
-
-  return (
-      (resobj->dPrimalFeas <
-       settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
-      (resobj->dDualFeas < settings->dDualTol * (1.0 + scaling->dNormCost)) &&
-      (resobj->dRelObjGap < settings->dGapTol));
+  int bool_pass =
+      ((resobj->dPrimalFeas <
+        settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
+       (resobj->dDualFeas < settings->dDualTol * (1.0 + scaling->dNormCost)) &&
+       (resobj->dRelObjGap < settings->dGapTol));
+  return bool_pass;
 }
 
 cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
@@ -393,12 +393,12 @@ cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
                   resobj->dRelObjGapAverage, settings->dGapTol);
   }
 #endif
-
-  return ((resobj->dPrimalFeasAverage <
-           settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
-          (resobj->dDualFeasAverage <
-           settings->dDualTol * (1.0 + scaling->dNormCost)) &&
-          (resobj->dRelObjGapAverage < settings->dGapTol));
+  int bool_pass = ((resobj->dPrimalFeasAverage <
+                    settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
+                   (resobj->dDualFeasAverage <
+                    settings->dDualTol * (1.0 + scaling->dNormCost)) &&
+                   (resobj->dRelObjGapAverage < settings->dGapTol));
+  return bool_pass;
 }
 
 void PDHG_Print_Header(CUPDLPwork *pdhg) {
@@ -614,7 +614,6 @@ cupdlp_retcode LP_SolvePDHG(CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam,
                             cupdlp_float *y_origin, cupdlp_bool ifSaveSol,
                             cupdlp_int *constraint_new_idx) {
   cupdlp_retcode retcode = RETCODE_OK;
-  cupdlp_printf("Calling PDHG Solver.\n");
 
   PDHG_PrintHugeCUPDHG();
 

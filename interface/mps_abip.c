@@ -214,7 +214,9 @@ cupdlp_retcode main(int argc, char **argv) {
                             src_matrix_format, dst_matrix_format, rhs, lower,
                             upper, &alloc_matrix_time, &copy_vec_time));
   // solve
-  cupdlp_printf("Enter main solve loop\n");
+  cupdlp_printf("--------------------------------------------------\n");
+  cupdlp_printf("enter main solve loop\n");
+  cupdlp_printf("--------------------------------------------------\n");
   // CUPDLP_CALL(LP_SolvePDHG(prob, cupdlp_NULL, cupdlp_NULL, cupdlp_NULL,
   // cupdlp_NULL));
 

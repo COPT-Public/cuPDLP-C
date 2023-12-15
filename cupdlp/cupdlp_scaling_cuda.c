@@ -295,7 +295,8 @@ cupdlp_retcode PDHG_Scale_Data_cuda(CUPDLPcsc *csc, cupdlp_int ifScaling,
 #endif
 
   if (ifScaling) {
-    cupdlp_printf("use scaling\n");
+    cupdlp_printf("--------------------------------------------------\n");
+    cupdlp_printf("running scaling\n");
 
     if (scaling->ifRuizScaling) {
       cupdlp_printf("- use Ruiz scaling\n");
@@ -315,6 +316,8 @@ cupdlp_retcode PDHG_Scale_Data_cuda(CUPDLPcsc *csc, cupdlp_int ifScaling,
           cupdlp_pc_scaling_cuda(csc, cost, lower, upper, rhs, scaling));
       scaling->ifScaled = 1;
     }
+
+    cupdlp_printf("--------------------------------------------------\n");
   }
 
   /* make sure the csr matrix is also scaled*/

@@ -20,6 +20,7 @@ cupdlp_retcode main(int argc, char **argv) {
   int nEqs;
   int nCols_origin;
   cupdlp_bool ifSaveSol = false;
+  cupdlp_bool ifPresolve = false;
 
   int nnz = 0;
   double *rhs = NULL;
@@ -50,12 +51,12 @@ cupdlp_retcode main(int argc, char **argv) {
   CUPDLPcsc *csc_cpu = cupdlp_NULL;
   CUPDLPproblem *prob = cupdlp_NULL;
 
-  int niters = 0;
   // load parameters
   for (cupdlp_int i = 0; i < argc - 1; i++) {
-    if (strcmp(argv[i], "-niter") == 0) {
-      niters = atof(argv[i + 1]);
-    } else if (strcmp(argv[i], "-fname") == 0) {
+    // if (strcmp(argv[i], "-niter") == 0) {
+    //   niters = atof(argv[i + 1]);
+    // } else
+    if (strcmp(argv[i], "-fname") == 0) {
       fname = argv[i + 1];
     } else if (strcmp(argv[i], "-out") == 0) {
       fout = argv[i + 1];
@@ -63,6 +64,8 @@ cupdlp_retcode main(int argc, char **argv) {
       print_script_usage();
     } else if (strcmp(argv[i], "-savesol") == 0) {
       ifSaveSol = atoi(argv[i + 1]);
+    } else if (strcmp(argv[i], "-ifPre") == 0) {
+      ifPresolve = atoi(argv[i + 1]);
     }
   }
   if (strcmp(argv[argc - 1], "-h") == 0) {
@@ -82,7 +85,6 @@ cupdlp_retcode main(int argc, char **argv) {
 
   void *model2solve = model;
 
-  cupdlp_int ifPresolve = 1;
   if (ifChangeIntParam[IF_PRESOLVE]) {
     ifPresolve = intParam[IF_PRESOLVE];
   }
@@ -109,8 +111,6 @@ cupdlp_retcode main(int argc, char **argv) {
                               &csc_beg, &csc_idx, &csc_val, &rhs, &lower,
                               &upper, &offset, &nCols_origin,
                               &constraint_new_idx));
-
-  cupdlp_printf("offset: %.3f\n", offset);
 
   /*
       min cTx
@@ -204,7 +204,9 @@ cupdlp_retcode main(int argc, char **argv) {
   w->timers->CudaPrepareTime = cuda_prepare_time;
 #endif
 
-  cupdlp_printf("Enter main solve loop\n");
+  cupdlp_printf("--------------------------------------------------\n");
+  cupdlp_printf("enter main solve loop\n");
+  cupdlp_printf("--------------------------------------------------\n");
   // CUPDLP_CALL(LP_SolvePDHG(prob, cupdlp_NULL, cupdlp_NULL, cupdlp_NULL,
   // cupdlp_NULL));
   //   CUPDLP_CALL(LP_SolvePDHG(prob, ifChangeIntParam, intParam,

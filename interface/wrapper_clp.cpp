@@ -1,8 +1,9 @@
 #include "wrapper_clp.h"
 
 // #ifdef __cplusplus
-#include "ClpModel.hpp"
 #include <ClpPresolve.hpp>
+
+#include "ClpModel.hpp"
 #include "ClpSimplex.hpp"
 
 using namespace std;
@@ -28,10 +29,12 @@ extern "C" void deleteModel(void *model) {
 
 extern "C" void loadMps(void *model, const char *filename) {
   // model is lhs <= Ax <= rhs, l <= x <= u
-  cout << std::string(filename) << endl;
+  cout << "--------------------------------------------------" << endl;
+  cout << "reading file..." << endl;
+  cout << "\t" << std::string(filename) << endl;
+  cout << "--------------------------------------------------" << endl;
   ((ClpSimplex *)model)->readMps(filename, true);
 }
-
 
 extern "C" void *createPresolve() { return new ClpPresolve(); }
 
@@ -40,7 +43,11 @@ extern "C" void deletePresolve(void *presolve) {
 }
 
 extern "C" void *presolvedModel(void *presolve, void *model) {
-  ClpSimplex * newModel = ((ClpPresolve *)presolve)->presolvedModel(*((ClpSimplex *)model)); 
+  cout << "--------------------------------------------------" << endl;
+  cout << "running presolve" << endl;
+  cout << "--------------------------------------------------" << endl;
+  ClpSimplex *newModel =
+      ((ClpPresolve *)presolve)->presolvedModel(*((ClpSimplex *)model));
   return newModel;
 }
 /*
@@ -238,11 +245,11 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   *nEqs = 0;                                         // need recalculate
   *nnz = nnz_clp;                                    // need recalculate
   *offset = ((ClpModel *)model)->objectiveOffset();  // need not recalculate
-  if (*offset != 0.0) {
-    printf("Has obj offset\n");
-  } else {
-    printf("No obj offset\n");
-  }
+  // if (*offset != 0.0) {
+  //   printf("Has obj offset\n");
+  // } else {
+  //   printf("No obj offset\n");
+  // }
   // allocate buffer memory
   constraint_type *constraint_type_clp = NULL;  // the ONLY one need to free
   // int *constraint_original_idx = NULL;  // pass by user is better, for
