@@ -1494,6 +1494,8 @@ void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
   fprintf(fptr, "\"nAxCalls\":%d,", work->timers->nAxCalls);
   fprintf(fptr, "\"dSolvingBeg\":%f,", work->timers->dSolvingBeg);
   fprintf(fptr, "\"dSolvingTime\":%f,", work->timers->dSolvingTime);
+  fprintf(fptr, "\"dPresolveTime\":%f,", work->timers->dPresolveTime);
+  fprintf(fptr, "\"dScalingTime\":%f,", work->timers->dScalingTime);
 #if !(CUPDLP_CPU)
   fprintf(fptr, "\"AllocMem_CopyMatToDeviceTime\":%f,",
           work->timers->AllocMem_CopyMatToDeviceTime);
