@@ -56,10 +56,13 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
 
   cupdlp_float *current_col_scaling;  // for variable
   cupdlp_float *current_row_scaling;  // for constraint
+  CUPDLP_INIT_ZERO(current_col_scaling, nCols);
+  CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
   for (cupdlp_int i = 0; i < scaling->RuizTimes; i++) {
-    CUPDLP_INIT_ZERO(current_col_scaling, nCols);
-    CUPDLP_INIT_ZERO(current_row_scaling, nRows);
+    cupdlp_zero(current_col_scaling, cupdlp_float, nCols);
+    cupdlp_zero(current_row_scaling, cupdlp_float, nRows);
+
     if (csc != NULL) {
       for (int j = 0; j < nCols; j++) {
         if (csc->colMatBeg[j] == csc->colMatBeg[j + 1]) {

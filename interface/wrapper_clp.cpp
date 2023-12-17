@@ -387,7 +387,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   }
 
   // slacks for BOUND
-  for (int i = 0, j = nCols_clp + 1; i < *nRows; i++) {
+  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
     if (constraint_type_clp[i] == BOUND) {
       (*csc_idx)[(*csc_beg)[j]] = (*constraint_new_idx)[i];
       (*csc_val)[(*csc_beg)[j]] = -1.0;
@@ -404,7 +404,5 @@ exit_cleanup:
 
   return retcode;
 }
-
-// #endif
 
 // #endif
