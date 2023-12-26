@@ -4,10 +4,10 @@
 
 #ifndef CUPDLP_WRAPPER_CLP_H
 #define CUPDLP_WRAPPER_CLP_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-// #include "../cupdlp/cupdlp.h"
 
 #define CUPDLP_INIT(var, size)                                  \
   {                                                             \

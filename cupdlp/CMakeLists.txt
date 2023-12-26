@@ -18,7 +18,6 @@ target_compile_definitions(cupdlp
         $<$<CONFIG:Debug>:CUPDLP_DEBUG>
 )
 
-message(NOTICE "--------------------- PDLP CPU/GPU CONFIG-----------------------")
 if (${CUDA_LIBRARY-NOTFOUND})
     message(NOTICE "- CPU version PDLP")
     target_compile_definitions(cupdlp
