@@ -1,5 +1,20 @@
 enable_language(CXX)
-
+#############################################
+# enable LP parsers
+#############################################
+add_library(wrapper_lp SHARED
+        mps_lp.h mps_lp.c
+)
+target_link_libraries(
+        wrapper_lp PUBLIC cupdlp
+)
+if (${CUDA_LIBRARY-NOTFOUND})
+    message(NOTICE "- CPU version PDLP")
+    target_compile_definitions(wrapper_lp
+            PUBLIC
+            -DCUPDLP_CPU
+    )
+endif()
 #############################################
 # enable Coin-OR CLP input targets
 #############################################
@@ -29,8 +44,9 @@ if (${CUDA_LIBRARY-NOTFOUND})
     )
 endif()
 
+
 #############################################
-# enable Coin-OR CLP input targets
+# cuPDLP-C binary using CLP as parsers
 #############################################
 add_executable(plc 
         ${CLP_HEADER_FILES}
