@@ -3,6 +3,8 @@ enable_language(CXX)
 #############################################
 # enable Coin-OR CLP input targets
 #############################################
+
+message(NOTICE "--------------------- cuPDLP   Coin  CONFIG -----------------------")
 include(../FindCLPConf.cmake)
 add_library(wrapper_clp SHARED
         mps_lp.h mps_lp.c

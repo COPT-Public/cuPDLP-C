@@ -40,17 +40,10 @@ find_library(CLP_LIBRARY_OSICLP
         REQUIRED
         NO_DEFAULT_PATH
 )
-# find_library(CLP_LIBRARY_OSI
-#         NAMES Osi
-#         PATHS "${CLP_HEADER_LIB}"
-#         REQUIRED
-#         NO_DEFAULT_PATH
-# )
 
 message(        NOTICE 
         "    - CLP Libraries detected at
         ${CLP_LIBRARY}
         ${CLP_LIBRARY_COIN}
-        ${CLP_LIBRARY_OSICLP}
-        ")
+        ${CLP_LIBRARY_OSICLP}")
 message(NOTICE "    - CLP include dir at ${CLP_INCLUDE_DIR}")

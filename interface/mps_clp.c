@@ -12,7 +12,7 @@
 cupdlp_retcode main(int argc, char **argv) {
   cupdlp_retcode retcode = RETCODE_OK;
 
-  char *fname = "./example/s_afiro.mps";
+  char *fname = "./example/afiro.mps.gz";
   char *fout = "./solution.json";
 
   int nCols;
@@ -191,7 +191,6 @@ cupdlp_retcode main(int argc, char **argv) {
 
   w->problem = prob;
   w->scaling = scaling;
-
   PDHG_Alloc(w);
   w->timers->dScalingTime = scaling_time;
   w->timers->dPresolveTime = presolve_time;
