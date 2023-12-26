@@ -108,13 +108,13 @@ void ATyCPU(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y) {
   // #endif
 }
 
-double nrm2(cupdlp_int n, const double *x, cupdlp_int incx) {
+cupdlp_float nrm2(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx) {
 #ifdef USE_MY_BLAS
   assert(incx == 1);
 
-  double nrm = 0.0;
+  cupdlp_float nrm = 0.0;
 
-  for (int i = 0; i < n; ++i) {
+  for (cupdlp_int i = 0; i < n; ++i) {
     nrm += x[i] * x[i];
   }
 
@@ -124,14 +124,14 @@ double nrm2(cupdlp_int n, const double *x, cupdlp_int incx) {
 #endif
 }
 
-double nrminf(cupdlp_int n, const double *x, cupdlp_int incx) {
+cupdlp_float nrminf(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx) {
 #ifdef USE_MY_BLAS
   assert(incx == 1);
 
-  double nrm = 0.0;
+  cupdlp_float nrm = 0.0;
 
-  for (int i = 0; i < n; ++i) {
-    double tmp = fabs(x[i]);
+  for (cupdlp_int i = 0; i < n; ++i) {
+    cupdlp_float tmp = fabs(x[i]);
     if (tmp > nrm) nrm = tmp;
   }
 
@@ -141,22 +141,24 @@ double nrminf(cupdlp_int n, const double *x, cupdlp_int incx) {
 #endif
 }
 
-double twoNorm(double *x, cupdlp_int n) { return nrm2(n, x, 1); }
+cupdlp_float twoNorm(cupdlp_float *x, cupdlp_int n) { return nrm2(n, x, 1); }
 
-double twoNormSquared(double *x, cupdlp_int n) { return pow(twoNorm(x, n), 2); }
+cupdlp_float twoNormSquared(cupdlp_float *x, cupdlp_int n) {
+  return pow(twoNorm(x, n), 2);
+}
 
-double infNorm(double *x, cupdlp_int n) { return nrminf(n, x, 1); }
+cupdlp_float infNorm(cupdlp_float *x, cupdlp_int n) { return nrminf(n, x, 1); }
 
 /*------------------------ new added --------------------*/
-double GenNorm(double *x, cupdlp_int n, cupdlp_float p) {
+cupdlp_float GenNorm(cupdlp_float *x, cupdlp_int n, cupdlp_float p) {
   if (p == 2.0) {
     return twoNorm(x, n);
   } else if (p == INFINITY) {
     return infNorm(x, n);
   } else {
-    double nrm = 0.0;
+    cupdlp_float nrm = 0.0;
 
-    for (int i = 0; i < n; ++i) {
+    for (cupdlp_int i = 0; i < n; ++i) {
       nrm += pow(fabs(x[i]), p);
     }
 
@@ -166,14 +168,14 @@ double GenNorm(double *x, cupdlp_int n, cupdlp_float p) {
 
 /* x = x .* y*/
 void cupdlp_cdot(cupdlp_float *x, const cupdlp_float *y, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] *= y[i];
   }
 }
 
 /* x = x ./ y*/
 void cupdlp_cdiv(cupdlp_float *x, const cupdlp_float *y, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] /= y[i];
   }
 }
@@ -182,7 +184,7 @@ void cupdlp_cdiv(cupdlp_float *x, const cupdlp_float *y, const cupdlp_int len) {
 // void cupdlp_scaleVector(cupdlp_float *xout, cupdlp_float *x, cupdlp_float
 // weight, const cupdlp_int len)
 // {
-//     for (int i = 0; i < len; i++)
+//     for (cupdlp_int i = 0; i < len; i++)
 //     {
 //         xout[i] = weight * x[i];
 //     }
@@ -191,7 +193,7 @@ void cupdlp_cdiv(cupdlp_float *x, const cupdlp_float *y, const cupdlp_int len) {
 /* xout = max(x, lb), lb is vector */
 void cupdlp_projLowerBound(cupdlp_float *x, const cupdlp_float *lb,
                            const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = x[i] > lb[i] ? x[i] : lb[i];
   }
 }
@@ -199,7 +201,7 @@ void cupdlp_projLowerBound(cupdlp_float *x, const cupdlp_float *lb,
 /* xout = min(x, ub), ub is vector */
 void cupdlp_projUpperBound(cupdlp_float *x, const cupdlp_float *ub,
                            const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = x[i] < ub[i] ? x[i] : ub[i];
   }
 }
@@ -207,7 +209,7 @@ void cupdlp_projUpperBound(cupdlp_float *x, const cupdlp_float *ub,
 /* xout = max(x, lb), lb is number */
 void cupdlp_projSameLowerBound(cupdlp_float *x, const cupdlp_float lb,
                                const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = x[i] > lb ? x[i] : lb;
   }
 }
@@ -215,7 +217,7 @@ void cupdlp_projSameLowerBound(cupdlp_float *x, const cupdlp_float lb,
 /* xout = min(x, ub), ub is number */
 void cupdlp_projSameUpperBound(cupdlp_float *x, const cupdlp_float ub,
                                const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = x[i] < ub ? x[i] : ub;
   }
 }
@@ -236,7 +238,7 @@ void cupdlp_projNegative(cupdlp_float *x, const cupdlp_int len) {
 cupdlp_float diffTwoNormSquared(cupdlp_float *x, cupdlp_float *y,
                                 const cupdlp_int len) {
   cupdlp_float res = 0.0;
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     cupdlp_float tmp = x[i] - y[i];
     res += tmp * tmp;
   }
@@ -258,7 +260,7 @@ cupdlp_float diffTwoNorm(cupdlp_float *x, cupdlp_float *y,
 cupdlp_float diffInfNorm(cupdlp_float *x, cupdlp_float *y,
                          const cupdlp_int len) {
   cupdlp_float res = 0.0;
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     cupdlp_float tmp = fabs(x[i] - y[i]);
     if (tmp > res) res = tmp;
   }
@@ -282,7 +284,7 @@ cupdlp_float diffDotDiff(cupdlp_float *x1, cupdlp_float *x2, cupdlp_float *y1,
 // void cupdlp_cdot_fb(cupdlp_float *x, const cupdlp_bool *y, const cupdlp_int
 // len)
 // {
-//     for (int i = 0; i < len; i++)
+//     for (cupdlp_int i = 0; i < len; i++)
 //     {
 //         x[i] *= y[i];
 //     }
@@ -290,14 +292,14 @@ cupdlp_float diffDotDiff(cupdlp_float *x1, cupdlp_float *x2, cupdlp_float *y1,
 
 /*------------------------ new added --------------------*/
 
-double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
-           cupdlp_int incy) {
+cupdlp_float dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx,
+                 cupdlp_float *y, cupdlp_int incy) {
 #ifdef USE_MY_BLAS
   assert(incx == 1 && incy == 1);
 
-  double dres = 0.0;
+  cupdlp_float dres = 0.0;
 
-  for (int i = 0; i < n; ++i) {
+  for (cupdlp_int i = 0; i < n; ++i) {
     dres += x[i] * y[i];
   }
 
@@ -307,11 +309,11 @@ double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
 #endif
 }
 
-double Dotprod(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
+cupdlp_float Dotprod(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
   return dot(n, x, 1, y, 1);
 }
 
-double Dotprod_Neumaier(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
+cupdlp_float Dotprod_Neumaier(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
   return dot(n, x, 1, y, 1);
 }
 
@@ -320,7 +322,7 @@ void AddToVector(cupdlp_float *x, const cupdlp_float weight,
                  const cupdlp_float *y, const cupdlp_int n) {
 #ifdef USE_MY_BLAS
 
-  for (int i = 0; i < n; ++i) {
+  for (cupdlp_int i = 0; i < n; ++i) {
     x[i] += weight * y[i];
   }
 
@@ -333,7 +335,7 @@ void AddToVector(cupdlp_float *x, const cupdlp_float weight,
 void ScaleVector(cupdlp_float weight, cupdlp_float *x, cupdlp_int n) {
 #ifdef USE_MY_BLAS
 
-  for (int i = 0; i < n; ++i) {
+  for (cupdlp_int i = 0; i < n; ++i) {
     x[i] *= weight;
   }
 
@@ -344,35 +346,35 @@ void ScaleVector(cupdlp_float weight, cupdlp_float *x, cupdlp_int n) {
 
 void cupdlp_hasLower(cupdlp_float *haslb, const cupdlp_float *lb,
                      const cupdlp_float bound, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     haslb[i] = lb[i] > bound ? 1.0 : 0.0;
   }
 }
 
 void cupdlp_hasUpper(cupdlp_float *hasub, const cupdlp_float *ub,
                      const cupdlp_float bound, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     hasub[i] = ub[i] < bound ? 1.0 : 0.0;
   }
 }
 
 void cupdlp_filter_lower_bound(cupdlp_float *x, const cupdlp_float *lb,
                                const cupdlp_float bound, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = lb[i] > bound ? lb[i] : 0.0;
   }
 }
 
 void cupdlp_filter_upper_bound(cupdlp_float *x, const cupdlp_float *ub,
                                const cupdlp_float bound, const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = ub[i] < bound ? ub[i] : 0.0;
   }
 }
 
 void cupdlp_init_vector(cupdlp_float *x, const cupdlp_float val,
                         const cupdlp_int len) {
-  for (int i = 0; i < len; i++) {
+  for (cupdlp_int i = 0; i < len; i++) {
     x[i] = val;
   }
 }
@@ -549,7 +551,7 @@ cupdlp_int cupdlp_dot(CUPDLPwork *w, const cupdlp_int n, const cupdlp_float *x,
 #ifndef SFLOAT
   CHECK_CUBLAS(cublasDdot(w->cublashandle, n, x, 1, y, 1, res));
 #else
-  CHECK_CUBLAS(cublasSdot(w->cublashandle, n, x, 1, y, 1 res));
+  CHECK_CUBLAS(cublasSdot(w->cublashandle, n, x, 1, y, 1, res));
 #endif
 #else
   *res = dot(n, x, 1, y, 1);

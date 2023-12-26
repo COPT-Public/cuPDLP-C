@@ -11,10 +11,12 @@
 #include "cupdlp_utils.h"
 #include "glbopts.h"
 
-void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
-                                     const double *ax, const double *x,
-                                     double *dPrimalFeasibility,
-                                     double *dPrimalObj) {
+void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work,
+                                     cupdlp_float *primalResidual,
+                                     const cupdlp_float *ax,
+                                     const cupdlp_float *x,
+                                     cupdlp_float *dPrimalFeasibility,
+                                     cupdlp_float *dPrimalObj) {
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
   CUPDLPscaling *scaling = work->scaling;
@@ -32,7 +34,7 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   cupdlp_float alpha = -1.0;
   cupdlp_axpy(work, lp->nRows, &alpha, problem->rhs, primalResidual);
 
-  double dPrimalFeas = 0.0;
+  cupdlp_float dPrimalFeas = 0.0;
 
   // todo, check
   //  cupdlp_projNegative(primalResidual + problem->nEqs, primalResidual +
@@ -54,10 +56,12 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   cupdlp_twoNorm(work, lp->nRows, primalResidual, dPrimalFeasibility);
 }
 
-void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
-                                   const double *aty, const double *x,
-                                   const double *y, double *dDualFeasibility,
-                                   double *dDualObj, double *dComplementarity) {
+void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, cupdlp_float *dualResidual,
+                                   const cupdlp_float *aty,
+                                   const cupdlp_float *x, const cupdlp_float *y,
+                                   cupdlp_float *dDualFeasibility,
+                                   cupdlp_float *dDualObj,
+                                   cupdlp_float *dComplementarity) {
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
   CUPDLPresobj *resobj = work->resobj;
@@ -160,7 +164,7 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
 void PDHG_Compute_Residuals(CUPDLPwork *work) {
 #if problem_USE_TIMERS
   ++problem->nComputeResidualsCalls;
-  double dStartTime = getTimeStamp();
+  cupdlp_float dStartTime = getTimeStamp();
 #endif
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
@@ -354,7 +358,7 @@ void PDHG_Check_Data(CUPDLPwork *work) {
   CUPDLP_ASSERT(nRangedRow == 0);
 }
 
-cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, int bool_print) {
+cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, cupdlp_int bool_print) {
   CUPDLPproblem *problem = pdhg->problem;
   CUPDLPsettings *settings = pdhg->settings;
   CUPDLPresobj *resobj = pdhg->resobj;
@@ -370,7 +374,7 @@ cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, int bool_print) {
   }
 
 #endif
-  int bool_pass =
+  cupdlp_int bool_pass =
       ((resobj->dPrimalFeas <
         settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
        (resobj->dDualFeas < settings->dDualTol * (1.0 + scaling->dNormCost)) &&
@@ -378,7 +382,7 @@ cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, int bool_print) {
   return bool_pass;
 }
 
-cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
+cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, cupdlp_int bool_print) {
   CUPDLPproblem *problem = pdhg->problem;
   CUPDLPsettings *settings = pdhg->settings;
   CUPDLPresobj *resobj = pdhg->resobj;
@@ -393,7 +397,7 @@ cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
                   resobj->dRelObjGapAverage, settings->dGapTol);
   }
 #endif
-  int bool_pass = ((resobj->dPrimalFeasAverage <
+  cupdlp_int bool_pass = ((resobj->dPrimalFeasAverage <
                     settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
                    (resobj->dDualFeasAverage <
                     settings->dDualTol * (1.0 + scaling->dNormCost)) &&
@@ -473,10 +477,10 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
 #if CUPDLP_DUMP_ITERATES_STATS & CUPDLP_DEBUG
     PDHG_Dump_Stats(pdhg);
 #endif
-    int bool_checking = (timers->nIter < 10) ||
+    cupdlp_int bool_checking = (timers->nIter < 10) ||
                         (timers->nIter == (settings->nIterLim - 1)) ||
                         (timers->dSolvingTime > settings->dTimeLim);
-    int bool_print = 0;
+    cupdlp_int bool_print = 0;
 #if CUPDLP_DEBUG
     bool_checking = (bool_checking || !(timers->nIter % CUPDLP_DEBUG_INTERVAL));
     bool_print = bool_checking;
@@ -600,7 +604,7 @@ void PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
       (cupdlp_float *)cupdlp_malloc(problem->nRows * sizeof(cupdlp_float));
   CUPDLP_COPY_VEC(ytmp, iterates->y->data, cupdlp_float, problem->nRows);
   // un-permute y
-  for (int i = 0; i < problem->nRows; i++) {
+  for (cupdlp_int i = 0; i < problem->nRows; i++) {
     y_origin[i] = ytmp[constraint_new_idx[i]];
   }
   cupdlp_free(ytmp);

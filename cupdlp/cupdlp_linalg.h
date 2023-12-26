@@ -17,19 +17,19 @@ void AxCPU(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x);
 
 void ATyCPU(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y);
 
-extern double nrm2(cupdlp_int n, const double *x, cupdlp_int incx);
+extern cupdlp_float nrm2(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx);
 
-extern double nrminf(cupdlp_int n, const double *x, cupdlp_int incx);
+extern cupdlp_float nrminf(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx);
 
-double twoNorm(double *x, cupdlp_int n);
+cupdlp_float twoNorm(cupdlp_float *x, cupdlp_int n);
 
-double twoNormSquared(double *x, cupdlp_int n);
+cupdlp_float twoNormSquared(cupdlp_float *x, cupdlp_int n);
 
-double infNorm(double *x, cupdlp_int n);
+cupdlp_float infNorm(cupdlp_float *x, cupdlp_int n);
 
 /*------------------------ new added --------------------*/
 
-double GenNorm(double *x, cupdlp_int n, cupdlp_float p);
+cupdlp_float GenNorm(cupdlp_float *x, cupdlp_int n, cupdlp_float p);
 
 void cupdlp_cdot(cupdlp_float *x, const cupdlp_float *y, const cupdlp_int len);
 
@@ -67,13 +67,13 @@ void cupdlp_projNegative(cupdlp_float *x, const cupdlp_int len);
 
 /*------------------------ new added --------------------*/
 
-extern double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx,
+extern cupdlp_float dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx,
                   cupdlp_float *y, cupdlp_int incy);
 
-extern double Dotprod(cupdlp_float *x, cupdlp_float *y, cupdlp_int n);
+extern cupdlp_float Dotprod(cupdlp_float *x, cupdlp_float *y, cupdlp_int n);
 
 // todo, add this
-extern double Dotprod_Neumaier(cupdlp_float *x, cupdlp_float *y, cupdlp_int n);
+extern cupdlp_float Dotprod_Neumaier(cupdlp_float *x, cupdlp_float *y, cupdlp_int n);
 
 /* x = x + weight * y */
 void AddToVector(cupdlp_float *x, const cupdlp_float weight,

@@ -9,31 +9,32 @@
          colUbIdx: index of columns with upper bound (not all columns have upper
    bound)
 */
-cupdlp_retcode main(int argc, char **argv) {
+cupdlp_retcode main(cupdlp_int argc, char **argv) {
   cupdlp_retcode retcode = RETCODE_OK;
 
   char *fname = "./example/s_afiro.mps";
   char *fout = "./solution.json";
 
-  int nCols;
-  int nRows;
-  int nEqs;
-  int nCols_origin;
+  cupdlp_int nCols;
+  cupdlp_int nRows;
+  cupdlp_int nEqs;
+  cupdlp_int nCols_origin;
   cupdlp_bool ifSaveSol = false;
   cupdlp_bool ifPresolve = false;
 
-  int nnz = 0;
-  double *rhs = NULL;
-  double *cost = NULL;
+  cupdlp_int nnz = 0;
+  cupdlp_float *rhs = NULL;
+  cupdlp_float *cost = NULL;
 
   cupdlp_float *lower = NULL;
   cupdlp_float *upper = NULL;
 
   // -------------------------
-  int *csc_beg = NULL, *csc_idx = NULL;
-  double *csc_val = NULL;
-  double offset;  // true objVal = c'x * sig - offset, sig = 1 (min) or -1 (max)
-  int *constraint_new_idx = NULL;
+  cupdlp_int *csc_beg = NULL, *csc_idx = NULL;
+  cupdlp_float *csc_val = NULL;
+  cupdlp_float
+      offset;  // true objVal = c'x * sig - offset, sig = 1 (min) or -1 (max)
+  cupdlp_int *constraint_new_idx = NULL;
   cupdlp_float *x_origin = cupdlp_NULL;
   cupdlp_float *y_origin = cupdlp_NULL;
 
@@ -164,12 +165,12 @@ cupdlp_retcode main(int argc, char **argv) {
   csc_cpu->nRows = nRows;
   csc_cpu->nCols = nCols;
   csc_cpu->nMatElem = nnz;
-  csc_cpu->colMatBeg = (int *)malloc((1 + nCols) * sizeof(int));
-  csc_cpu->colMatIdx = (int *)malloc(nnz * sizeof(int));
-  csc_cpu->colMatElem = (double *)malloc(nnz * sizeof(double));
-  memcpy(csc_cpu->colMatBeg, csc_beg, (nCols + 1) * sizeof(int));
-  memcpy(csc_cpu->colMatIdx, csc_idx, nnz * sizeof(int));
-  memcpy(csc_cpu->colMatElem, csc_val, nnz * sizeof(double));
+  csc_cpu->colMatBeg = (cupdlp_int *)malloc((1 + nCols) * sizeof(cupdlp_int));
+  csc_cpu->colMatIdx = (cupdlp_int *)malloc(nnz * sizeof(cupdlp_int));
+  csc_cpu->colMatElem = (cupdlp_float *)malloc(nnz * sizeof(cupdlp_float));
+  memcpy(csc_cpu->colMatBeg, csc_beg, (nCols + 1) * sizeof(cupdlp_int));
+  memcpy(csc_cpu->colMatIdx, csc_idx, nnz * sizeof(cupdlp_int));
+  memcpy(csc_cpu->colMatElem, csc_val, nnz * sizeof(cupdlp_float));
 #if !(CUPDLP_CPU)
   csc_cpu->cuda_csc = NULL;
 #endif

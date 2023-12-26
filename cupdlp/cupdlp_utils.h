@@ -36,7 +36,7 @@ void PDHG_PrintHugeCUPDHG();
 
 void PDHG_PrintUserParamHelper();
 
-cupdlp_retcode getUserParam(int argc, char **argv,
+cupdlp_retcode getUserParam(cupdlp_int argc, char **argv,
                             cupdlp_bool *ifChangeIntParam, cupdlp_int *intParam,
                             cupdlp_bool *ifChangeFloatParam,
                             cupdlp_float *floatParam);

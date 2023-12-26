@@ -10,11 +10,12 @@ void print_script_usage() {
   printf("\n");
 }
 
-void freealldata(int *Aeqp, int *Aeqi, double *Aeqx, int *Aineqp, int *Aineqi,
-                 double *Aineqx, int *colUbIdx, double *colUbElem, double *rhs,
-                 double *cost, double *x, double *s, double *t, double *sx,
-                 double *ss, double *st, double *y, double *lower,
-                 double *upper) {
+void freealldata(cupdlp_int *Aeqp, cupdlp_int *Aeqi, cupdlp_float *Aeqx, cupdlp_int *Aineqp,
+                 cupdlp_int *Aineqi, cupdlp_float *Aineqx, cupdlp_int *colUbIdx,
+                 cupdlp_float *colUbElem, cupdlp_float *rhs, cupdlp_float *cost,
+                 cupdlp_float *x, cupdlp_float *s, cupdlp_float *t,
+                 cupdlp_float *sx, cupdlp_float *ss, cupdlp_float *st,
+                 cupdlp_float *y, cupdlp_float *lower, cupdlp_float *upper) {
   if (Aeqp) {
     cupdlp_free(Aeqp);
   }
@@ -193,7 +194,7 @@ cupdlp_retcode problem_alloc(
   *copy_vec_time = getTimeStamp() - begin;
 
   // todo, translate to cuda
-  // for (int i = 0; i < nCols; i++)
+  // for (cupdlp_int i = 0; i < nCols; i++)
   // {
   //     prob->hasLower[i] = (lower[i] > -INFINITY);
   //     prob->hasUpper[i] = (upper[i] < +INFINITY);
@@ -201,8 +202,24 @@ cupdlp_retcode problem_alloc(
   // cupdlp_haslb(prob->hasLower, lower, -INFINITY, nCols);
   // cupdlp_hasub(prob->hasUpper, upper, +INFINITY, nCols);
 
-  cupdlp_haslb(prob->hasLower, prob->lower, -INFINITY, nCols);
-  cupdlp_hasub(prob->hasUpper, prob->upper, +INFINITY, nCols);
+  // cupdlp_haslb(prob->hasLower, prob->lower, -INFINITY, nCols);
+  // cupdlp_hasub(prob->hasUpper, prob->upper, +INFINITY, nCols);
+
+  cupdlp_float *haslb_host =
+      (cupdlp_float *)malloc(nCols * sizeof(cupdlp_float));
+  cupdlp_float *hasub_host =
+      (cupdlp_float *)malloc(nCols * sizeof(cupdlp_float));
+
+  for (cupdlp_int i = 0; i < nCols; i++) {
+    haslb_host[i] = (lower[i] > -INFINITY);
+    hasub_host[i] = (upper[i] < +INFINITY);
+  }
+
+  CUPDLP_COPY_VEC(prob->hasLower, haslb_host, cupdlp_float, nCols);
+  CUPDLP_COPY_VEC(prob->hasUpper, hasub_host, cupdlp_float, nCols);
+
+  cupdlp_free(haslb_host);
+  cupdlp_free(hasub_host);
 
   // TODO: cal dMaxCost, dMaxRhs, dMaxRowBound
 

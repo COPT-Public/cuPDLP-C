@@ -23,6 +23,8 @@ message(" - ${CMAKE_C_FLAGS_RELEASE}")
 message(" - ${CMAKE_CXX_FLAGS_RELEASE}")
 message(" - ${CMAKE_CUDA_FLAGS_RELEASE}")
 
+# add_definitions(-DSFLOAT)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 message(NOTICE "-- Sets build with CUDA ${BUILD_CUDA}")
 if (${BUILD_CUDA} STREQUAL "ON")

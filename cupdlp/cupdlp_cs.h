@@ -5,34 +5,34 @@
 
 /* sparse matrix in column-oriented form used in reading mps*/
 typedef struct cupdlp_cs_sparse {
-  int nzmax;
-  int m;     /* number of rows */
-  int n;     /* number of columns */
-  int *p;    /* column pointers (size n+1) or col indices (size nzmax) */
-  int *i;    /* row indices, size nzmax */
-  double *x; /* numerical values, size nzmax */
-  int nz;    /* # of entries in triplet matrix, -1 for compressed-col */
+  cupdlp_int nzmax;
+  cupdlp_int m;     /* number of rows */
+  cupdlp_int n;     /* number of columns */
+  cupdlp_int *p;    /* column pointers (size n+1) or col indices (size nzmax) */
+  cupdlp_int *i;    /* row indices, size nzmax */
+  cupdlp_float *x; /* numerical values, size nzmax */
+  cupdlp_int nz;    /* # of entries in triplet matrix, -1 for compressed-col */
 } cupdlp_dcs;
 
-int cupdlp_dcs_entry(cupdlp_dcs *T, int i, int j, double x);
+cupdlp_int cupdlp_dcs_entry(cupdlp_dcs *T, cupdlp_int i, cupdlp_int j, cupdlp_float x);
 cupdlp_dcs *cupdlp_dcs_compress(const cupdlp_dcs *T);
-double cupdlp_dcs_norm(const cupdlp_dcs *A);
-int cupdlp_dcs_print(const cupdlp_dcs *A, int brief);
+cupdlp_float cupdlp_dcs_norm(const cupdlp_dcs *A);
+cupdlp_int cupdlp_dcs_print(const cupdlp_dcs *A, cupdlp_int brief);
 
 /* utilities */
-void *_dcs_calloc(int n, size_t size);
+void *_dcs_calloc(cupdlp_int n, size_t size);
 void *cupdlp_dcs_free(void *p);
-void *cupdlp_dcs_realloc(void *p, int n, size_t size, int *ok);
-cupdlp_dcs *cupdlp_dcs_spalloc(int m, int n, int nzmax, int values, int t);
+void *cupdlp_dcs_realloc(void *p, cupdlp_int n, size_t size, cupdlp_int *ok);
+cupdlp_dcs *cupdlp_dcs_spalloc(cupdlp_int m, cupdlp_int n, cupdlp_int nzmax, cupdlp_int values, cupdlp_int t);
 cupdlp_dcs *cupdlp_dcs_spfree(cupdlp_dcs *A);
-int cupdlp_dcs_sprealloc(cupdlp_dcs *A, int nzmax);
-void *cupdlp_dcs_malloc(int n, size_t size);
+cupdlp_int cupdlp_dcs_sprealloc(cupdlp_dcs *A, cupdlp_int nzmax);
+void *cupdlp_dcs_malloc(cupdlp_int n, size_t size);
 
 /* utilities */
-double cupdlp_dcs_cumsum(int *p, int *c, int n);
-cupdlp_dcs *cupdlp_dcs_done(cupdlp_dcs *C, void *w, void *x, int ok);
-int *cupdlp_dcs_idone(int *p, cupdlp_dcs *C, void *w, int ok);
-cupdlp_dcs *cupdlp_dcs_transpose(const cupdlp_dcs *A, int values);
+cupdlp_float cupdlp_dcs_cumsum(cupdlp_int *p, cupdlp_int *c, cupdlp_int n);
+cupdlp_dcs *cupdlp_dcs_done(cupdlp_dcs *C, void *w, void *x, cupdlp_int ok);
+cupdlp_int *cupdlp_dcs_idone(cupdlp_int *p, cupdlp_dcs *C, void *w, cupdlp_int ok);
+cupdlp_dcs *cupdlp_dcs_transpose(const cupdlp_dcs *A, cupdlp_int values);
 
 #define IS_CSC(A) (A && (A->nz == -1))
 #define IS_TRIPLET(A) (A && (A->nz >= 0))

@@ -162,12 +162,14 @@ extern "C" {
     }                           \
   }
 
-#ifndef SFLOAT
+
 #ifdef DLONG
 typedef long long cupdlp_int;
 #else
 typedef int cupdlp_int;
 #endif
+
+#ifndef SFLOAT
 typedef double cupdlp_float;
 #ifndef NAN
 #define NAN ((cupdlp_float)0x7ff8000000000000)

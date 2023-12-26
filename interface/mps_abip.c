@@ -7,57 +7,57 @@
          colUbIdx: index of columns with upper bound (not all columns have upper
    bound)
 */
-cupdlp_retcode main(int argc, char **argv) {
+cupdlp_retcode main(cupdlp_int argc, char **argv) {
   cupdlp_retcode retcode = RETCODE_OK;
 
   char *fname = "./example/s_afiro.mps";
   char *fout = "./solution.json";
 
   char probname[128] = "?";
-  int *Aeqp = NULL;
-  int *Aeqi = NULL;
-  double *Aeqx = NULL;
+  cupdlp_int *Aeqp = NULL;
+  cupdlp_int *Aeqi = NULL;
+  cupdlp_float *Aeqx = NULL;
 
-  int *Aineqp = NULL;
-  int *Aineqi = NULL;
-  double *Aineqx = NULL;
+  cupdlp_int *Aineqp = NULL;
+  cupdlp_int *Aineqi = NULL;
+  cupdlp_float *Aineqx = NULL;
 
-  int *Afullp = NULL;
-  int *Afulli = NULL;
-  double *Afullx = NULL;
+  cupdlp_int *Afullp = NULL;
+  cupdlp_int *Afulli = NULL;
+  cupdlp_float *Afullx = NULL;
 
-  int *colUbIdx = NULL;
-  double *colUbElem = NULL;
+  cupdlp_int *colUbIdx = NULL;
+  cupdlp_float *colUbElem = NULL;
 
-  int nCols;
-  int nRows;
-  int nEqs;
-  int nIneqRow;
-  int nColUb;
+  cupdlp_int nCols;
+  cupdlp_int nRows;
+  cupdlp_int nEqs;
+  cupdlp_int nIneqRow;
+  cupdlp_int nColUb;
 
-  int nnz = 0;
-  double *rhs = NULL;
-  double *cost = NULL;
+  cupdlp_int nnz = 0;
+  cupdlp_float *rhs = NULL;
+  cupdlp_float *cost = NULL;
 
-  double *x = NULL;
-  double *s = NULL;
-  double *t = NULL;
-  double *sx = NULL;
-  double *ss = NULL;
-  double *st = NULL;
-  double *y = NULL;
-  double *dense_data = NULL;
-  int *row_ptr = NULL;
-  int *col_ind = NULL;
-  double *val_csr = NULL;
-  int *col_ptr = NULL;
-  int *row_ind = NULL;
-  double *val_csc = NULL;
+  cupdlp_float *x = NULL;
+  cupdlp_float *s = NULL;
+  cupdlp_float *t = NULL;
+  cupdlp_float *sx = NULL;
+  cupdlp_float *ss = NULL;
+  cupdlp_float *st = NULL;
+  cupdlp_float *y = NULL;
+  cupdlp_float *dense_data = NULL;
+  cupdlp_int *row_ptr = NULL;
+  cupdlp_int *col_ind = NULL;
+  cupdlp_float *val_csr = NULL;
+  cupdlp_int *col_ptr = NULL;
+  cupdlp_int *row_ind = NULL;
+  cupdlp_float *val_csc = NULL;
 
   cupdlp_float *lower = NULL;
   cupdlp_float *upper = NULL;
 
-  int niters = 0;
+  cupdlp_int niters = 0;
   // load parameters
   for (cupdlp_int i = 0; i < argc - 1; i++) {
     if (strcmp(argv[i], "-niter") == 0) {
@@ -120,10 +120,10 @@ cupdlp_retcode main(int argc, char **argv) {
   CUPDLP_INIT_ZERO(lower, nCols);
   CUPDLP_INIT_ZERO(upper, nCols);
 
-  for (int i = 0; i < nCols; i++) {
+  for (cupdlp_int i = 0; i < nCols; i++) {
     upper[i] = INFINITY;
   }
-  for (int i = 0; i < nColUb; i++) {
+  for (cupdlp_int i = 0; i < nColUb; i++) {
     upper[colUbIdx[i]] = colUbElem[i];
   }
 
@@ -132,10 +132,10 @@ cupdlp_retcode main(int argc, char **argv) {
   //        s.t. - Aeq x    = -b
   //             - Aineq x >= -bineq
   //             ub >= x >= 0
-  for (int i = 0; i < nRows; i++) {
+  for (cupdlp_int i = 0; i < nRows; i++) {
     rhs[i] *= -1.0;
   }
-  for (int i = 0; i < nnz; i++) {
+  for (cupdlp_int i = 0; i < nnz; i++) {
     Afullx[i] *= -1.0;
   }
 #if CUPDLP_DEBUG

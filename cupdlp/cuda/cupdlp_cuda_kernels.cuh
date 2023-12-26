@@ -4,15 +4,17 @@
 #include "cuda_runtime.h"
 #define CUPDLP_BLOCK_SIZE 512
 
-#ifndef SFLOAT
 #ifdef DLONG
 typedef long long cupdlp_int;
 #else
 typedef int cupdlp_int;
 #endif
+
+#ifndef SFLOAT
 typedef double cupdlp_float;
 #define CudaComputeType CUDA_R_64F
 #else
+typedef float cupdlp_float;
 #define CudaComputeType CUDA_R_32F
 #endif
 
@@ -106,5 +108,5 @@ __global__ void dual_grad_step_kernal(
     const cupdlp_float dDualStep, const cupdlp_int len);
 
 __global__ void naive_sub_kernal(cupdlp_float *z, const cupdlp_float *x,
-                                  const cupdlp_float *y, const cupdlp_int len);
+                                 const cupdlp_float *y, const cupdlp_int len);
 #endif

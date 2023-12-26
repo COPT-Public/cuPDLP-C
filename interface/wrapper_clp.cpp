@@ -58,16 +58,16 @@ extern "C" void *presolvedModel(void *presolve, void *model) {
  * but do remember to free them
  */
 
-extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
-                           int *nnz, int *nEqs, int **csc_beg, int **csc_idx,
-                           double **csc_val, double **rhs, double **lower,
-                           double **upper, double *offset, int *nCols_origin) {
-  int retcode = 0;
+extern "C" cupdlp_int formulateLP(void *model, cupdlp_float **cost, cupdlp_int *nCols, cupdlp_int *nRows,
+                           cupdlp_int *nnz, cupdlp_int *nEqs, cupdlp_int **csc_beg, cupdlp_int **csc_idx,
+                           cupdlp_float **csc_val, cupdlp_float **rhs, cupdlp_float **lower,
+                           cupdlp_float **upper, cupdlp_float *offset, cupdlp_int *nCols_origin) {
+  cupdlp_int retcode = 0;
 
   // problem size for malloc
-  int nCols_clp = ((ClpModel *)model)->getNumCols();
-  int nRows_clp = ((ClpModel *)model)->getNumRows();
-  int nnz_clp = ((ClpModel *)model)->getNumElements();
+  cupdlp_int nCols_clp = ((ClpModel *)model)->getNumCols();
+  cupdlp_int nRows_clp = ((ClpModel *)model)->getNumRows();
+  cupdlp_int nnz_clp = ((ClpModel *)model)->getNumElements();
   *nCols_origin = nCols_clp;
   *nRows = nRows_clp;                                // need not recalculate
   *nCols = nCols_clp;                                // need recalculate
@@ -90,7 +90,7 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
       ((const ClpModel *)model)->matrix()->getVectorStarts();
   const int *A_csc_idx = ((const ClpModel *)model)->matrix()->getIndices();
   const double *A_csc_val = ((const ClpModel *)model)->matrix()->getElements();
-  int has_lower, has_upper;
+  cupdlp_int has_lower, has_upper;
 
   // cupdlp_printf("------------------------------------------------\n");
   // vecIntPrint("A_csc_beg", A_csc_beg, nCols_clp + 1);
@@ -121,7 +121,7 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   CUPDLP_INIT(is_eq, nRows_clp);
 
   // recalculate nRows and nnz for Ax - z = 0
-  for (int i = 0; i < nRows_clp; i++) {
+  for (cupdlp_int i = 0; i < nRows_clp; i++) {
     has_lower = lhs_clp[i] > -1e20;
     has_upper = rhs_clp[i] < 1e20;
 
@@ -145,14 +145,14 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   CUPDLP_INIT(*rhs, *nRows);
 
   // formulate LP matrix
-  for (int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
-  for (int i = 0; i < nnz_clp; i++) {
+  for (cupdlp_int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
+  for (cupdlp_int i = 0; i < nnz_clp; i++) {
     // can add sort here.
     (*csc_idx)[i] = A_csc_idx[i];
     (*csc_val)[i] = A_csc_val[i];
   }
 
-  for (int i = 0, j = 0; i < nRows_clp; i++) {
+  for (cupdlp_int i = 0, j = 0; i < nRows_clp; i++) {
     if (!is_eq[i]) {
       (*csc_beg)[nCols_clp + j + 1] = (*csc_beg)[nCols_clp + j] + 1;
       (*csc_idx)[(*csc_beg)[nCols_clp + j]] = i;
@@ -162,7 +162,7 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   }
 
   // rhs
-  for (int i = 0; i < *nRows; i++) {
+  for (cupdlp_int i = 0; i < *nRows; i++) {
     if (is_eq[i])
       (*rhs)[i] = lhs_clp[i];
     else
@@ -170,18 +170,18 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   }
 
   // cost, lower, upper
-  for (int i = 0; i < nCols_clp; i++) {
+  for (cupdlp_int i = 0; i < nCols_clp; i++) {
     (*cost)[i] = ((ClpModel *)model)->getObjCoefficients()[i] *
                  ((ClpModel *)model)->getObjSense();
     (*lower)[i] = ((ClpModel *)model)->getColLower()[i];
 
     (*upper)[i] = ((ClpModel *)model)->getColUpper()[i];
   }
-  for (int i = nCols_clp; i < *nCols; i++) {
+  for (cupdlp_int i = nCols_clp; i < *nCols; i++) {
     (*cost)[i] = 0.0;
   }
 
-  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
+  for (cupdlp_int i = 0, j = nCols_clp; i < *nRows; i++) {
     if (!is_eq[i]) {
       (*lower)[j] = lhs_clp[i];
       (*upper)[j] = rhs_clp[i];
@@ -189,7 +189,7 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
     }
   }
 
-  for (int i = 0; i < *nCols; i++) {
+  for (cupdlp_int i = 0; i < *nCols; i++) {
     if ((*lower)[i] < -1e20) (*lower)[i] = -INFINITY;
     if ((*upper)[i] > 1e20) (*upper)[i] = INFINITY;
   }
@@ -228,17 +228,17 @@ exit_cleanup:
  * but do remember to free them
  */
 
-extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
-                               int *nRows, int *nnz, int *nEqs, int **csc_beg,
-                               int **csc_idx, double **csc_val, double **rhs,
-                               double **lower, double **upper, double *offset,
-                               int *nCols_origin, int **constraint_new_idx) {
-  int retcode = 0;
+extern "C" cupdlp_int formulateLP_new(void *model, cupdlp_float **cost, cupdlp_int *nCols,
+                               cupdlp_int *nRows, cupdlp_int *nnz, cupdlp_int *nEqs, cupdlp_int **csc_beg,
+                               cupdlp_int **csc_idx, cupdlp_float **csc_val, cupdlp_float **rhs,
+                               cupdlp_float **lower, cupdlp_float **upper, cupdlp_float *offset,
+                               cupdlp_int *nCols_origin, cupdlp_int **constraint_new_idx) {
+  cupdlp_int retcode = 0;
 
   // problem size for malloc
-  int nCols_clp = ((ClpModel *)model)->getNumCols();
-  int nRows_clp = ((ClpModel *)model)->getNumRows();
-  int nnz_clp = ((ClpModel *)model)->getNumElements();
+  cupdlp_int nCols_clp = ((ClpModel *)model)->getNumCols();
+  cupdlp_int nRows_clp = ((ClpModel *)model)->getNumRows();
+  cupdlp_int nnz_clp = ((ClpModel *)model)->getNumElements();
   *nCols_origin = nCols_clp;
   *nRows = nRows_clp;                                // need not recalculate
   *nCols = nCols_clp;                                // need recalculate
@@ -252,7 +252,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   // }
   // allocate buffer memory
   constraint_type *constraint_type_clp = NULL;  // the ONLY one need to free
-  // int *constraint_original_idx = NULL;  // pass by user is better, for
+  // cupdlp_int *constraint_original_idx = NULL;  // pass by user is better, for
   // postsolve recovering dual
 
   assert(((ClpModel *)model)->matrix()->isColOrdered());
@@ -263,13 +263,13 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
       ((const ClpModel *)model)->matrix()->getVectorStarts();
   const int *A_csc_idx = ((const ClpModel *)model)->matrix()->getIndices();
   const double *A_csc_val = ((const ClpModel *)model)->matrix()->getElements();
-  int has_lower, has_upper;
+  cupdlp_int has_lower, has_upper;
 
   CUPDLP_INIT(constraint_type_clp, nRows_clp);
   CUPDLP_INIT(*constraint_new_idx, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
-  for (int i = 0; i < nRows_clp; i++) {
+  for (cupdlp_int i = 0; i < nRows_clp; i++) {
     has_lower = lhs_clp[i] > -1e20;
     has_upper = rhs_clp[i] < 1e20;
 
@@ -303,7 +303,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   CUPDLP_INIT(*rhs, *nRows);
 
   // cost, lower, upper
-  for (int i = 0; i < nCols_clp; i++) {
+  for (cupdlp_int i = 0; i < nCols_clp; i++) {
     (*cost)[i] = ((ClpModel *)model)->getObjCoefficients()[i] *
                  ((ClpModel *)model)->getObjSense();
     (*lower)[i] = ((ClpModel *)model)->getColLower()[i];
@@ -311,11 +311,11 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
     (*upper)[i] = ((ClpModel *)model)->getColUpper()[i];
   }
   // slack costs
-  for (int i = nCols_clp; i < *nCols; i++) {
+  for (cupdlp_int i = nCols_clp; i < *nCols; i++) {
     (*cost)[i] = 0.0;
   }
   // slack bounds
-  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
+  for (cupdlp_int i = 0, j = nCols_clp; i < *nRows; i++) {
     if (constraint_type_clp[i] == BOUND) {
       (*lower)[j] = lhs_clp[i];
       (*upper)[j] = rhs_clp[i];
@@ -323,14 +323,14 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
     }
   }
 
-  for (int i = 0; i < *nCols; i++) {
+  for (cupdlp_int i = 0; i < *nCols; i++) {
     if ((*lower)[i] < -1e20) (*lower)[i] = -INFINITY;
     if ((*upper)[i] > 1e20) (*upper)[i] = INFINITY;
   }
 
   // permute LP rhs
   // EQ or BOUND first
-  for (int i = 0, j = 0; i < *nRows; i++) {
+  for (cupdlp_int i = 0, j = 0; i < *nRows; i++) {
     if (constraint_type_clp[i] == EQ) {
       (*rhs)[j] = lhs_clp[i];
       (*constraint_new_idx)[i] = j;
@@ -342,7 +342,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
     }
   }
   // then LEQ or GEQ
-  for (int i = 0, j = *nEqs; i < *nRows; i++) {
+  for (cupdlp_int i = 0, j = *nEqs; i < *nRows; i++) {
     if (constraint_type_clp[i] == LEQ) {
       (*rhs)[j] = -rhs_clp[i];  // multiply -1
       (*constraint_new_idx)[i] = j;
@@ -356,15 +356,15 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
 
   // formulate and permute LP matrix
   // beg remains the same
-  for (int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
-  for (int i = nCols_clp + 1; i < *nCols + 1; i++)
+  for (cupdlp_int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
+  for (cupdlp_int i = nCols_clp + 1; i < *nCols + 1; i++)
     (*csc_beg)[i] = (*csc_beg)[i - 1] + 1;
 
   // row idx changes
-  for (int i = 0, k = 0; i < nCols_clp; i++) {
+  for (cupdlp_int i = 0, k = 0; i < nCols_clp; i++) {
     // same order as in rhs
     // EQ or BOUND first
-    for (int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
+    for (cupdlp_int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
       if (constraint_type_clp[A_csc_idx[j]] == EQ ||
           constraint_type_clp[A_csc_idx[j]] == BOUND) {
         (*csc_idx)[k] = (*constraint_new_idx)[A_csc_idx[j]];
@@ -373,7 +373,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
       }
     }
     // then LEQ or GEQ
-    for (int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
+    for (cupdlp_int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
       if (constraint_type_clp[A_csc_idx[j]] == LEQ) {
         (*csc_idx)[k] = (*constraint_new_idx)[A_csc_idx[j]];
         (*csc_val)[k] = -A_csc_val[j];  // multiply -1
@@ -387,7 +387,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   }
 
   // slacks for BOUND
-  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
+  for (cupdlp_int i = 0, j = nCols_clp; i < *nRows; i++) {
     if (constraint_type_clp[i] == BOUND) {
       (*csc_idx)[(*csc_beg)[j]] = (*constraint_new_idx)[i];
       (*csc_val)[(*csc_beg)[j]] = -1.0;

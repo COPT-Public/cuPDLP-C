@@ -26,12 +26,12 @@ cupdlp_retcode scale_problem_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   cupdlp_cdiv(rhs, row_scaling, nRows);
 
   // row scaling
-  for (int i = 0; i < csc->colMatBeg[nCols]; i++) {
+  for (cupdlp_int i = 0; i < csc->colMatBeg[nCols]; i++) {
     csc->colMatElem[i] /= row_scaling[csc->colMatIdx[i]];
   }
   // col scaling
-  for (int i = 0; i < nCols; i++) {
-    for (int j = csc->colMatBeg[i]; j < csc->colMatBeg[i + 1]; j++) {
+  for (cupdlp_int i = 0; i < nCols; i++) {
+    for (cupdlp_int j = csc->colMatBeg[i]; j < csc->colMatBeg[i + 1]; j++) {
       csc->colMatElem[j] /= col_scaling[i];
     }
   }
@@ -64,7 +64,7 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
     cupdlp_zero(current_row_scaling, cupdlp_float, nRows);
 
     if (csc != NULL) {
-      for (int j = 0; j < nCols; j++) {
+      for (cupdlp_int j = 0; j < nCols; j++) {
         if (csc->colMatBeg[j] == csc->colMatBeg[j + 1]) {
           current_col_scaling[j] = 0;
         } else {
@@ -74,7 +74,7 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
         }
       }
     }
-    for (int j = 0; j < nCols; j++) {
+    for (cupdlp_int j = 0; j < nCols; j++) {
       if (current_col_scaling[j] == 0.0) {
         current_col_scaling[j] = 1.0;
       }
@@ -83,13 +83,13 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
     if (scaling->RuizNorm == INFINITY) {
       if (nRows > 0 && csc != NULL) {
         // inf norm of rows of csc
-        for (int j = 0; j < csc->colMatBeg[nCols]; j++) {
+        for (cupdlp_int j = 0; j < csc->colMatBeg[nCols]; j++) {
           if (current_row_scaling[csc->colMatIdx[j]] <
               ABS(csc->colMatElem[j])) {
             current_row_scaling[csc->colMatIdx[j]] = ABS(csc->colMatElem[j]);
           }
         }
-        for (int j = 0; j < nRows; j++) {
+        for (cupdlp_int j = 0; j < nRows; j++) {
           if (current_row_scaling[j] == 0.0) {
             current_row_scaling[j] = 1.0;
           } else {
@@ -134,7 +134,7 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
   if (nRows > 0 && csc != NULL) {
-    for (int j = 0; j < nCols; j++) {
+    for (cupdlp_int j = 0; j < nCols; j++) {
       if (csc->colMatBeg[j] == csc->colMatBeg[j + 1]) {
         current_col_scaling[j] = 1.0;
       } else {
@@ -144,10 +144,10 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
       }
     }
 
-    for (int i = 0; i < csc->colMatBeg[nCols]; i++) {
+    for (cupdlp_int i = 0; i < csc->colMatBeg[nCols]; i++) {
       current_row_scaling[csc->colMatIdx[i]] += pow(csc->colMatElem[i], 2.0);
     }
-    for (int i = 0; i < nRows; i++) {
+    for (cupdlp_int i = 0; i < nRows; i++) {
       current_row_scaling[i] = SQRTF(SQRTF(current_row_scaling[i]));
       if (current_row_scaling[i] == 0.0) {
         current_row_scaling[i] = 1.0;
@@ -190,8 +190,8 @@ cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   }
 
   if (nRows > 0 && csc != NULL) {
-    for (int i = 0; i < nCols; i++) {
-      for (int j = csc->colMatBeg[i]; j < csc->colMatBeg[i + 1]; j++) {
+    for (cupdlp_int i = 0; i < nCols; i++) {
+      for (cupdlp_int j = csc->colMatBeg[i]; j < csc->colMatBeg[i + 1]; j++) {
         current_col_scaling[i] += POWF(ABS(csc->colMatElem[j]), alpha);
       }
       current_col_scaling[i] = SQRTF(POWF(current_col_scaling[i], 1.0 / alpha));
@@ -200,11 +200,11 @@ cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
       }
     }
 
-    for (int i = 0; i < csc->colMatBeg[nCols]; i++) {
+    for (cupdlp_int i = 0; i < csc->colMatBeg[nCols]; i++) {
       current_row_scaling[csc->colMatIdx[i]] +=
           POWF(ABS(csc->colMatElem[i]), 2.0 - alpha);
     }
-    for (int i = 0; i < nRows; i++) {
+    for (cupdlp_int i = 0; i < nRows; i++) {
       current_row_scaling[i] =
           SQRTF(POWF(current_row_scaling[i], 1.0 / (2.0 - alpha)));
       if (current_row_scaling[i] == 0.0) {

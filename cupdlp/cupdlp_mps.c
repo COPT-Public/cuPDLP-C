@@ -62,10 +62,10 @@ static int freehash(cupdlp_hash *hash, int nfreed) {
 }
 
 static int rowIdxsplit(cupdlp_int m, cupdlp_int n, cupdlp_int *Ap,
-                       cupdlp_int *Ai, double *Ax, cupdlp_int *rowIndex,
-                       cupdlp_int **pBp, cupdlp_int **pBi, double **pBx,
-                       cupdlp_int **pCp, cupdlp_int **pCi, double **pCx,
-                       double *b) {
+                       cupdlp_int *Ai, cupdlp_float *Ax, cupdlp_int *rowIndex,
+                       cupdlp_int **pBp, cupdlp_int **pBi, cupdlp_float **pBx,
+                       cupdlp_int **pCp, cupdlp_int **pCi, cupdlp_float **pCx,
+                       cupdlp_float *b) {
   /*
      Split an csc matrix into two according to the value of rowIndex:
      Rows corresponding to 0 in rowIndex will be put in matrix B
@@ -87,7 +87,7 @@ static int rowIdxsplit(cupdlp_int m, cupdlp_int n, cupdlp_int *Ap,
   /* We are mapping the rows to a smaller set from 1 to # of rows*/
   int *BrowMap = NULL;
   int *CrowMap = NULL;
-  double *bRow = NULL;
+  cupdlp_float *bRow = NULL;
 
   CUPDLP_INIT(BrowMap, m);
   CUPDLP_INIT(CrowMap, m);
@@ -127,11 +127,11 @@ static int rowIdxsplit(cupdlp_int m, cupdlp_int n, cupdlp_int *Ap,
   /* Allocate memory for B and C */
   cupdlp_int *Bp = NULL;
   cupdlp_int *Bi = NULL;
-  double *Bx = NULL;
+  cupdlp_float *Bx = NULL;
 
   cupdlp_int *Cp = NULL;
   cupdlp_int *Ci = NULL;
-  double *Cx = NULL;
+  cupdlp_float *Cx = NULL;
 
   /* We allocate one more unit of memory in case there is no B or C */
   CUPDLP_INIT(Bp, n + 1);
@@ -172,7 +172,7 @@ static int rowIdxsplit(cupdlp_int m, cupdlp_int n, cupdlp_int *Ap,
   *pCi = Ci;
   *pCx = Cx;
 
-  cupdlp_copy(b, bRow, double, m);
+  cupdlp_copy(b, bRow, cupdlp_float, m);
 
 exit_cleanup:
 
@@ -343,12 +343,12 @@ extern void cupdlpDictDestroy(cupdlp_dict **pDict) {
 cupdlp_int cupdlpMpsRead(char *fname, char *name, int *pnRow, int *pnEqRow,
                          int *pnInEqRow, int *pnCol, int *pnElem,
                          int **pfullMatBeg, int **pfullMatIdx,
-                         double **pfullMatElem, int **peqMatBeg,
-                         int **peqMatIdx, double **peqMatElem,
+                         cupdlp_float **pfullMatElem, int **peqMatBeg,
+                         int **peqMatIdx, cupdlp_float **peqMatElem,
                          int **pIneqMatBeg, int **pIneqMatIdx,
-                         double **pIneqMatElem, double **prowRHS,
-                         double **pcolObj, int *pnColUb, int **pcolUbIdx,
-                         double **pcolUbElem) {
+                         cupdlp_float **pIneqMatElem, cupdlp_float **prowRHS,
+                         cupdlp_float **pcolObj, int *pnColUb, int **pcolUbIdx,
+                         cupdlp_float **pcolUbElem) {
   cupdlp_int retcode = RETCODE_OK;
 
   FILE *mps = NULL;
@@ -365,17 +365,17 @@ cupdlp_int cupdlpMpsRead(char *fname, char *name, int *pnRow, int *pnEqRow,
   /* LP data */
   int *eqMatBeg = NULL;
   int *eqMatIdx = NULL;
-  double *eqMatElem = NULL;
+  cupdlp_float *eqMatElem = NULL;
 
   int *inEqMatBeg = NULL;
   int *inEqMatIdx = NULL;
-  double *inEqMatElem = NULL;
+  cupdlp_float *inEqMatElem = NULL;
 
   int *colUbIdx = NULL;
-  double *colUbElem = NULL;
+  cupdlp_float *colUbElem = NULL;
 
-  double *rowRHS = NULL;
-  double *colObj = NULL;
+  cupdlp_float *rowRHS = NULL;
+  cupdlp_float *colObj = NULL;
 
   cupdlp_dcs *colMat = NULL;
   cupdlp_dcs *cscMat = NULL;
@@ -441,7 +441,7 @@ cupdlp_int cupdlpMpsRead(char *fname, char *name, int *pnRow, int *pnEqRow,
   char cname[128] = "*";
   char cname2[128] = "*";
   char objname[128] = "*";
-  double dElem = 0.0;
+  cupdlp_float dElem = 0.0;
   for (nCol = 0; !feof(mps);) {
     fgets(thisLine, LINE_BUFFER, mps);
     nLine += 1;

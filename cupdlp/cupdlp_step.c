@@ -83,7 +83,7 @@ cupdlp_retcode PDHG_Power_Method(CUPDLPwork *work, cupdlp_float *lambda) {
 
   cupdlp_initvec(q, 1.0, lp->nRows);
 
-  double res = 0.0;
+  cupdlp_float res = 0.0;
   for (cupdlp_int iter = 0; iter < 20; ++iter) {
     // z = A*A'*q
     ATy(work, iterates->aty, work->buffer);
@@ -185,7 +185,7 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
 
   cupdlp_bool isDone = false;
   // number of steps this round
-  int stepIterThis = 0;
+  cupdlp_int stepIterThis = 0;
   while (!isDone) {
     ++stepsize->nStepSizeIter;
     ++stepIterThis;

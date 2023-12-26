@@ -9,6 +9,18 @@ extern "C" {
 #endif
 // #include "../cupdlp/cupdlp.h"
 
+#ifdef DLONG
+typedef long long cupdlp_int;
+#else
+typedef int cupdlp_int;
+#endif
+
+#ifndef SFLOAT
+typedef double cupdlp_float;
+#else
+typedef float cupdlp_float;
+#endif
+
 #define CUPDLP_INIT(var, size)                                  \
   {                                                             \
     (var) = (typeof(var))malloc((size) * sizeof(typeof(*var))); \
@@ -20,16 +32,16 @@ extern "C" {
 
 typedef enum CONSTRAINT_TYPE { EQ = 0, LEQ, GEQ, BOUND } constraint_type;
 
-int formulateLP(void *model, double **cost, int *nCols, int *nRows, int *nnz,
-                int *nEqs, int **csc_beg, int **csc_idx, double **csc_val,
-                double **rhs, double **lower, double **upper, double *offset,
-                int *nCols_origin);
+cupdlp_int formulateLP(void *model, cupdlp_float **cost, cupdlp_int *nCols, cupdlp_int *nRows, cupdlp_int *nnz,
+                cupdlp_int *nEqs, cupdlp_int **csc_beg, cupdlp_int **csc_idx, cupdlp_float **csc_val,
+                cupdlp_float **rhs, cupdlp_float **lower, cupdlp_float **upper, cupdlp_float *offset,
+                cupdlp_int *nCols_origin);
 
-int formulateLP_new(void *model, double **cost, int *nCols, int *nRows,
-                    int *nnz, int *nEqs, int **csc_beg, int **csc_idx,
-                    double **csc_val, double **rhs, double **lower,
-                    double **upper, double *offset, int *nCols_origin,
-                    int **constraint_new_idx);
+cupdlp_int formulateLP_new(void *model, cupdlp_float **cost, cupdlp_int *nCols, cupdlp_int *nRows,
+                    cupdlp_int *nnz, cupdlp_int *nEqs, cupdlp_int **csc_beg, cupdlp_int **csc_idx,
+                    cupdlp_float **csc_val, cupdlp_float **rhs, cupdlp_float **lower,
+                    cupdlp_float **upper, cupdlp_float *offset, cupdlp_int *nCols_origin,
+                    cupdlp_int **constraint_new_idx);
 
 void loadMps(void *model, const char *filename);
 

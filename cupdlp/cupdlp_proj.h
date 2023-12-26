@@ -9,9 +9,9 @@
 // #include "cupdlp_scaling.h"
 #include "glbopts.h"
 
-void PDHG_Project_Bounds(CUPDLPwork *work, double *r);
+void PDHG_Project_Bounds(CUPDLPwork *work, cupdlp_float *r);
 
-void PDHG_Project_Row_Duals(CUPDLPwork *work, double *r);
+void PDHG_Project_Row_Duals(CUPDLPwork *work, cupdlp_float *r);
 
 void PDHG_Restart_Iterate(CUPDLPwork *pdhg);
 

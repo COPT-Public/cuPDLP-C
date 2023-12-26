@@ -485,7 +485,7 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("\n");
 }
 
-cupdlp_retcode getUserParam(int argc, char **argv,
+cupdlp_retcode getUserParam(cupdlp_int argc, char **argv,
                             cupdlp_bool *ifChangeIntParam, cupdlp_int *intParam,
                             cupdlp_bool *ifChangeFloatParam,
                             cupdlp_float *floatParam) {
@@ -762,7 +762,7 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   CUPDLP_INIT_ZERO_VEC(resobj->dUpperFiltered, ncols);
 
   // need to translate to cuda type
-  // for (int i = 0; i < ncols; i++)
+  // for (cupdlp_int i = 0; i < ncols; i++)
   // {
   //     resobj->dLowerFiltered[i] = problem->lower[i] > -INFINITY ?
   //     problem->lower[i] : 0.0; resobj->dUpperFiltered[i] = problem->upper[i]
@@ -1545,7 +1545,7 @@ void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
     // primal solution
     fprintf(fptr, ",\"x\":[");
     if (x && nx > 0) {
-      for (int i = 0; i < nx - 1; ++i) {
+      for (cupdlp_int i = 0; i < nx - 1; ++i) {
         fprintf(fptr, "%f,", x[i]);
       }
       fprintf(fptr, "%f", x[nx - 1]);
@@ -1555,7 +1555,7 @@ void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
     // dual solution
     fprintf(fptr, ",\"y\":[");
     if (y && ny > 0) {
-      for (int i = 0; i < ny - 1; ++i) {
+      for (cupdlp_int i = 0; i < ny - 1; ++i) {
         fprintf(fptr, "%f,", y[i]);
       }
       fprintf(fptr, "%f", y[ny - 1]);

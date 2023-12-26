@@ -17,11 +17,11 @@ cupdlp_retcode problem_alloc(
     cupdlp_float *copy_vec_time);
 // problem and data part
 cupdlp_retcode problem_create(CUPDLPproblem **prob);
-void freealldata(int *Aeqp, int *Aeqi, double *Aeqx, int *Aineqp, int *Aineqi,
-                 double *Aineqx, int *colUbIdx, double *colUbElem, double *rhs,
-                 double *cost, double *x, double *s, double *t, double *sx,
-                 double *ss, double *st, double *y, double *lower,
-                 double *upper);
+void freealldata(cupdlp_int *Aeqp, cupdlp_int *Aeqi, cupdlp_float *Aeqx, cupdlp_int *Aineqp, cupdlp_int *Aineqi,
+                 cupdlp_float *Aineqx, cupdlp_int *colUbIdx, cupdlp_float *colUbElem, cupdlp_float *rhs,
+                 cupdlp_float *cost, cupdlp_float *x, cupdlp_float *s, cupdlp_float *t, cupdlp_float *sx,
+                 cupdlp_float *ss, cupdlp_float *st, cupdlp_float *y, cupdlp_float *lower,
+                 cupdlp_float *upper);
 
 void print_script_usage();
 #ifdef __cplusplus

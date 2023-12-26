@@ -9,7 +9,7 @@
 // #include "cupdlp_scaling.h"
 #include "glbopts.h"
 
-cupdlp_retcode PDHG_Power_Method(CUPDLPwork *work, double *lambda);
+cupdlp_retcode PDHG_Power_Method(CUPDLPwork *work, cupdlp_float *lambda);
 
 void PDHG_Compute_Step_Size_Ratio(CUPDLPwork *pdhg);
 

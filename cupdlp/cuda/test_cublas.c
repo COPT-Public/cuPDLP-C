@@ -5,7 +5,7 @@ void use_cublas(cublasHandle_t cublashandle) {
   cupdlp_int len = 10;
   // cupdlp_int len = 1<<10;
 
-  // int N = 1<<20;
+  // cupdlp_int N = 1<<20;
 
   // alloc and init host vec memory
   cupdlp_float *h_vec1 = (cupdlp_float *)malloc(len * sizeof(cupdlp_float));
@@ -66,13 +66,13 @@ void use_cublas(cublasHandle_t cublashandle) {
   cudaFree(d_vec1);
   cudaFree(d_vec2);
 }
-int main() {
+cupdlp_int main() {
   // try cupdlp_edot_cuda
 
-  // int nDevices;
+  // cupdlp_int nDevices;
 
   // cudaGetDeviceCount(&nDevices);
-  //    for (int i = 0; i < nDevices; i++) {
+  //    for (cupdlp_int i = 0; i < nDevices; i++) {
   //        cudaDeviceProp prop;
   //        cudaGetDeviceProperties(&prop, i);
   //        printf("Device Number: %d\n", i);
@@ -89,7 +89,7 @@ int main() {
   // cupdlp_int len = 10;
   // // cupdlp_int len = 1<<10;
 
-  // // int N = 1<<20;
+  // // cupdlp_int N = 1<<20;
 
   // // alloc and init host vec memory
   // cupdlp_float *h_vec1 = (cupdlp_float *) malloc(len * sizeof(cupdlp_float));

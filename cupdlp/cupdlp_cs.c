@@ -2,12 +2,12 @@
 
 /* CSparse routines for reading inputs. Referenced from Tim Davis Suite Sparse
  */
-void *cupdlp_dcs_malloc(int n, size_t size) {
+void *cupdlp_dcs_malloc(cupdlp_int n, size_t size) {
   return (malloc(MAX(n, 1) * size));
 }
 
 /* wrapper for calloc */
-void *cupdlp_dcs_calloc(int n, size_t size) {
+void *cupdlp_dcs_calloc(cupdlp_int n, size_t size) {
   return (calloc(MAX(n, 1), size));
 }
 
@@ -18,15 +18,15 @@ void *cupdlp_dcs_free(void *p) {
 }
 
 /* wrapper for realloc */
-void *cupdlp_dcs_realloc(void *p, int n, size_t size, int *ok) {
+void *cupdlp_dcs_realloc(void *p, cupdlp_int n, size_t size, cupdlp_int *ok) {
   void *pnew;
   pnew = realloc(p, MAX(n, 1) * size); /* realloc the block */
   *ok = (pnew != NULL);                /* realloc fails if pnew is NULL */
   return ((*ok) ? pnew : p);           /* return original p if failure */
 }
 
-cupdlp_dcs *cupdlp_dcs_spalloc(int m, int n, int nzmax, int values,
-                               int triplet) {
+cupdlp_dcs *cupdlp_dcs_spalloc(cupdlp_int m, cupdlp_int n, cupdlp_int nzmax, cupdlp_int values,
+                               cupdlp_int triplet) {
   cupdlp_dcs *A = cupdlp_dcs_calloc(
       1, sizeof(cupdlp_dcs)); /* allocate the cupdlp_dcs struct */
   if (!A) return (NULL);      /* out of memory */
@@ -34,21 +34,21 @@ cupdlp_dcs *cupdlp_dcs_spalloc(int m, int n, int nzmax, int values,
   A->n = n;
   A->nzmax = nzmax = MAX(nzmax, 1);
   A->nz = triplet ? 0 : -1; /* allocate triplet or comp.col */
-  A->p = cupdlp_dcs_malloc(triplet ? nzmax : n + 1, sizeof(int));
-  A->i = cupdlp_dcs_malloc(nzmax, sizeof(int));
-  A->x = values ? cupdlp_dcs_malloc(nzmax, sizeof(double)) : NULL;
+  A->p = cupdlp_dcs_malloc(triplet ? nzmax : n + 1, sizeof(cupdlp_int));
+  A->i = cupdlp_dcs_malloc(nzmax, sizeof(cupdlp_int));
+  A->x = values ? cupdlp_dcs_malloc(nzmax, sizeof(cupdlp_float)) : NULL;
   return ((!A->p || !A->i || (values && !A->x)) ? cupdlp_dcs_spfree(A) : A);
 }
 
 /* change the max # of entries sparse matrix */
-int cupdlp_dcs_sprealloc(cupdlp_dcs *A, int nzmax) {
-  int ok, oki, okj = 1, okx = 1;
+cupdlp_int cupdlp_dcs_sprealloc(cupdlp_dcs *A, cupdlp_int nzmax) {
+  cupdlp_int ok, oki, okj = 1, okx = 1;
   if (!A) return (0);
   if (nzmax <= 0) nzmax = IS_CSC(A) ? (A->p[A->n]) : A->nz;
   nzmax = MAX(nzmax, 1);
-  A->i = cupdlp_dcs_realloc(A->i, nzmax, sizeof(int), &oki);
-  if (IS_TRIPLET(A)) A->p = cupdlp_dcs_realloc(A->p, nzmax, sizeof(int), &okj);
-  if (A->x) A->x = cupdlp_dcs_realloc(A->x, nzmax, sizeof(double), &okx);
+  A->i = cupdlp_dcs_realloc(A->i, nzmax, sizeof(cupdlp_int), &oki);
+  if (IS_TRIPLET(A)) A->p = cupdlp_dcs_realloc(A->p, nzmax, sizeof(cupdlp_int), &okj);
+  if (A->x) A->x = cupdlp_dcs_realloc(A->x, nzmax, sizeof(cupdlp_float), &okx);
   ok = (oki && okj && okx);
   if (ok) A->nzmax = nzmax;
   return (ok);
@@ -65,21 +65,21 @@ cupdlp_dcs *cupdlp_dcs_spfree(cupdlp_dcs *A) {
 }
 
 /* free workspace and return a sparse matrix result */
-cupdlp_dcs *cupdlp_dcs_done(cupdlp_dcs *C, void *w, void *x, int ok) {
+cupdlp_dcs *cupdlp_dcs_done(cupdlp_dcs *C, void *w, void *x, cupdlp_int ok) {
   cupdlp_dcs_free(w); /* free workspace */
   cupdlp_dcs_free(x);
   return (ok ? C
              : cupdlp_dcs_spfree(C)); /* return result if OK, else free it */
 }
 
-double cupdlp_dcs_cumsum(int *p, int *c, int n) {
-  int i, nz = 0;
-  double nz2 = 0;
+cupdlp_float cupdlp_dcs_cumsum(cupdlp_int *p, cupdlp_int *c, cupdlp_int n) {
+  cupdlp_int i, nz = 0;
+  cupdlp_float nz2 = 0;
   if (!p || !c) return (-1); /* check inputs */
   for (i = 0; i < n; i++) {
     p[i] = nz;
     nz += c[i];
-    nz2 += c[i]; /* also in double to avoid int overflow */
+    nz2 += c[i]; /* also in cupdlp_float to avoid cupdlp_int overflow */
     c[i] = p[i]; /* also copy p[0..n-1] back into c[0..n-1]*/
   }
   p[n] = nz;
@@ -87,7 +87,7 @@ double cupdlp_dcs_cumsum(int *p, int *c, int n) {
 }
 
 /* add an entry to a triplet matrix; return 1 if ok, 0 otherwise */
-int cupdlp_dcs_entry(cupdlp_dcs *T, int i, int j, double x) {
+cupdlp_int cupdlp_dcs_entry(cupdlp_dcs *T, cupdlp_int i, cupdlp_int j, cupdlp_float x) {
   if (!IS_TRIPLET(T) || i < 0 || j < 0) return (0); /* check inputs */
   if (T->nz >= T->nzmax && !cupdlp_dcs_sprealloc(T, 2 * (T->nzmax))) return (0);
   if (T->x) T->x[T->nz] = x;
@@ -99,8 +99,8 @@ int cupdlp_dcs_entry(cupdlp_dcs *T, int i, int j, double x) {
 }
 
 cupdlp_dcs *cupdlp_dcs_compress(const cupdlp_dcs *T) {
-  int m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj;
-  double *Cx, *Tx;
+  cupdlp_int m, n, nz, p, k, *Cp, *Ci, *w, *Ti, *Tj;
+  cupdlp_float *Cx, *Tx;
   cupdlp_dcs *C;
   if (!IS_TRIPLET(T)) return (NULL); /* check inputs */
   m = T->m;
@@ -110,7 +110,7 @@ cupdlp_dcs *cupdlp_dcs_compress(const cupdlp_dcs *T) {
   Tx = T->x;
   nz = T->nz;
   C = cupdlp_dcs_spalloc(m, n, nz, Tx != NULL, 0);       /* allocate result */
-  w = cupdlp_dcs_calloc(n, sizeof(int));                 /* get workspace */
+  w = cupdlp_dcs_calloc(n, sizeof(cupdlp_int));                 /* get workspace */
   if (!C || !w) return (cupdlp_dcs_done(C, w, NULL, 0)); /* out of memory */
   Cp = C->p;
   Ci = C->i;
@@ -124,10 +124,10 @@ cupdlp_dcs *cupdlp_dcs_compress(const cupdlp_dcs *T) {
   return (cupdlp_dcs_done(C, w, NULL, 1)); /* success; free w and return C */
 }
 
-double cupdlp_dcs_norm(const cupdlp_dcs *A) {
-  int p, j, n, *Ap;
-  double *Ax;
-  double nrm = 0, s;
+cupdlp_float cupdlp_dcs_norm(const cupdlp_dcs *A) {
+  cupdlp_int p, j, n, *Ap;
+  cupdlp_float *Ax;
+  cupdlp_float nrm = 0, s;
   if (!IS_CSC(A) || !A->x) return (-1); /* check inputs */
   n = A->n;
   Ap = A->p;
@@ -139,9 +139,9 @@ double cupdlp_dcs_norm(const cupdlp_dcs *A) {
   return (nrm);
 }
 
-int cupdlp_dcs_print(const cupdlp_dcs *A, int brief) {
-  int p, j, m, n, nzmax, nz, *Ap, *Ai;
-  double *Ax;
+cupdlp_int cupdlp_dcs_print(const cupdlp_dcs *A, cupdlp_int brief) {
+  cupdlp_int p, j, m, n, nzmax, nz, *Ap, *Ai;
+  cupdlp_float *Ax;
   if (!A) {
     printf("(null)\n");
     return (0);
@@ -154,13 +154,13 @@ int cupdlp_dcs_print(const cupdlp_dcs *A, int brief) {
   nzmax = A->nzmax;
   nz = A->nz;
   if (nz < 0) {
-    printf("%g-by-%g, nzmax: %g nnz: %g, 1-norm: %g\n", (double)m, (double)n,
-           (double)nzmax, (double)(Ap[n]), cupdlp_dcs_norm(A));
+    printf("%g-by-%g, nzmax: %g nnz: %g, 1-norm: %g\n", (cupdlp_float)m, (cupdlp_float)n,
+           (cupdlp_float)nzmax, (cupdlp_float)(Ap[n]), cupdlp_dcs_norm(A));
     for (j = 0; j < n; j++) {
-      printf("    col %g : locations %g to %g\n", (double)j, (double)(Ap[j]),
-             (double)(Ap[j + 1] - 1));
+      printf("    col %g : locations %g to %g\n", (cupdlp_float)j, (cupdlp_float)(Ap[j]),
+             (cupdlp_float)(Ap[j + 1] - 1));
       for (p = Ap[j]; p < Ap[j + 1]; p++) {
-        printf("      %g : ", (double)(Ai[p]));
+        printf("      %g : ", (cupdlp_float)(Ai[p]));
         printf("%50.50e \n", Ax ? Ax[p] : 1);
         if (brief && p > 20) {
           printf("  ...\n");
@@ -169,10 +169,10 @@ int cupdlp_dcs_print(const cupdlp_dcs *A, int brief) {
       }
     }
   } else {
-    printf("triplet: %g-by-%g, nzmax: %g nnz: %g\n", (double)m, (double)n,
-           (double)nzmax, (double)nz);
+    printf("triplet: %g-by-%g, nzmax: %g nnz: %g\n", (cupdlp_float)m, (cupdlp_float)n,
+           (cupdlp_float)nzmax, (cupdlp_float)nz);
     for (p = 0; p < nz; p++) {
-      printf("    %g %g : ", (double)(Ai[p]), (double)(Ap[p]));
+      printf("    %g %g : ", (cupdlp_float)(Ai[p]), (cupdlp_float)(Ap[p]));
       printf("%g\n", Ax ? Ax[p] : 1);
       if (brief && p > 20) {
         printf("  ...\n");
@@ -183,9 +183,9 @@ int cupdlp_dcs_print(const cupdlp_dcs *A, int brief) {
   return (1);
 }
 
-cupdlp_dcs *cupdlp_dcs_transpose(const cupdlp_dcs *A, int values) {
+cupdlp_dcs *cupdlp_dcs_transpose(const cupdlp_dcs *A, cupdlp_int values) {
   cupdlp_int p, q, j, *Cp, *Ci, n, m, *Ap, *Ai, *w;
-  double *Cx, *Ax;
+  cupdlp_float *Cx, *Ax;
   cupdlp_dcs *C;
   if (!IS_CSC(A)) return (NULL); /* check inputs */
   m = A->m;

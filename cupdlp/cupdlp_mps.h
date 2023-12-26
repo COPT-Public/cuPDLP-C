@@ -7,11 +7,11 @@
 cupdlp_int cupdlpMpsRead(char *fname, char *name, int *pnRow, int *pnEqRow,
                          int *pnInEqRow, int *pnCol, int *pnElem,
                          int **pfullMatBeg, int **pfullMatIdx,
-                         double **pfullMatElem, int **peqMatBeg,
-                         int **peqMatIdx, double **peqMatElem,
+                         cupdlp_float **pfullMatElem, int **peqMatBeg,
+                         int **peqMatIdx, cupdlp_float **peqMatElem,
                          int **pIneqMatBeg, int **pIneqMatIdx,
-                         double **pIneqMatElem, double **prowRHS,
-                         double **pcolObj, int *pnColUb, int **pcolUbIdx,
-                         double **pcolUbElem);
+                         cupdlp_float **pIneqMatElem, cupdlp_float **prowRHS,
+                         cupdlp_float **pcolObj, int *pnColUb, int **pcolUbIdx,
+                         cupdlp_float **pcolUbElem);
 
 #endif /* lp_mps_h */
