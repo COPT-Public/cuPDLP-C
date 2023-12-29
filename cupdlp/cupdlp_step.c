@@ -81,7 +81,16 @@ cupdlp_retcode PDHG_Power_Method(CUPDLPwork *work, cupdlp_float *lambda) {
 
   cupdlp_float *q = work->buffer->data;
 
-  cupdlp_initvec(q, 1.0, lp->nRows);
+  // cupdlp_initvec(q, 1.0, lp->nRows);
+
+  // debug
+  cupdlp_float *all_ones =
+      (cupdlp_float *)malloc(sizeof(cupdlp_float) * lp->nRows);
+  for (int i = 0; i < lp->nRows; ++i) {
+    all_ones[i] = 1.0;
+  }
+  CUPDLP_COPY_VEC(work->buffer->data, all_ones, cupdlp_float, lp->nRows);
+  // debug
 
   cupdlp_float res = 0.0;
   for (cupdlp_int iter = 0; iter < 20; ++iter) {
@@ -116,7 +125,7 @@ void PDHG_Compute_Step_Size_Ratio(CUPDLPwork *pdhg) {
   CUPDLPiterates *iterates = pdhg->iterates;
   CUPDLPstepsize *stepsize = pdhg->stepsize;
   cupdlp_float dMeanStepSize =
-      sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
+      SQRTF(stepsize->dPrimalStep * stepsize->dDualStep);
 
   // cupdlp_float dDiffPrimal = cupdlp_diffTwoNorm(iterates->x,
   // iterates->xLastRestart, problem->nCols); cupdlp_float dDiffDual =
@@ -132,11 +141,11 @@ void PDHG_Compute_Step_Size_Ratio(CUPDLPwork *pdhg) {
   if (fmin(dDiffPrimal, dDiffDual) > 1e-10) {
     cupdlp_float dBetaUpdate = dDiffDual / dDiffPrimal;
     cupdlp_float dLogBetaUpdate =
-        0.5 * log(dBetaUpdate) + 0.5 * log(sqrt(stepsize->dBeta));
+        0.5 * log(dBetaUpdate) + 0.5 * log(SQRTF(stepsize->dBeta));
     stepsize->dBeta = exp(dLogBetaUpdate) * exp(dLogBetaUpdate);
   }
 
-  stepsize->dPrimalStep = dMeanStepSize / sqrt(stepsize->dBeta);
+  stepsize->dPrimalStep = dMeanStepSize / SQRTF(stepsize->dBeta);
   stepsize->dDualStep = stepsize->dPrimalStep * stepsize->dBeta;
   stepsize->dTheta = 1.0;
 }
@@ -181,7 +190,7 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
   CUPDLPstepsize *stepsize = pdhg->stepsize;
 
   cupdlp_float dStepSizeUpdate =
-      sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
+      SQRTF(stepsize->dPrimalStep * stepsize->dDualStep);
 
   cupdlp_bool isDone = false;
   // number of steps this round
@@ -190,8 +199,8 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
     ++stepsize->nStepSizeIter;
     ++stepIterThis;
 
-    cupdlp_float dPrimalStepUpdate = dStepSizeUpdate / sqrt(stepsize->dBeta);
-    cupdlp_float dDualStepUpdate = dStepSizeUpdate * sqrt(stepsize->dBeta);
+    cupdlp_float dPrimalStepUpdate = dStepSizeUpdate / SQRTF(stepsize->dBeta);
+    cupdlp_float dDualStepUpdate = dStepSizeUpdate * SQRTF(stepsize->dBeta);
 
     // x^{k+1} = proj_{X}(x^k - dPrimalStep * (cupdlp - A'y^k))
     PDHG_primalGradientStep(pdhg, dPrimalStepUpdate);
@@ -214,12 +223,12 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
     cupdlp_float dX = 0.0;
     cupdlp_diffTwoNormSquared(pdhg, iterates->x->data, iterates->xUpdate->data,
                               problem->nCols, &dX);
-    dX *= 0.5 * sqrt(stepsize->dBeta);
+    dX *= 0.5 * SQRTF(stepsize->dBeta);
 
     cupdlp_float dY = 0.0;
     cupdlp_diffTwoNormSquared(pdhg, iterates->y->data, iterates->yUpdate->data,
                               problem->nRows, &dY);
-    dY /= 2.0 * sqrt(stepsize->dBeta);
+    dY /= 2.0 * SQRTF(stepsize->dBeta);
     dMovement = dX + dY;
 
     //      Δx' (AΔy)
@@ -249,11 +258,11 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
       CUPDLP_CHECK_TIMEOUT(pdhg);
     }
 
-    cupdlp_float dFirstTerm = (1.0 - pow(stepsize->nStepSizeIter + 1.0,
-                                         -PDHG_STEPSIZE_REDUCTION_EXP)) *
+    cupdlp_float dFirstTerm = (1.0 - POWF(stepsize->nStepSizeIter + 1.0,
+                                          -PDHG_STEPSIZE_REDUCTION_EXP)) *
                               dStepSizeLimit;
     cupdlp_float dSecondTerm =
-        (1.0 + pow(stepsize->nStepSizeIter + 1.0, -PDHG_STEPSIZE_GROWTH_EXP)) *
+        (1.0 + POWF(stepsize->nStepSizeIter + 1.0, -PDHG_STEPSIZE_GROWTH_EXP)) *
         dStepSizeUpdate;
     dStepSizeUpdate = fmin(dFirstTerm, dSecondTerm);
 #if CUPDLP_DUMP_LINESEARCH_STATS & CUPDLP_DEBUG
@@ -275,8 +284,8 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
 #endif
   }
 
-  stepsize->dPrimalStep = dStepSizeUpdate / sqrt(stepsize->dBeta);
-  stepsize->dDualStep = dStepSizeUpdate * sqrt(stepsize->dBeta);
+  stepsize->dPrimalStep = dStepSizeUpdate / SQRTF(stepsize->dBeta);
+  stepsize->dDualStep = dStepSizeUpdate * SQRTF(stepsize->dBeta);
 
 exit_cleanup:
   return retcode;
@@ -291,7 +300,7 @@ cupdlp_retcode PDHG_Init_Step_Sizes(CUPDLPwork *pdhg) {
 
   if (stepsize->eLineSearchMethod == PDHG_FIXED_LINESEARCH) {
     CUPDLP_CALL(PDHG_Power_Method(pdhg, &stepsize->dPrimalStep));
-    // PDLP Intial primal weight = norm(cost) / norm(rhs) = sqrt(beta)
+    // PDLP Intial primal weight = norm(cost) / norm(rhs) = SQRTF(beta)
     // cupdlp_float a = twoNormSquared(problem->cost, problem->nCols);
     // cupdlp_float b = twoNormSquared(problem->rhs, problem->nRows);
     cupdlp_float a = 0.0;
@@ -305,14 +314,14 @@ cupdlp_retcode PDHG_Init_Step_Sizes(CUPDLPwork *pdhg) {
       stepsize->dBeta = 1.0;
     }
 
-    stepsize->dPrimalStep = 0.8 / sqrt(stepsize->dPrimalStep);
+    stepsize->dPrimalStep = 0.8 / SQRTF(stepsize->dPrimalStep);
     stepsize->dDualStep = stepsize->dPrimalStep;
-    stepsize->dPrimalStep /= sqrt(stepsize->dBeta);
-    stepsize->dDualStep *= sqrt(stepsize->dBeta);
+    stepsize->dPrimalStep /= SQRTF(stepsize->dBeta);
+    stepsize->dDualStep *= SQRTF(stepsize->dBeta);
   } else {
     stepsize->dTheta = 1.0;
 
-    // PDLP Intial primal weight = norm(cost) / norm(rhs) = sqrt(beta)
+    // PDLP Intial primal weight = norm(cost) / norm(rhs) = SQRTF(beta)
     // cupdlp_float a = twoNormSquared(problem->cost, problem->nCols);
     // cupdlp_float b = twoNormSquared(problem->rhs, problem->nRows);
     cupdlp_float a = 0.0;
@@ -330,7 +339,7 @@ cupdlp_retcode PDHG_Init_Step_Sizes(CUPDLPwork *pdhg) {
         // (1.0 / infNorm(problem->data->csc_matrix->colMatElem,
         // problem->data->csc_matrix->nMatElem)) /
         (1.0 / problem->data->csc_matrix->MatElemNormInf) /
-        sqrt(stepsize->dBeta);
+        SQRTF(stepsize->dBeta);
     stepsize->dDualStep = stepsize->dPrimalStep * stepsize->dBeta;
     iterates->dLastRestartBeta = stepsize->dBeta;
   }
@@ -379,7 +388,7 @@ void PDHG_Update_Average(CUPDLPwork *work) {
 
   // PDLP weighs average iterates in this way
   cupdlp_float dMeanStepSize =
-      sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
+      SQRTF(stepsize->dPrimalStep * stepsize->dDualStep);
   // AddToVector(iterates->xSum, dMeanStepSize, iterates->xUpdate,
   // lp->nCols); AddToVector(iterates->ySum, dMeanStepSize,
   // iterates->yUpdate, lp->nRows);
@@ -398,7 +407,7 @@ cupdlp_retcode PDHG_Update_Iterate(CUPDLPwork *pdhg) {
 #if PDHG_USE_TIMERS
   CUPDLPtimers *timers = pdhg->timers;
   ++timers->nUpdateIterateCalls;
-  cupdlp_float dStartTime = getTimeStamp();
+  double dStartTime = getTimeStamp();
 #endif
 
   CUPDLPproblem *problem = pdhg->problem;

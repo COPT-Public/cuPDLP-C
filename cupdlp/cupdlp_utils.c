@@ -289,13 +289,13 @@ cupdlp_int PDHG_Clear(CUPDLPwork *w) {
   CUPDLPscaling *scaling = w->scaling;
 
   if (w) {
-    cupdlp_float begin = getTimeStamp();
+    double begin = getTimeStamp();
 #if !(CUPDLP_CPU)
 
     // CUDAmv *MV = w->MV;
     // if (MV)
     // {
-    //     cupdlp_float begin = getTimeStamp();
+    //     double begin = getTimeStamp();
     //     cuda_free_mv(MV);
     //     timers->FreeDeviceMemTime += getTimeStamp() - begin;
     // }
@@ -769,8 +769,30 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   //     < +INFINITY ? problem->upper[i] : 0.0;
   // }
 
-  cupdlp_filterlb(resobj->dLowerFiltered, problem->lower, -INFINITY, ncols);
-  cupdlp_filterub(resobj->dUpperFiltered, problem->upper, +INFINITY, ncols);
+  // cupdlp_filterlb(resobj->dLowerFiltered, problem->lower, -INFINITY, ncols);
+  // cupdlp_filterub(resobj->dUpperFiltered, problem->upper, +INFINITY, ncols);
+
+  cupdlp_float *temp =
+      (cupdlp_float *)cupdlp_malloc(ncols * sizeof(cupdlp_float));
+
+  // lower bound
+  CUPDLP_COPY_VEC(temp, problem->lower, cupdlp_float, ncols);
+  for (cupdlp_int i = 0; i < ncols; i++) {
+    if (temp[i] <= -INFINITY) {
+      temp[i] = 0.0;
+    }
+  }
+  CUPDLP_COPY_VEC(resobj->dLowerFiltered, temp, cupdlp_float, ncols);
+
+  // upper bound
+  CUPDLP_COPY_VEC(temp, problem->upper, cupdlp_float, ncols);
+  for (cupdlp_int i = 0; i < ncols; i++) {
+    if (temp[i] >= +INFINITY) {
+      temp[i] = 0.0;
+    }
+  }
+  CUPDLP_COPY_VEC(resobj->dUpperFiltered, temp, cupdlp_float, ncols);
+  cupdlp_free(temp);
 
   // initialization
   resobj->dFeasTol = 1e-8;
@@ -948,7 +970,7 @@ cupdlp_retcode PDHG_Alloc(CUPDLPwork *w) {
   CUPDLP_INIT(w->timers, 1);
   CUPDLP_CALL(timers_Alloc(w->timers));
 
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
   // buffer
   CUPDLP_INIT(w->buffer, 1);
   CUPDLP_CALL(vec_Alloc(w->buffer, w->problem->data->nRows));
@@ -1415,8 +1437,8 @@ void PDHG_Dump_Stats(CUPDLPwork *w) {
       stepsize->dPrimalStep, stepsize->dSumPrimalStep, stepsize->dDualStep,
       stepsize->dSumDualStep);
   cupdlp_printf("Stepsize: %e, Primal weight: %e Ratio: %e\n",
-                sqrt(stepsize->dPrimalStep * stepsize->dDualStep),
-                sqrt(stepsize->dBeta), stepsize->dTheta);
+                SQRTF(stepsize->dPrimalStep * stepsize->dDualStep),
+                SQRTF(stepsize->dBeta), stepsize->dTheta);
 }
 
 void csrPrintDense(const char *s, CUPDLPcsr *csr) {

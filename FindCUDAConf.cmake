@@ -2,7 +2,8 @@
 set(CUDA_LIBRARY-NOTFOUND, OFF)
 message(NOTICE "Finding CUDA environment")
 message(NOTICE "    - CUDA Home detected at $ENV{CUDA_HOME}")
-set(CMAKE_CUDA_ARCHITECTURES "native")
+# set(CMAKE_CUDA_ARCHITECTURES "native")
+set(CMAKE_CUDA_ARCHITECTURES "all")
 set(CMAKE_CUDA_PATH "$ENV{CUDA_HOME}")
 set(CMAKE_CUDA_COMPILER "${CMAKE_CUDA_PATH}/bin/nvcc")
 

@@ -10,12 +10,13 @@ void print_script_usage() {
   printf("\n");
 }
 
-void freealldata(cupdlp_int *Aeqp, cupdlp_int *Aeqi, cupdlp_float *Aeqx, cupdlp_int *Aineqp,
-                 cupdlp_int *Aineqi, cupdlp_float *Aineqx, cupdlp_int *colUbIdx,
-                 cupdlp_float *colUbElem, cupdlp_float *rhs, cupdlp_float *cost,
-                 cupdlp_float *x, cupdlp_float *s, cupdlp_float *t,
-                 cupdlp_float *sx, cupdlp_float *ss, cupdlp_float *st,
-                 cupdlp_float *y, cupdlp_float *lower, cupdlp_float *upper) {
+void freealldata(cupdlp_int *Aeqp, cupdlp_int *Aeqi, cupdlp_float *Aeqx,
+                 cupdlp_int *Aineqp, cupdlp_int *Aineqi, cupdlp_float *Aineqx,
+                 cupdlp_int *colUbIdx, cupdlp_float *colUbElem,
+                 cupdlp_float *rhs, cupdlp_float *cost, cupdlp_float *x,
+                 cupdlp_float *s, cupdlp_float *t, cupdlp_float *sx,
+                 cupdlp_float *ss, cupdlp_float *st, cupdlp_float *y,
+                 cupdlp_float *lower, cupdlp_float *upper) {
   if (Aeqp) {
     cupdlp_free(Aeqp);
   }
@@ -153,12 +154,14 @@ exit_cleanup:
   return retcode;
 }
 
-cupdlp_retcode problem_alloc(
-    CUPDLPproblem *prob, cupdlp_int nRows, cupdlp_int nCols, cupdlp_int nEqs,
-    cupdlp_float *cost, void *matrix, CUPDLP_MATRIX_FORMAT src_matrix_format,
-    CUPDLP_MATRIX_FORMAT dst_matrix_format, cupdlp_float *rhs,
-    cupdlp_float *lower, cupdlp_float *upper, cupdlp_float *alloc_matrix_time,
-    cupdlp_float *copy_vec_time) {
+cupdlp_retcode problem_alloc(CUPDLPproblem *prob, cupdlp_int nRows,
+                             cupdlp_int nCols, cupdlp_int nEqs,
+                             cupdlp_float *cost, void *matrix,
+                             CUPDLP_MATRIX_FORMAT src_matrix_format,
+                             CUPDLP_MATRIX_FORMAT dst_matrix_format,
+                             cupdlp_float *rhs, cupdlp_float *lower,
+                             cupdlp_float *upper, double *alloc_matrix_time,
+                             double *copy_vec_time) {
   cupdlp_retcode retcode = RETCODE_OK;
   prob->nRows = nRows;
   prob->nCols = nCols;
@@ -169,7 +172,7 @@ cupdlp_retcode problem_alloc(
   prob->lower = cupdlp_NULL;
   prob->upper = cupdlp_NULL;
 
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
 
   CUPDLP_INIT(prob->data, 1);
   CUPDLP_INIT_VEC(prob->cost, nCols);

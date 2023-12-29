@@ -12,7 +12,8 @@ extern "C" {
 
 #define PDHG_USE_TIMERS (1)
 #define USE_MY_BLAS (1)
-#define USE_KERNELS (1)
+// #define USE_KERNELS (1)
+#define USE_KERNELS (0)
 
 #define PDHG_STEPSIZE_REDUCTION_EXP \
   (0.3)  // Parameters in PDLP adaptive linesearch
@@ -321,15 +322,15 @@ struct CUPDLP_SCALING {
 struct CUPDLP_TIMERS {
   /* timers */
   cupdlp_int nIter;
-  cupdlp_float dSolvingTime;
-  cupdlp_float dSolvingBeg;
-  cupdlp_float dScalingTime;
-  cupdlp_float dPresolveTime;
+  double dSolvingTime;
+  double dSolvingBeg;
+  double dScalingTime;
+  double dPresolveTime;
 #if PDHG_USE_TIMERS
-  cupdlp_float dAtyTime;
-  cupdlp_float dAxTime;
-  cupdlp_float dComputeResidualsTime;
-  cupdlp_float dUpdateIterateTime;
+  double dAtyTime;
+  double dAxTime;
+  double dComputeResidualsTime;
+  double dUpdateIterateTime;
   cupdlp_int nAtyCalls;
   cupdlp_int nAxCalls;
   cupdlp_int nComputeResidualsCalls;
@@ -337,12 +338,12 @@ struct CUPDLP_TIMERS {
 #endif
 #if !(CUPDLP_CPU)
   // GPU timers
-  cupdlp_float AllocMem_CopyMatToDeviceTime;
-  cupdlp_float CopyVecToDeviceTime;
-  cupdlp_float DeviceMatVecProdTime;
-  cupdlp_float CopyVecToHostTime;
-  cupdlp_float FreeDeviceMemTime;
-  cupdlp_float CudaPrepareTime;
+  double AllocMem_CopyMatToDeviceTime;
+  double CopyVecToDeviceTime;
+  double DeviceMatVecProdTime;
+  double CopyVecToHostTime;
+  double FreeDeviceMemTime;
+  double CudaPrepareTime;
 #endif
 };
 

@@ -35,7 +35,7 @@ void ScatterRow(CUPDLPwork *w, cupdlp_int iRow, cupdlp_float multiplier,
 void AxCPU(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x) {
   // #if PDHG_USE_TIMERS
   //     ++w->timers->nAxCalls;
-  //     cupdlp_float dStartTime = getTimeStamp();
+  //     double dStartTime = getTimeStamp();
   // #endif
 
   CUPDLPproblem *lp = w->problem;
@@ -73,7 +73,7 @@ void AxCPU(CUPDLPwork *w, cupdlp_float *ax, const cupdlp_float *x) {
 void ATyCPU(CUPDLPwork *w, cupdlp_float *aty, const cupdlp_float *y) {
   // #if PDHG_USE_TIMERS
   //     ++w->timers->nAtyCalls;
-  //     cupdlp_float dStartTime = getTimeStamp();
+  //     double dStartTime = getTimeStamp();
   // #endif
 
   CUPDLPproblem *lp = w->problem;
@@ -118,7 +118,7 @@ cupdlp_float nrm2(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx) {
     nrm += x[i] * x[i];
   }
 
-  return sqrt(nrm);
+  return SQRTF(nrm);
 #else
   return dnrm2(n, x, incx);
 #endif
@@ -144,7 +144,7 @@ cupdlp_float nrminf(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx) {
 cupdlp_float twoNorm(cupdlp_float *x, cupdlp_int n) { return nrm2(n, x, 1); }
 
 cupdlp_float twoNormSquared(cupdlp_float *x, cupdlp_int n) {
-  return pow(twoNorm(x, n), 2);
+  return POWF(twoNorm(x, n), 2);
 }
 
 cupdlp_float infNorm(cupdlp_float *x, cupdlp_int n) { return nrminf(n, x, 1); }
@@ -159,10 +159,10 @@ cupdlp_float GenNorm(cupdlp_float *x, cupdlp_int n, cupdlp_float p) {
     cupdlp_float nrm = 0.0;
 
     for (cupdlp_int i = 0; i < n; ++i) {
-      nrm += pow(fabs(x[i]), p);
+      nrm += POWF(fabs(x[i]), p);
     }
 
-    return pow(nrm, 1.0 / p);
+    return POWF(nrm, 1.0 / p);
   }
 }
 
@@ -250,8 +250,8 @@ cupdlp_float diffTwoNormSquared(cupdlp_float *x, cupdlp_float *y,
 // cupdlp_int len)
 cupdlp_float diffTwoNorm(cupdlp_float *x, cupdlp_float *y,
                          const cupdlp_int len) {
-  // return sqrt(cupdlp_diffTwoNormSquared(x, y, len));
-  return sqrt(diffTwoNormSquared(x, y, len));
+  // return SQRTF(cupdlp_diffTwoNormSquared(x, y, len));
+  return SQRTF(diffTwoNormSquared(x, y, len));
 }
 
 /* ||x - y||_inf */
@@ -383,7 +383,7 @@ void cupdlp_init_vector(cupdlp_float *x, const cupdlp_float val,
 
 void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
                    cusparseDnVecDescr_t vecAx) {
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
   cupdlp_float alpha = 1.0;
   cupdlp_float beta = 0.0;
 
@@ -393,7 +393,7 @@ void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
       //             vecX, vecAx, w->dBuffer, alpha, beta);
 
       cuda_csr_Ax(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
-                  vecX, vecAx, w->dBuffer, alpha, beta);
+                  vecX, vecAx, w->dBuffer, &alpha, &beta);
       break;
     case CSC:
       cuda_csc_Ax(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
@@ -417,7 +417,7 @@ void Ax_multi_gpu(CUPDLPdata *d, cupdlp_float *ax, const cupdlp_float *x) {
 
 void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
                     cusparseDnVecDescr_t vecATy) {
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
 
   cupdlp_float alpha = 1.0;
   cupdlp_float beta = 0.0;
@@ -427,7 +427,7 @@ void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
       // cuda_csr_ATy(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
       //              vecY, vecATy, w->dBuffer, alpha, beta);
       cuda_csc_ATy(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-                   vecY, vecATy, w->dBuffer, alpha, beta);
+                   vecY, vecATy, w->dBuffer, &alpha, &beta);
       break;
     case CSC:
       cuda_csc_ATy(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
@@ -453,7 +453,7 @@ void ATy_multi_gpu(CUPDLPdata *d, cupdlp_float *aty, const cupdlp_float *y) {
 #endif
 
 void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
 
   CUPDLPdata *d = w->problem->data;
   switch (d->device) {
@@ -491,7 +491,7 @@ void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
 void ATy(CUPDLPwork *w, CUPDLPvec *aty, const CUPDLPvec *y)
 
 {
-  cupdlp_float begin = getTimeStamp();
+  double begin = getTimeStamp();
 
   CUPDLPdata *d = w->problem->data;
   switch (d->device) {
@@ -754,7 +754,7 @@ void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
   CUPDLPiterates *iterates = w->iterates;
   cupdlp_int nCols = w->problem->nCols;
   cupdlp_int nRows = w->problem->nRows;
-  cupdlp_float beta = sqrt(w->stepsize->dBeta);
+  cupdlp_float beta = SQRTF(w->stepsize->dBeta);
   cupdlp_float dX = 0.0;
   cupdlp_float dY = 0.0;
 
@@ -763,7 +763,7 @@ void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
   cupdlp_sub(w->buffer3, iterates->y->data, iterates->yUpdate->data, nRows);
   cupdlp_twoNorm(w, nRows, w->buffer3, &dY);
 
-  *dMovement = pow(dX, 2.0) * 0.5 * beta + pow(dY, 2.0) / (2.0 * beta);
+  *dMovement = POWF(dX, 2.0) * 0.5 * beta + POWF(dY, 2.0) / (2.0 * beta);
 
   cupdlp_sub(w->buffer3, iterates->aty->data, iterates->atyUpdate->data, nCols);
   cupdlp_dot(w, nCols, w->buffer2, w->buffer3, dInteraction);

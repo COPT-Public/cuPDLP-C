@@ -68,8 +68,8 @@ void PDHG_Project_Row_Duals(CUPDLPwork *work, cupdlp_float *r) {
 //     iterates->iLastRestartIter = timers->nIter;
 
 //     PDHG_Compute_Residuals(pdhg);
-//     // cupdlp_printf("Recomputed stepsize ratio: %e,  sqrt(ratio)=%e",
-//     stepsize->dBeta, sqrt(stepsize->dBeta));
+//     // cupdlp_printf("Recomputed stepsize ratio: %e,  SQRTF(ratio)=%e",
+//     stepsize->dBeta, SQRTF(stepsize->dBeta));
 // }
 
 void PDHG_Restart_Iterate(CUPDLPwork *pdhg) {
@@ -141,6 +141,6 @@ void PDHG_Restart_Iterate_GPU(CUPDLPwork *pdhg) {
   iterates->iLastRestartIter = timers->nIter;
 
   PDHG_Compute_Residuals(pdhg);
-  // cupdlp_printf("Recomputed stepsize ratio: %e,  sqrt(ratio)=%e",
-  // stepsize->dBeta, sqrt(stepsize->dBeta));
+  // cupdlp_printf("Recomputed stepsize ratio: %e,  SQRTF(ratio)=%e",
+  // stepsize->dBeta, SQRTF(stepsize->dBeta));
 }

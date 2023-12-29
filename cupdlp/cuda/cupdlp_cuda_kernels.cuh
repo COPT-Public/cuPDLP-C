@@ -18,6 +18,22 @@ typedef float cupdlp_float;
 #define CudaComputeType CUDA_R_32F
 #endif
 
+#ifndef POWF
+#ifdef SFLOAT
+#define POWF powf
+#else
+#define POWF pow
+#endif
+#endif
+
+#ifndef SQRTF
+#ifdef SFLOAT
+#define SQRTF sqrtf
+#else
+#define SQRTF sqrt
+#endif
+#endif
+
 #define CHECK_CUDA(func)                                               \
   {                                                                    \
     cudaError_t status = (func);                                       \

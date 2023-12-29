@@ -90,7 +90,7 @@ cupdlp_retcode main(cupdlp_int argc, char **argv) {
     ifPresolve = intParam[IF_PRESOLVE];
   }
 
-  cupdlp_float presolve_time = getTimeStamp();
+  double presolve_time = getTimeStamp();
   if (ifPresolve) {
     presolveinfo = createPresolve();
     presolvedmodel = presolvedModel(presolveinfo, model);
@@ -151,7 +151,7 @@ cupdlp_retcode main(cupdlp_int argc, char **argv) {
   CUPDLPwork *w = cupdlp_NULL;
   CUPDLP_INIT_ZERO(w, 1);
 #if !(CUPDLP_CPU)
-  cupdlp_float cuda_prepare_time = getTimeStamp();
+  double cuda_prepare_time = getTimeStamp();
   CHECK_CUSPARSE(cusparseCreate(&w->cusparsehandle));
   CHECK_CUBLAS(cublasCreate(&w->cublashandle));
   cuda_prepare_time = getTimeStamp() - cuda_prepare_time;
@@ -175,13 +175,13 @@ cupdlp_retcode main(cupdlp_int argc, char **argv) {
   csc_cpu->cuda_csc = NULL;
 #endif
 
-  cupdlp_float scaling_time = getTimeStamp();
+  double scaling_time = getTimeStamp();
   CUPDLP_CALL(PDHG_Scale_Data_cuda(csc_cpu, ifScaling, scaling, cost, lower,
                                    upper, rhs));
   scaling_time = getTimeStamp() - scaling_time;
 
-  cupdlp_float alloc_matrix_time = 0.0;
-  cupdlp_float copy_vec_time = 0.0;
+  double alloc_matrix_time = 0.0;
+  double copy_vec_time = 0.0;
 
   CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, csc_cpu,
                             src_matrix_format, dst_matrix_format, rhs, lower,

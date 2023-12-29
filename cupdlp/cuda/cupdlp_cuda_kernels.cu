@@ -5,7 +5,7 @@ dim3 cuda_gridsize(cupdlp_int n) {
   cupdlp_int x = k;
   cupdlp_int y = 1;
   if (x > 65535) {
-    x = ceil(sqrt(k));
+    x = ceil(SQRTF(k));
     y = (n - 1) / (x * CUPDLP_BLOCK_SIZE) + 1;
   }
   dim3 d = {x, y, 1};

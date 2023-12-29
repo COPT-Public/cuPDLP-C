@@ -164,7 +164,7 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, cupdlp_float *dualResidual,
 void PDHG_Compute_Residuals(CUPDLPwork *work) {
 #if problem_USE_TIMERS
   ++problem->nComputeResidualsCalls;
-  cupdlp_float dStartTime = getTimeStamp();
+  double dStartTime = getTimeStamp();
 #endif
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
@@ -382,7 +382,8 @@ cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, cupdlp_int bool_print) {
   return bool_pass;
 }
 
-cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, cupdlp_int bool_print) {
+cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg,
+                                           cupdlp_int bool_print) {
   CUPDLPproblem *problem = pdhg->problem;
   CUPDLPsettings *settings = pdhg->settings;
   CUPDLPresobj *resobj = pdhg->resobj;
@@ -398,10 +399,10 @@ cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, cupdlp_int bool_pri
   }
 #endif
   cupdlp_int bool_pass = ((resobj->dPrimalFeasAverage <
-                    settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
-                   (resobj->dDualFeasAverage <
-                    settings->dDualTol * (1.0 + scaling->dNormCost)) &&
-                   (resobj->dRelObjGapAverage < settings->dGapTol));
+                           settings->dPrimalTol * (1.0 + scaling->dNormRhs)) &&
+                          (resobj->dDualFeasAverage <
+                           settings->dDualTol * (1.0 + scaling->dNormCost)) &&
+                          (resobj->dRelObjGapAverage < settings->dGapTol));
   return bool_pass;
 }
 
@@ -478,8 +479,8 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
     PDHG_Dump_Stats(pdhg);
 #endif
     cupdlp_int bool_checking = (timers->nIter < 10) ||
-                        (timers->nIter == (settings->nIterLim - 1)) ||
-                        (timers->dSolvingTime > settings->dTimeLim);
+                               (timers->nIter == (settings->nIterLim - 1)) ||
+                               (timers->dSolvingTime > settings->dTimeLim);
     cupdlp_int bool_print = 0;
 #if CUPDLP_DEBUG
     bool_checking = (bool_checking || !(timers->nIter % CUPDLP_DEBUG_INTERVAL));

@@ -113,7 +113,7 @@ cupdlp_float PDHG_Restart_Score_GPU(cupdlp_float weightSquared,
   cupdlp_float dScoreGPU = 0.0;
 
   dScoreGPU =
-      sqrt(weightSquared * dPrimalFeas * dPrimalFeas +
+      SQRTF(weightSquared * dPrimalFeas * dPrimalFeas +
            dDualFeas * dDualFeas / weightSquared + dDualityGap * dDualityGap);
 
   return dScoreGPU;

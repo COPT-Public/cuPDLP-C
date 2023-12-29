@@ -145,7 +145,7 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
     }
 
     for (cupdlp_int i = 0; i < csc->colMatBeg[nCols]; i++) {
-      current_row_scaling[csc->colMatIdx[i]] += pow(csc->colMatElem[i], 2.0);
+      current_row_scaling[csc->colMatIdx[i]] += POWF(csc->colMatElem[i], 2.0);
     }
     for (cupdlp_int i = 0; i < nRows; i++) {
       current_row_scaling[i] = SQRTF(SQRTF(current_row_scaling[i]));

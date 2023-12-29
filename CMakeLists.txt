@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.24)
 project(CUPDLP VERSION 0.0.1)
 
 option(BUILD_CUDA "<BUILD_CUDA_OR_NOT>" OFF)
+option(SINGLE_PRECISION "<IF_SINGLE_PRECISION>" OFF)
+
 
 enable_language(C CXX)
 set(CMAKE_C_STANDARD 99)
@@ -23,7 +25,12 @@ message(" - ${CMAKE_C_FLAGS_RELEASE}")
 message(" - ${CMAKE_CXX_FLAGS_RELEASE}")
 message(" - ${CMAKE_CUDA_FLAGS_RELEASE}")
 
-# add_definitions(-DSFLOAT)
+if (${SINGLE_PRECISION} STREQUAL "ON")
+    message(NOTICE "-- Sets build single precision")
+    add_definitions(-DSFLOAT)
+else()
+    message(NOTICE "-- Sets build double precision")
+endif ()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 message(NOTICE "-- Sets build with CUDA ${BUILD_CUDA}")

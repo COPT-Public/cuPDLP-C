@@ -162,7 +162,6 @@ extern "C" {
     }                           \
   }
 
-
 #ifdef DLONG
 typedef long long cupdlp_int;
 #else
