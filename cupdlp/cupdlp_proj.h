@@ -6,7 +6,6 @@
 #define CUPDLP_CUPDLP_PROJ_H
 
 #include "cupdlp_defs.h"
-// #include "cupdlp_scaling.h"
 #include "glbopts.h"
 
 void PDHG_Project_Bounds(CUPDLPwork *work, double *r);

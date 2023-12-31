@@ -7,8 +7,11 @@
 
 #include <stdio.h>
 #include <sys/time.h>
-
 #include "cupdlp_defs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void data_clear(CUPDLPdata *data);
 
@@ -180,4 +183,7 @@ void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
                cupdlp_int nx, cupdlp_float *y, cupdlp_int ny,
                cupdlp_bool ifSaveSol);
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // CUPDLP_CUPDLP_UTILS_H

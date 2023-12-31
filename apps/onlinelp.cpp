@@ -1,9 +1,9 @@
 //
 // Created by C. Zhang on 2023/12/26.
 //
-
 #include "onlinelp.h"
 
+#include "../cupdlp/cupdlp.h"
 #include "../interface/mps_lp.h"
 
 // consider a large scale online LP instance
@@ -13,26 +13,26 @@
 
 SpMat getRandomSpMat(size_t nRows, size_t nCols, double p) {
   std::default_random_engine gen;
-  std::uniform_real_distribution<double> dist(0.0, 1.0);
+  std::uniform_real_distribution<double> v(0.0, 1.0);
 
   std::vector<Eigen::Triplet<double> > tripletList;
+  long elems = long(nRows * nCols * p);
+  tripletList.reserve(elems);
+  SpMat mat(nRows, nCols);
+  std::cout << "number of elems: " << elems << std::endl;
   for (int i = 0; i < nRows; ++i)
     for (int j = 0; j < nCols; ++j) {
-      auto v_ij = dist(gen);  // generate random number
-      if (v_ij < p) {
-        tripletList.emplace_back(
-            i, j, v_ij);  // if larger than the threshold, insert it
-      }
+      double val = v(gen);
+      if (val < p) tripletList.emplace_back(i, j, val);
     }
-  SpMat mat(nRows, nCols);
   mat.setFromTriplets(tripletList.begin(), tripletList.end());
   return mat;
 }
 
 int main(int argc, char *argv[]) {
   char *fout = "./solution.json";
-  int nCols;
-  int nRows;
+  int nCols = 0;
+  int nRows = 0;
   int nEqs = 0;  // no inequalities.
   double p = 0.1;
   cupdlp_bool ifSaveSol = false;
@@ -55,11 +55,15 @@ int main(int argc, char *argv[]) {
   cupdlp_float floatParam[N_FLOAT_USER_PARAM] = {0.0};
   getUserParam(argc, argv, ifChangeIntParam, intParam, ifChangeFloatParam,
                floatParam);
+  if ((nCols == 0) || (nRows == 0)) {
+    return -1;
+  }
   // ---------------------------------------------------
   // generate a random online LP instance
   eigen_array pi = ArrayXd::Random(nCols).abs() * -1.0;
+  std::cout << "generating sparse matrix" << std::endl;
   SpMat A = getRandomSpMat(nRows, nCols, p) * -1.0;
-  eigen_array b = ArrayXd::Random(nRows).abs() * -1.0;
+  eigen_array b = ArrayXd::Random(nRows).abs() * -nCols / 10;
   long nnz = A.nonZeros();
   // new idx is unchanged since it is not permuted;
   eigen_array_int constraint_new_arr(nRows);
@@ -70,6 +74,8 @@ int main(int argc, char *argv[]) {
   eigen_array upper(nCols);
   lower.setZero();
   upper.setOnes();
+  std::cout << "generating sparse matrix finished" << std::endl;
+
 #if DBG_ONLINE_LP
   std::cout << pi.transpose() << std::endl;
   std::cout << A << std::endl;

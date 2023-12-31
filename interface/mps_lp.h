@@ -1,11 +1,10 @@
 #ifndef mps_lp_cuda_h
 #define mps_lp_cuda_h
 
+#include "../cupdlp/cupdlp.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "../cupdlp/cupdlp.h"
 
 cupdlp_retcode data_alloc(CUPDLPdata *data, cupdlp_int nRows, cupdlp_int nCols,
                           void *matrix, CUPDLP_MATRIX_FORMAT src_matrix_format,

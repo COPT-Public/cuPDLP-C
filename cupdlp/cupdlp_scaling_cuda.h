@@ -7,6 +7,9 @@
 
 #include "cupdlp_defs.h"
 #include "glbopts.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 cupdlp_retcode PDHG_Scale_Data_cuda(CUPDLPcsc *csc, cupdlp_int ifScaling,
                                     CUPDLPscaling *scaling, cupdlp_float *cost,
@@ -17,4 +20,7 @@ cupdlp_retcode Init_Scaling(CUPDLPscaling *scaling, cupdlp_int ncols,
                             cupdlp_int nrows, cupdlp_float *cost,
                             cupdlp_float *rhs);
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // CUPDLP_CUPDLP_SCALING_H

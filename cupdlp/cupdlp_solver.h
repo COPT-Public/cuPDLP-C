@@ -5,12 +5,12 @@
 #ifndef CUPDLP_CUPDLP_SOLVER_H
 #define CUPDLP_CUPDLP_SOLVER_H
 
-// #include "cupdlp_linalg.h"
 #include "cupdlp_defs.h"
-// #include "cupdlp_scaling.h"
-// #include "cupdlp_utils.h"
 #include "glbopts.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #define CUPDLP_CHECK_TIMEOUT(pdhg)                               \
   {                                                              \
     PDHG_Compute_SolvingTime(pdhg);                              \
@@ -62,4 +62,7 @@ cupdlp_retcode LP_SolvePDHG(CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam,
                             cupdlp_float *y_origin, cupdlp_bool ifSaveSol,
                             cupdlp_int *constraint_new_idx);
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // CUPDLP_CUPDLP_SOLVER_H
