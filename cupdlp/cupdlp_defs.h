@@ -1,6 +1,10 @@
 #ifndef CUPDLP_H_GUARD
 #define CUPDLP_H_GUARD
 
+#if !(CUPDLP_CPU)
+#include "cuda/cupdlp_cuda_kernels.cuh"
+#include "cuda/cupdlp_cudalinalg.cuh"
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

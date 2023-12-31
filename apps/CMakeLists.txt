@@ -19,7 +19,11 @@ set_target_properties(onlinelp
         CXX_STANDARD_REQUIRED ON
 )
 if (${CUDA_LIBRARY-NOTFOUND})
-    target_link_libraries(onlinelp PRIVATE cupdlp m)
+    target_link_libraries(onlinelp PUBLIC cupdlp m)
 else ()
-    target_link_libraries(onlinelp PRIVATE cupdlp ${CUDA_LIBRARY} m)
+    target_compile_definitions(wrapper_clp
+            PUBLIC
+            -DCUPDLP_CPU
+    )
+    target_link_libraries(onlinelp PUBLIC cupdlp ${CUDA_LIBRARY} m)
 endif ()
