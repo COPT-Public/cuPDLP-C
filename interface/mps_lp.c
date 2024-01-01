@@ -154,7 +154,8 @@ exit_cleanup:
 
 cupdlp_retcode problem_alloc(
     CUPDLPproblem *prob, cupdlp_int nRows, cupdlp_int nCols, cupdlp_int nEqs,
-    cupdlp_float *cost, void *matrix, CUPDLP_MATRIX_FORMAT src_matrix_format,
+    cupdlp_float *cost, cupdlp_float offset, cupdlp_float sign_origin,
+    void *matrix, CUPDLP_MATRIX_FORMAT src_matrix_format,
     CUPDLP_MATRIX_FORMAT dst_matrix_format, cupdlp_float *rhs,
     cupdlp_float *lower, cupdlp_float *upper, cupdlp_float *alloc_matrix_time,
     cupdlp_float *copy_vec_time) {
@@ -164,6 +165,8 @@ cupdlp_retcode problem_alloc(
   prob->nEqs = nEqs;
   prob->data = cupdlp_NULL;
   prob->cost = cupdlp_NULL;
+  prob->offset = offset;
+  prob->sign_origin = sign_origin;
   prob->rhs = cupdlp_NULL;
   prob->lower = cupdlp_NULL;
   prob->upper = cupdlp_NULL;

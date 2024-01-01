@@ -232,7 +232,8 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
                                int *nRows, int *nnz, int *nEqs, int **csc_beg,
                                int **csc_idx, double **csc_val, double **rhs,
                                double **lower, double **upper, double *offset,
-                               int *nCols_origin, int **constraint_new_idx) {
+                               double *sign_origin, int *nCols_origin,
+                               int **constraint_new_idx) {
   int retcode = 0;
 
   // problem size for malloc
@@ -245,11 +246,12 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   *nEqs = 0;                                         // need recalculate
   *nnz = nnz_clp;                                    // need recalculate
   *offset = ((ClpModel *)model)->objectiveOffset();  // need not recalculate
-  // if (*offset != 0.0) {
-  //   printf("Has obj offset\n");
-  // } else {
-  //   printf("No obj offset\n");
-  // }
+  *sign_origin = ((ClpModel *)model)->getObjSense();
+  if (*offset != 0.0) {
+    printf("Has obj offset %f\n", *offset);
+  } else {
+    printf("No obj offset\n");
+  }
   // allocate buffer memory
   constraint_type *constraint_type_clp = NULL;  // the ONLY one need to free
   // int *constraint_original_idx = NULL;  // pass by user is better, for

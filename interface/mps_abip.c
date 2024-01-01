@@ -210,7 +210,7 @@ cupdlp_retcode main(int argc, char **argv) {
 
   cupdlp_float alloc_matrix_time = 0.0;
   cupdlp_float copy_vec_time = 0.0;
-  CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, csc_cpu,
+  CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, 0.0, 1.0, csc_cpu,
                             src_matrix_format, dst_matrix_format, rhs, lower,
                             upper, &alloc_matrix_time, &copy_vec_time));
   // solve
