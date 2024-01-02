@@ -24,6 +24,7 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   // todo, add this
   //    *dPrimalObj = Dotprod_Neumaier(problem->cost, x, lp->nCols);
   cupdlp_dot(work, lp->nCols, x, problem->cost, dPrimalObj);
+  *dPrimalObj = *dPrimalObj * problem->sign_origin - problem->offset;
 
   // cupdlp_copy(primalResidual, ax, cupdlp_float, lp->nRows);
   CUPDLP_COPY_VEC(primalResidual, ax, cupdlp_float, lp->nRows);
@@ -65,6 +66,7 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   // todo, compute Neumaier
   //    *dDualObj = Dotprod_Neumaier(problem->rhs, y, lp->nRows);
   cupdlp_dot(work, lp->nRows, y, problem->rhs, dDualObj);
+  *dDualObj = *dDualObj * problem->sign_origin - problem->offset;
 
   *dComplementarity = 0.0;
   // @note:

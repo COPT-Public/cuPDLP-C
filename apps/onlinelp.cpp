@@ -122,9 +122,9 @@ int main(int argc, char *argv[]) {
   cupdlp_float alloc_matrix_time = 0.0;
   cupdlp_float copy_vec_time = 0.0;
 
-  problem_alloc(prob, nRows, nCols, nEqs, pi.data(), csc_cpu, src_matrix_format,
-                dst_matrix_format, b.data(), lower.data(), upper.data(),
-                &alloc_matrix_time, &copy_vec_time);
+  problem_alloc(prob, nRows, nCols, nEqs, pi.data(), 0.0, 1.0, csc_cpu,
+                src_matrix_format, dst_matrix_format, b.data(), lower.data(),
+                upper.data(), &alloc_matrix_time, &copy_vec_time);
 
   w->problem = prob;
   w->scaling = scaling;

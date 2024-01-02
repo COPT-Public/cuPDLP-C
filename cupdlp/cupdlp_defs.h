@@ -206,6 +206,9 @@ struct CUPDLP_PROBLEM {
   cupdlp_int nEqs;
   cupdlp_float *hasLower;
   cupdlp_float *hasUpper;
+  cupdlp_float
+      offset;  // true objVal = c'x * sig - offset, sig = 1 (min) or -1 (max)
+  cupdlp_float sign_origin;  // sig = 1 (min) or -1 (max)
 };
 
 struct CUPDLP_RES_OBJ {
