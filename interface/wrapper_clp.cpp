@@ -289,9 +289,15 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
       (*nnz)++;
       (*nEqs)++;
     } else {
-      printf("Error: constraint %d has no lower and upper bound\n", i);
-      retcode = 1;
-      goto exit_cleanup;
+      // printf("Error: constraint %d has no lower and upper bound\n", i);
+      // retcode = 1;
+      // goto exit_cleanup;
+
+      // what if regard free as bounded
+      constraint_type_clp[i] = BOUND;
+      (*nCols)++;
+      (*nnz)++;
+      (*nEqs)++;
     }
   }
 
