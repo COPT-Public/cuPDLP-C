@@ -15,22 +15,33 @@ extern "C" void deleteModel_highs(void *model) {
   // free(model);
 }
 
-extern "C" void loadMps_highs(void *model, const char *filename) {
+extern "C" int loadMps_highs(void *model, const char *filename) {
   string str = string(filename);
   // model is lhs <= Ax <= rhs, l <= x <= u
   cout << "--------------------------------------------------" << endl;
   cout << "reading file..." << endl;
   cout << "\t" << std::string(filename) << endl;
   cout << "--------------------------------------------------" << endl;
-  ((Highs *)model)->readModel(str);
+
+  HighsStatus return_status = HighsStatus::kOk;
+  return_status = ((Highs *)model)->readModel(str);
+
+  if (return_status != HighsStatus::kOk) {
+    printf("Error: readModel return status = %d\n", (int)return_status);
+    return 1;
+  }
 
   // relax MIP to LP
   const HighsLp &lp = ((Highs *)model)->getLp();
-  for (int i = 0; i < lp.num_col_; i++) {
-    if (lp.integrality_[i] != HighsVarType::kContinuous) {
-      ((Highs *)model)->changeColIntegrality(i, HighsVarType::kContinuous);
+  if (lp.integrality_.size()) {
+    for (int i = 0; i < lp.num_col_; i++) {
+      if (lp.integrality_[i] != HighsVarType::kContinuous) {
+        ((Highs *)model)->changeColIntegrality(i, HighsVarType::kContinuous);
+      }
     }
   }
+
+  return 0;
 }
 
 extern "C" void *presolvedModel_highs(void *presolve, void *model) {

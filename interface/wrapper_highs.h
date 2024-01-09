@@ -26,7 +26,7 @@ int formulateLP_highs(void *model, double **cost, int *nCols, int *nRows,
                       double **upper, double *offset, double *sign_origin,
                       int *nCols_origin, int **constraint_new_idx);
 
-void loadMps_highs(void *model, const char *filename);
+int loadMps_highs(void *model, const char *filename);  // ok 0, fail 1
 
 void deleteModel_highs(void *model);
 void *createModel_highs();
