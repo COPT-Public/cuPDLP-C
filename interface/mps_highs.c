@@ -41,6 +41,7 @@ cupdlp_retcode main(int argc, char **argv) {
 
   void *model = NULL;
   void *presolvedmodel = NULL;
+  void *model2solve = NULL;
 
   CUPDLPscaling *scaling =
       (CUPDLPscaling *)cupdlp_malloc(sizeof(CUPDLPscaling));
@@ -82,9 +83,9 @@ cupdlp_retcode main(int argc, char **argv) {
                            ifChangeFloatParam, floatParam));
 
   model = createModel_highs();
-  loadMps_highs(model, fname);
+  CUPDLP_CALL(loadMps_highs(model, fname));
 
-  void *model2solve = model;
+  model2solve = model;
 
   if (ifChangeIntParam[IF_PRESOLVE]) {
     ifPresolve = intParam[IF_PRESOLVE];
