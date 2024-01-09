@@ -19,7 +19,7 @@ endif()
 # #############################################
 # # enable Coin-OR CLP input targets
 # #############################################
-
+# todo, remove later
 # message(NOTICE "--------------------- cuPDLP   Coin  CONFIG -----------------------")
 # include(../FindCLPConf.cmake)
 # add_library(wrapper_clp SHARED
@@ -44,8 +44,6 @@ endif()
 #             -DCUPDLP_CPU
 #     )
 # endif()
-
-
 # #############################################
 # # cuPDLP-C binary using CLP as parsers
 # #############################################
@@ -67,8 +65,6 @@ endif()
 #         ${CLP_LIBRARY_OSICLP}
 #         ${CLP_LIBRARY_COIN}
 # )
-
-
 # if (${CUDA_LIBRARY-NOTFOUND})
 #     target_link_libraries(plc PRIVATE cupdlp m)
 # else ()
@@ -96,24 +92,13 @@ message(NOTICE "--------------------- cuPDLP  HiGHS  CONFIG --------------------
 include(../FindHiGHSConf.cmake)
 add_library(wrapper_highs SHARED
         mps_lp.h mps_lp.c
-        wrapper_highs.cpp ${HiGHS_HEADER_FILES}
-        wrapper_highs.h)
-# target_include_directories(
-#         wrapper_highs PRIVATE
-#         ${CLP_INCLUDE_DIR}
-#         ${COIN_INCLUDE_DIR}
-#         "$ENV{CLP_HOME}/include/clp/coin/"
-#         "$ENV{COIN_HOME}/include/coinutils/coin/"
-#         )
-target_include_directories(
-        wrapper_highs PUBLIC
-        $ENV{HiGHS_HOME}
-        "$ENV{HiGHS_HOME}/build"
-        "$ENV{HiGHS_HOME}/src"
+        wrapper_highs.h
+        wrapper_highs.cpp 
 )
+
 target_link_libraries(
         wrapper_highs PUBLIC cupdlp
-        ${HiGHS_LIBRARY}
+        highs::highs
 )
 if (${CUDA_LIBRARY-NOTFOUND})
     message(NOTICE "- CPU version PDLP")
@@ -128,19 +113,12 @@ endif()
 # cuPDLP-C binary using HiGHS as parsers
 #############################################
 add_executable(plc 
-        ${HiGHS_HEADER_FILES}
         mps_highs.c
 )
-target_include_directories(
-        plc PRIVATE 
-        ${HiGHS_INCLUDE_DIR} 
-        "$ENV{HiGHS_HOME}/build"
-        "$ENV{HiGHS_HOME}/src"
-        )
 target_link_libraries(
         plc PUBLIC
         wrapper_highs
-        ${HiGHS_LIBRARY}
+        highs::highs
 )
 
 
