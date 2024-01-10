@@ -7,25 +7,23 @@ This is the C implementation of the Julia version [cuPDLP.jl](https://github.com
 ## Compile
 <!-- We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein. -->
 
-We use CMAKE to build CUPDLP. The current version is built on the [HiGHS project](https://highs.dev). Please install the dependencies therein.
-
-<!-- Once you setup CLP and CUDA, set the following environment variables.
-
-```shell
-export CLP_HOME=/path-to-clp
-export COIN_HOME=/path-to-coinutils
-export CUDA_HOME=/path-to-cuda
-``` -->
+We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). Please install the dependencies therein.
 
 Once you setup HiGHS and CUDA, set the following environment variables.
 
 ```shell
-export HiGHS_HOME=/path-to-highs
+export HIGHS_HOME=/path-to-highs
+export CUDA_HOME=/path-to-cuda
 ```
 
-You can build the project with CUDA by setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version):
+We suggest you build and install HiGHS with cmake, then `HIGHS_HOME` is typically the cmake install path, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more.
 
-- in the debug mode:
+By setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version), you have the GPU version of cuPDLP-C.
+
+Examples
+
+- use the debug mode:
+
 ```shell
 mkdir build
 cd build
@@ -34,7 +32,8 @@ cmake --build . --target plc
 ```
 then you can find the binary `plc` in the folder `build/bin/`.
 
-When using the release mode, we suggest the following options,
+- when using the release mode, we suggest the following options,
+
 ```
 cmake -DBUILD_CUDA=ON \
 -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" \
