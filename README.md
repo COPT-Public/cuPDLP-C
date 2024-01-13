@@ -9,7 +9,7 @@ This is the C implementation of the Julia version [cuPDLP.jl](https://github.com
 
 We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). 
 
-Note that if you install HiGHS using the [precompiled binaries](https://ergo-code.github.io/HiGHS/dev/installation/#Precompiled-Binaries), the compressed MPS files cannot be read.
+Note that if you install HiGHS using the [precompiled binaries](https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases), the compressed MPS files cannot be read.
 You can build and install with the zlib support from source, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more. 
 Once you setup HiGHS and CUDA, set the following environment variables.
 

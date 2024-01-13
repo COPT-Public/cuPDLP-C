@@ -12,7 +12,7 @@
 cupdlp_retcode main(int argc, char **argv) {
   cupdlp_retcode retcode = RETCODE_OK;
 
-  char *fname = "./example/afiro.mps.gz";
+  char *fname = "./example/afiro.mps";
   char *fout = "./solution.json";
 
   int nCols;
