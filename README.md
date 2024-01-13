@@ -7,8 +7,10 @@ This is the C implementation of the Julia version [cuPDLP.jl](https://github.com
 ## Compile
 <!-- We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein. -->
 
-We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). Please install the dependencies therein.
+We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). 
 
+Note that if you install HiGHS using the [precompiled binaries](https://ergo-code.github.io/HiGHS/dev/installation/#Precompiled-Binaries), the compressed MPS files cannot be read.
+You can build and install with the zlib support from source, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more. 
 Once you setup HiGHS and CUDA, set the following environment variables.
 
 ```shell
@@ -16,7 +18,6 @@ export HIGHS_HOME=/path-to-highs
 export CUDA_HOME=/path-to-cuda
 ```
 
-We suggest you build and install HiGHS with cmake, then `HIGHS_HOME` is typically the cmake install path, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more.
 
 By setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version), you have the GPU version of cuPDLP-C.
 
@@ -28,7 +29,7 @@ Examples
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_CUDA=ON ..
-cmake --build . --target plc
+cmake --build .. --target plc
 ```
 then you can find the binary `plc` in the folder `build/bin/`.
 
@@ -51,7 +52,7 @@ Usage example: set `nIterLim` to `5000` and solve.
 
 | Param | Type | Range | Default | Description |
 |:---:|:---:|:---:|:---:|:---:|
-|`fname`|`str`|` `|` `|`.mps` or `.mps.gz` file of the LP instance|
+|`fname`|`str`|` `|` `|`.mps` file of the LP instance|
 |`fout`|`str`|` `|`./solution.json`|`.json` file to save result|
 |`savesol`|`bool`|`true, false`|`false`|whether to write solution to `.json` output|
 |`ifScaling`|`bool`|`true, false`|`true`|Whether to use scaling|
