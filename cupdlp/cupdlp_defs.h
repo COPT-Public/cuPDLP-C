@@ -196,7 +196,7 @@ struct CUPDLP_PROBLEM {
   // cupdlp_float *rowMatElem;
   cupdlp_float *lower;
   cupdlp_float *upper;
-  cupdlp_float *cost;
+  cupdlp_float *cost;  // cost for minimization
   cupdlp_float *rhs;
   cupdlp_float dMaxCost;
   cupdlp_float dMaxRhs;
@@ -207,7 +207,7 @@ struct CUPDLP_PROBLEM {
   cupdlp_float *hasLower;
   cupdlp_float *hasUpper;
   cupdlp_float
-      offset;  // true objVal = c'x * sig - offset, sig = 1 (min) or -1 (max)
+      offset;  // true objVal = c'x * sig + offset, sig = 1 (min) or -1 (max)
   cupdlp_float sign_origin;  // sig = 1 (min) or -1 (max)
 };
 

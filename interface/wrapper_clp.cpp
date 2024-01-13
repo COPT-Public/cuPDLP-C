@@ -69,11 +69,11 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   int nRows_clp = ((ClpModel *)model)->getNumRows();
   int nnz_clp = ((ClpModel *)model)->getNumElements();
   *nCols_origin = nCols_clp;
-  *nRows = nRows_clp;                                // need not recalculate
-  *nCols = nCols_clp;                                // need recalculate
-  *nEqs = nRows_clp;                                 // need not recalculate
-  *nnz = nnz_clp;                                    // need recalculate
-  *offset = ((ClpModel *)model)->objectiveOffset();  // need not recalculate
+  *nRows = nRows_clp;                                 // need not recalculate
+  *nCols = nCols_clp;                                 // need recalculate
+  *nEqs = nRows_clp;                                  // need not recalculate
+  *nnz = nnz_clp;                                     // need recalculate
+  *offset = -((ClpModel *)model)->objectiveOffset();  // need not recalculate
   if (*offset != 0.0) {
     printf("Has obj offset\n");
   } else {

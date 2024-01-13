@@ -5,28 +5,36 @@ Code for solving LP on GPU using first-order methods.
 This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl).
 
 ## Compile
-We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein.
+<!-- We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein. -->
 
-Once you setup CLP and CUDA, set the following environment variables.
+We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). 
+
+Note that if you install HiGHS using the [precompiled binaries](https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases), the compressed MPS files cannot be read.
+You can build and install with the zlib support from source, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more. 
+Once you setup HiGHS and CUDA, set the following environment variables.
 
 ```shell
-export CLP_HOME=/path-to-clp
-export COIN_HOME=/path-to-coinutils
+export HIGHS_HOME=/path-to-highs
 export CUDA_HOME=/path-to-cuda
 ```
 
-You can build the project with CUDA by setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version):
 
-- in the debug mode:
+By setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version), you have the GPU version of cuPDLP-C.
+
+Examples
+
+- use the debug mode:
+
 ```shell
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_CUDA=ON ..
-cmake --build . --target plc
+cmake --build .. --target plc
 ```
 then you can find the binary `plc` in the folder `build/bin/`.
 
-When using the release mode, we suggest the following options,
+- when using the release mode, we suggest the following options,
+
 ```
 cmake -DBUILD_CUDA=ON \
 -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" \
@@ -44,7 +52,7 @@ Usage example: set `nIterLim` to `5000` and solve.
 
 | Param | Type | Range | Default | Description |
 |:---:|:---:|:---:|:---:|:---:|
-|`fname`|`str`|` `|` `|`.mps` or `.mps.gz` file of the LP instance|
+|`fname`|`str`|` `|` `|`.mps` file of the LP instance|
 |`fout`|`str`|` `|`./solution.json`|`.json` file to save result|
 |`savesol`|`bool`|`true, false`|`false`|whether to write solution to `.json` output|
 |`ifScaling`|`bool`|`true, false`|`true`|Whether to use scaling|
