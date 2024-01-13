@@ -29,7 +29,7 @@ Examples
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_CUDA=ON ..
-cmake --build .. --target plc
+cmake --build . --target plc
 ```
 then you can find the binary `plc` in the folder `build/bin/`.
 
