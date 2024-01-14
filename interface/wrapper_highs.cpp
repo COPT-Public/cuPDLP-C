@@ -65,6 +65,27 @@ extern "C" void *presolvedModel_highs(void *presolve, void *model) {
   return presolve;
 }
 
+extern "C" void *postsolvedModel_highs(void *presolve, void *model) {
+  cout << "--------------------------------------------------" << endl;
+  cout << "running postsolve" << endl;
+  cout << "--------------------------------------------------" << endl;
+
+  HighsStatus return_status;
+  return_status = ((Highs *)model)->presolve();
+
+  assert(return_status == HighsStatus::kOk);
+
+  HighsPresolveStatus model_presolve_status =
+      ((Highs *)model)->getModelPresolveStatus();
+  if (model_presolve_status == HighsPresolveStatus::kTimeout) {
+    printf("Presolve timeout: return status = %d\n", (int)return_status);
+  }
+  HighsLp lp = ((Highs *)model)->getPresolvedLp();
+  ((Highs *)presolve)->passModel(lp);
+
+  return presolve;
+}
+
 extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
                                  int *nRows, int *nnz, int *nEqs, int **csc_beg,
                                  int **csc_idx, double **csc_val, double **rhs,

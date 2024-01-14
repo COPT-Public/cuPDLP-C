@@ -249,7 +249,7 @@ return
 #define CONVERGED_INTERVAL (1)
 #define INDETERMINATE_TOL (1e-9)
 
-#define DBL_MAX 1E+20
+#define OUR_DBL_MAX 1E+20
 
 #ifndef CUPDLP_ASSERT_H
 

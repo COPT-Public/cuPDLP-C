@@ -32,6 +32,7 @@ void deleteModel_highs(void *model);
 void *createModel_highs();
 
 void *presolvedModel_highs(void *presolve, void *model);
+void *postsolvedModel_highs(void *presolve, void *model);  // TODO
 
 #ifdef __cplusplus
 }

@@ -4,6 +4,7 @@
 
 #include "cupdlp_utils.h"
 
+#include <limits.h>
 #include <stdio.h>
 
 #include "cupdlp_cs.h"
@@ -731,7 +732,8 @@ exit_cleanup:
 
 cupdlp_retcode settings_Alloc(CUPDLPsettings *settings) {
   cupdlp_retcode retcode = RETCODE_OK;
-  settings->nIterLim = INFINITY;
+  // settings->nIterLim = INFINITY;
+  settings->nIterLim = INT_MAX;  // INFINITY cause bug on MacOS
   settings->nLogInterval = 100;
   // settings->dTimeLim = INFINITY;
   settings->dTimeLim = 3600;
@@ -1070,8 +1072,10 @@ void csr2csc(CUPDLPcsc *csc, CUPDLPcsr *csr) {
   cupdlp_copy(csc->colMatIdx, cs_csc->i, cupdlp_int, cs_csc->nzmax);
   cupdlp_copy(csc->colMatElem, cs_csc->x, cupdlp_float, cs_csc->nzmax);
 
-  cupdlp_dcs_free(cs_csc);
-  cupdlp_dcs_free(cs_csr);
+  // cupdlp_dcs_free(cs_csc);
+  // cupdlp_dcs_free(cs_csr);
+  cupdlp_dcs_spfree(cs_csc);
+  cupdlp_dcs_spfree(cs_csr);
 
   return;
 }
@@ -1094,8 +1098,10 @@ cupdlp_int csc2csr(CUPDLPcsr *csr, CUPDLPcsc *csc) {
   CUPDLP_COPY_VEC(csr->rowMatIdx, cs_csr->i, cupdlp_int, cs_csr->nzmax);
   CUPDLP_COPY_VEC(csr->rowMatElem, cs_csr->x, cupdlp_float, cs_csr->nzmax);
 
-  cupdlp_dcs_free(cs_csc);
-  cupdlp_dcs_free(cs_csr);
+  // cupdlp_dcs_free(cs_csc);
+  // cupdlp_dcs_free(cs_csr);
+  cupdlp_dcs_spfree(cs_csc);
+  cupdlp_dcs_spfree(cs_csr);
 
 #if !(CUPDLP_CPU)
   // Pointer to GPU csc matrix
