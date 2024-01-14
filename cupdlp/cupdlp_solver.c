@@ -24,7 +24,7 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   // todo, add this
   //    *dPrimalObj = Dotprod_Neumaier(problem->cost, x, lp->nCols);
   cupdlp_dot(work, lp->nCols, x, problem->cost, dPrimalObj);
-  *dPrimalObj = *dPrimalObj * problem->sign_origin + problem->offset;
+  *dPrimalObj = *dPrimalObj * problem->sense_origin + problem->offset;
 
   // cupdlp_copy(primalResidual, ax, cupdlp_float, lp->nRows);
   CUPDLP_COPY_VEC(primalResidual, ax, cupdlp_float, lp->nRows);
@@ -58,7 +58,8 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
 void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
                                    const double *aty, const double *x,
                                    const double *y, double *dDualFeasibility,
-                                   double *dDualObj, double *dComplementarity) {
+                                   double *dDualObj, double *dComplementarity,
+                                   double *dSlackPos, double *dSlackNeg) {
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
   CUPDLPresobj *resobj = work->resobj;
@@ -66,7 +67,7 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   // todo, compute Neumaier
   //    *dDualObj = Dotprod_Neumaier(problem->rhs, y, lp->nRows);
   cupdlp_dot(work, lp->nRows, y, problem->rhs, dDualObj);
-  *dDualObj = *dDualObj * problem->sign_origin + problem->offset;
+  *dDualObj = *dDualObj * problem->sense_origin + problem->offset;
 
   *dComplementarity = 0.0;
   // @note:
@@ -107,44 +108,39 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   //            return
   //        end
 
-  // cupdlp_copy(resobj->dSlackPos, dualResidual, cupdlp_float, lp->nCols);
-  CUPDLP_COPY_VEC(resobj->dSlackPos, dualResidual, cupdlp_float, lp->nCols);
+  CUPDLP_COPY_VEC(dSlackPos, dualResidual, cupdlp_float, lp->nCols);
 
-  // cupdlp_projPositive(resobj->dSlackPos, resobj->dSlackPos, lp->nCols);
-  cupdlp_projPos(resobj->dSlackPos, lp->nCols);
+  cupdlp_projPos(dSlackPos, lp->nCols);
 
-  // cupdlp_cdot_fb(resobj->dSlackPos, problem->hasLower, lp->nCols);
-  cupdlp_edot(resobj->dSlackPos, problem->hasLower, lp->nCols);
+  cupdlp_edot(dSlackPos, problem->hasLower, lp->nCols);
 
   cupdlp_float temp = 0.0;
-  cupdlp_dot(work, lp->nCols, x, resobj->dSlackPos, &temp);
+  cupdlp_dot(work, lp->nCols, x, dSlackPos, &temp);
   *dComplementarity += temp;
-  cupdlp_dot(work, lp->nCols, resobj->dSlackPos, resobj->dLowerFiltered, &temp);
+  cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
   *dComplementarity -= temp;
-  cupdlp_dot(work, lp->nCols, resobj->dSlackPos, resobj->dLowerFiltered, &temp);
+  cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
   *dDualObj += temp;
 
-  CUPDLP_COPY_VEC(resobj->dSlackNeg, dualResidual, cupdlp_float, lp->nCols);
+  CUPDLP_COPY_VEC(dSlackNeg, dualResidual, cupdlp_float, lp->nCols);
 
-  cupdlp_projNeg(resobj->dSlackNeg, lp->nCols);
+  cupdlp_projNeg(dSlackNeg, lp->nCols);
 
-  // ScaleVector(-1.0, resobj->dSlackNeg, lp->nCols);
-  cupdlp_scaleVector(work, -1.0, resobj->dSlackNeg, lp->nCols);
+  cupdlp_scaleVector(work, -1.0, dSlackNeg, lp->nCols);
 
-  // cupdlp_cdot_fb(resobj->dSlackNeg, problem->hasUpper, lp->nCols);
-  cupdlp_edot(resobj->dSlackNeg, problem->hasUpper, lp->nCols);
+  cupdlp_edot(dSlackNeg, problem->hasUpper, lp->nCols);
 
-  cupdlp_dot(work, lp->nCols, x, resobj->dSlackNeg, &temp);
+  cupdlp_dot(work, lp->nCols, x, dSlackNeg, &temp);
   *dComplementarity -= temp;
-  cupdlp_dot(work, lp->nCols, resobj->dSlackNeg, resobj->dUpperFiltered, &temp);
+  cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
   *dComplementarity += temp;
-  cupdlp_dot(work, lp->nCols, resobj->dSlackNeg, resobj->dUpperFiltered, &temp);
+  cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
   *dDualObj -= temp;
 
   alpha = -1.0;
-  cupdlp_axpy(work, lp->nCols, &alpha, resobj->dSlackPos, dualResidual);
+  cupdlp_axpy(work, lp->nCols, &alpha, dSlackPos, dualResidual);
   alpha = 1.0;
-  cupdlp_axpy(work, lp->nCols, &alpha, resobj->dSlackNeg, dualResidual);
+  cupdlp_axpy(work, lp->nCols, &alpha, dSlackNeg, dualResidual);
 
   if (scaling->ifScaled) {
     // cupdlp_edot(dualResidual, scaling->colScale, lp->nCols);
@@ -174,10 +170,10 @@ void PDHG_Compute_Residuals(CUPDLPwork *work) {
   PDHG_Compute_Primal_Feasibility(work, resobj->primalResidual,
                                   iterates->ax->data, iterates->x->data,
                                   &resobj->dPrimalFeas, &resobj->dPrimalObj);
-  PDHG_Compute_Dual_Feasibility(work, resobj->dualResidual, iterates->aty->data,
-                                iterates->x->data, iterates->y->data,
-                                &resobj->dDualFeas, &resobj->dDualObj,
-                                &resobj->dComplementarity);
+  PDHG_Compute_Dual_Feasibility(
+      work, resobj->dualResidual, iterates->aty->data, iterates->x->data,
+      iterates->y->data, &resobj->dDualFeas, &resobj->dDualObj,
+      &resobj->dComplementarity, resobj->dSlackPos, resobj->dSlackNeg);
 
   PDHG_Compute_Primal_Feasibility(
       work, resobj->primalResidualAverage, iterates->axAverage->data,
@@ -187,7 +183,8 @@ void PDHG_Compute_Residuals(CUPDLPwork *work) {
       work, resobj->dualResidualAverage, iterates->atyAverage->data,
       iterates->xAverage->data, iterates->yAverage->data,
       &resobj->dDualFeasAverage, &resobj->dDualObjAverage,
-      &resobj->dComplementarityAverage);
+      &resobj->dComplementarityAverage, resobj->dSlackPosAverage,
+      resobj->dSlackNegAverage);
 
   // resobj->dPrimalObj /= (scaling->dObjScale * scaling->dObjScale);
   // resobj->dDualObj /= (scaling->dObjScale * scaling->dObjScale);
@@ -514,6 +511,14 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
                         cupdlp_float, problem->nCols);
         CUPDLP_COPY_VEC(iterates->y->data, iterates->yAverage->data,
                         cupdlp_float, problem->nRows);
+        CUPDLP_COPY_VEC(iterates->ax->data, iterates->axAverage->data,
+                        cupdlp_float, problem->nRows);
+        CUPDLP_COPY_VEC(iterates->aty->data, iterates->atyAverage->data,
+                        cupdlp_float, problem->nCols);
+        CUPDLP_COPY_VEC(resobj->dSlackPosAverage, resobj->dSlackPos,
+                        cupdlp_float, problem->nCols);
+        CUPDLP_COPY_VEC(resobj->dSlackNegAverage, resobj->dSlackNeg,
+                        cupdlp_float, problem->nCols);
 
         resobj->termIterate = AVERAGE_ITERATE;
         resobj->termCode = OPTIMAL;
@@ -579,42 +584,155 @@ exit_cleanup:
   return retcode;
 }
 
-void PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
-                    cupdlp_int *constraint_new_idx, cupdlp_float *x_origin,
-                    cupdlp_float *y_origin) {
+cupdlp_retcode PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
+                              cupdlp_int *constraint_new_idx,
+                              cupdlp_int *constraint_type,
+                              cupdlp_float *col_value, cupdlp_float *col_dual,
+                              cupdlp_float *row_value, cupdlp_float *row_dual,
+                              cupdlp_int *value_valid, cupdlp_int *dual_valid) {
+  cupdlp_retcode retcode = RETCODE_OK;
+
   CUPDLPproblem *problem = pdhg->problem;
   CUPDLPiterates *iterates = pdhg->iterates;
   CUPDLPscaling *scaling = pdhg->scaling;
+  CUPDLPresobj *resobj = pdhg->resobj;
+  cupdlp_float sense = problem->sense_origin;
+
+  // flag
+  cupdlp_int col_value_flag = 0;
+  cupdlp_int col_dual_flag = 0;
+  cupdlp_int row_value_flag = 0;
+  cupdlp_int row_dual_flag = 0;
+
+  // allocate buffer
+  cupdlp_float *col_buffer = NULL;
+  cupdlp_float *row_buffer = NULL;
+  cupdlp_float *col_buffer2 = NULL;
+  // no need for row_buffer2
+  // cupdlp_float *row_buffer2 = NULL;
+  CUPDLP_INIT_VEC(col_buffer, problem->nCols);
+  CUPDLP_INIT_VEC(row_buffer, problem->nRows);
+  CUPDLP_INIT_VEC(col_buffer2, problem->nCols);
+  // CUPDLP_INIT_VEC(row_buffer2, problem->nRows);
 
   // unscale
   if (scaling->ifScaled) {
     cupdlp_ediv(iterates->x->data, pdhg->colScale, problem->nCols);
     cupdlp_ediv(iterates->y->data, pdhg->rowScale, problem->nRows);
-
-    // cupdlp_ediv(iterates->x->data, scaling->colScale_gpu, problem->nCols);
-    // cupdlp_ediv(iterates->y->data, scaling->rowScale_gpu, problem->nRows);
+    cupdlp_edot(resobj->dSlackPos, pdhg->colScale, problem->nCols);
+    cupdlp_edot(resobj->dSlackNeg, pdhg->colScale, problem->nCols);
+    cupdlp_edot(iterates->ax->data, pdhg->rowScale, problem->nRows);
+    cupdlp_edot(iterates->aty->data, pdhg->colScale, problem->nCols);
   }
 
-  // extract x from (x, z)
-  CUPDLP_COPY_VEC(x_origin, iterates->x->data, cupdlp_float, nCols_origin);
+  // col value: extract x from (x, z)
+  if (col_value) {
+    CUPDLP_COPY_VEC(col_value, iterates->x->data, cupdlp_float, nCols_origin);
 
-  cupdlp_float *ytmp =
-      (cupdlp_float *)cupdlp_malloc(problem->nRows * sizeof(cupdlp_float));
-  CUPDLP_COPY_VEC(ytmp, iterates->y->data, cupdlp_float, problem->nRows);
-  // un-permute y
-  for (int i = 0; i < problem->nRows; i++) {
-    y_origin[i] = ytmp[constraint_new_idx[i]];
+    col_value_flag = 1;
   }
-  cupdlp_free(ytmp);
+
+  // row value
+  if (row_value) {
+    if (constraint_new_idx) {
+      CUPDLP_COPY_VEC(row_buffer, iterates->ax->data, cupdlp_float,
+                      problem->nRows);
+
+      // un-permute row value
+      for (int i = 0; i < problem->nRows; i++) {
+        row_value[i] = row_buffer[constraint_new_idx[i]];
+      }
+    } else {
+      CUPDLP_COPY_VEC(row_value, iterates->y->data, cupdlp_float,
+                      problem->nRows);
+    }
+
+    if (constraint_type) {
+      CUPDLP_COPY_VEC(col_buffer, iterates->x->data, cupdlp_float,
+                      problem->nCols);
+
+      // EQ = 0, LEQ = 1, GEQ = 2, BOUND = 3
+      for (int i = 0, j = 0; i < problem->nRows; i++) {
+        if (constraint_type[i] == 1) {  // LEQ: multiply -1
+          row_value[i] = -row_value[i];
+        } else if (constraint_type[i] == 3) {  // BOUND: get Ax from Ax - z
+          row_value[i] = row_value[i] + col_buffer[nCols_origin + j];
+          j++;
+        }
+      }
+    }
+
+    row_value_flag = 1;
+  }
+
+  // col duals of l <= x <= u
+  if (col_dual) {
+    CUPDLP_COPY_VEC(col_buffer, resobj->dSlackPos, cupdlp_float, nCols_origin);
+    CUPDLP_COPY_VEC(col_buffer2, resobj->dSlackNeg, cupdlp_float, nCols_origin);
+
+    for (int i = 0; i < nCols_origin; i++) {
+      col_dual[i] = col_buffer[i] - col_buffer2[i];
+    }
+
+    ScaleVector(sense, col_dual, nCols_origin);
+
+    col_dual_flag = 1;
+  }
+
+  // row dual: recover y
+  if (row_dual) {
+    if (constraint_new_idx) {
+      CUPDLP_COPY_VEC(row_buffer, iterates->y->data, cupdlp_float,
+                      problem->nRows);
+      // un-permute row dual
+      for (int i = 0; i < problem->nRows; i++) {
+        row_dual[i] = row_buffer[constraint_new_idx[i]];
+      }
+    } else {
+      CUPDLP_COPY_VEC(row_dual, iterates->y->data, cupdlp_float,
+                      problem->nRows);
+    }
+
+    ScaleVector(sense, row_dual, problem->nRows);
+
+    if (constraint_type) {
+      // EQ = 0, LEQ = 1, GEQ = 2, BOUND = 3
+      for (int i = 0; i < problem->nRows; i++) {
+        if (constraint_type[i] == 1) {  // LEQ: multiply -1
+          row_dual[i] = -row_dual[i];
+        }
+      }
+    }
+
+    row_dual_flag = 1;
+  }
+
+  // valid
+  if (value_valid) {
+    *value_valid = col_value_flag && row_value_flag;
+  }
+
+  if (dual_valid) {
+    *dual_valid = col_dual_flag && row_dual_flag;
+  }
+
+exit_cleanup:
+  // free buffer
+  CUPDLP_FREE_VEC(col_buffer);
+  CUPDLP_FREE_VEC(row_buffer);
+  CUPDLP_FREE_VEC(col_buffer2);
+  // CUPDLP_FREE_VEC(row_buffer2);
+
+  return retcode;
 }
 
-cupdlp_retcode LP_SolvePDHG(CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam,
-                            cupdlp_int *intParam,
-                            cupdlp_bool *ifChangeFloatParam,
-                            cupdlp_float *floatParam, char *fp,
-                            cupdlp_float *x_origin, cupdlp_int nCols_origin,
-                            cupdlp_float *y_origin, cupdlp_bool ifSaveSol,
-                            cupdlp_int *constraint_new_idx) {
+cupdlp_retcode LP_SolvePDHG(
+    CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam, cupdlp_int *intParam,
+    cupdlp_bool *ifChangeFloatParam, cupdlp_float *floatParam, char *fp,
+    cupdlp_int nCols_origin, cupdlp_float *col_value, cupdlp_float *col_dual,
+    cupdlp_float *row_value, cupdlp_float *row_dual, cupdlp_int *value_valid,
+    cupdlp_int *dual_valid, cupdlp_bool ifSaveSol, char *fp_sol,
+    cupdlp_int *constraint_new_idx, cupdlp_int *constraint_type) {
   cupdlp_retcode retcode = RETCODE_OK;
 
   PDHG_PrintHugeCUPDHG();
@@ -624,10 +742,21 @@ cupdlp_retcode LP_SolvePDHG(CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam,
 
   CUPDLP_CALL(PDHG_Solve(pdhg));
 
-  PDHG_PostSolve(pdhg, nCols_origin, constraint_new_idx, x_origin, y_origin);
+  CUPDLP_CALL(PDHG_PostSolve(pdhg, nCols_origin, constraint_new_idx,
+                             constraint_type, col_value, col_dual, row_value,
+                             row_dual, value_valid, dual_valid));
 
-  writeJson(fp, pdhg, x_origin, nCols_origin, y_origin, pdhg->problem->nRows,
-            ifSaveSol);
+  writeJson(fp, pdhg);
+
+  if (ifSaveSol && fp_sol) {
+    if (strcmp(fp, fp_sol) != 0) {
+      writeSol(fp_sol, nCols_origin, pdhg->problem->nRows, col_value, col_dual,
+               row_value, row_dual);
+    } else {
+      cupdlp_printf(
+          "Warning: fp and fp_sol are the same, stop saving solution.\n");
+    }
+  }
 
 exit_cleanup:
   PDHG_Destroy(&pdhg);

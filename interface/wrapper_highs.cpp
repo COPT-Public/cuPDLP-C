@@ -65,33 +65,98 @@ extern "C" void *presolvedModel_highs(void *presolve, void *model) {
   return presolve;
 }
 
-extern "C" void *postsolvedModel_highs(void *presolve, void *model) {
+extern "C" void *postsolvedModel_highs(
+    void *model, int nCols_pre, int nRows_pre, double *col_value_pre,
+    double *col_dual_pre, double *row_value_pre, double *row_dual_pre,
+    int value_valid_pre, int dual_valid_pre, int nCols_org, int nRows_org,
+    double *col_value_org, double *col_dual_org, double *row_value_org,
+    double *row_dual_org) {
   cout << "--------------------------------------------------" << endl;
   cout << "running postsolve" << endl;
   cout << "--------------------------------------------------" << endl;
 
+  // construct solution
+  HighsSolution solution_pre;
   HighsStatus return_status;
-  return_status = ((Highs *)model)->presolve();
 
+  solution_pre.value_valid = (bool)value_valid_pre;
+  solution_pre.dual_valid = (bool)dual_valid_pre;
+  solution_pre.col_value =
+      vector<double>(col_value_pre, col_value_pre + nCols_pre);
+  solution_pre.col_dual =
+      vector<double>(col_dual_pre, col_dual_pre + nCols_pre);
+  solution_pre.row_value =
+      vector<double>(row_value_pre, row_value_pre + nRows_pre);
+  solution_pre.row_dual =
+      vector<double>(row_dual_pre, row_dual_pre + nRows_pre);
+
+  // postsolve
+  return_status = ((Highs *)model)->postsolve(solution_pre);
   assert(return_status == HighsStatus::kOk);
 
-  HighsPresolveStatus model_presolve_status =
-      ((Highs *)model)->getModelPresolveStatus();
-  if (model_presolve_status == HighsPresolveStatus::kTimeout) {
-    printf("Presolve timeout: return status = %d\n", (int)return_status);
-  }
-  HighsLp lp = ((Highs *)model)->getPresolvedLp();
-  ((Highs *)presolve)->passModel(lp);
+  // assign solution
+  HighsSolution solution_org = ((Highs *)model)->getSolution();
+  assert(solution_org.col_value.size() == nCols_org);
+  assert(solution_org.col_dual.size() == nCols_org);
+  assert(solution_org.row_value.size() == nRows_org);
+  assert(solution_org.row_dual.size() == nRows_org);
 
-  return presolve;
+  for (int i = 0; i < nCols_org; i++) {
+    col_value_org[i] = solution_org.col_value[i];
+    col_dual_org[i] = solution_org.col_dual[i];
+  }
+
+  for (int i = 0; i < nRows_org; i++) {
+    row_value_org[i] = solution_org.row_value[i];
+    row_dual_org[i] = solution_org.row_dual[i];
+  }
+
+  return model;
 }
 
+void getModelSize_highs(void *model, int *nCols, int *nRows, int *nnz) {
+  const HighsLp &lp = ((Highs *)model)->getLp();
+
+  if (nCols) {
+    *nCols = lp.num_col_;
+  }
+  if (nRows) {
+    *nRows = lp.num_row_;
+  }
+  if (nnz) {
+    *nnz = lp.a_matrix_.numNz();
+  }
+
+  return;
+}
+
+/*
+ * formulate
+ *                A x =  b
+ *         l1 <= G1 x
+ *               G2 x <= u2
+ *         l3 <= G3 x <= u3
+ * with bounds
+ *             l <= x <= u
+ * as
+ *                A x =  b
+ *               G3 x - z = 0
+ *               G1 x >= l1
+ *              -G2 x >= -u2
+ * with bounds
+ *             l <= x <= u
+ *            l3 <= z <= u3
+ * do not pre-allocate pointers except model, nCols, nRows, nnz and nEqs
+ * set them to NULL is a better practice
+ * but do remember to free them
+ */
 extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
                                  int *nRows, int *nnz, int *nEqs, int **csc_beg,
                                  int **csc_idx, double **csc_val, double **rhs,
                                  double **lower, double **upper, double *offset,
-                                 double *sign_origin, int *nCols_origin,
-                                 int **constraint_new_idx) {
+                                 double *sense_origin, int *nCols_origin,
+                                 int **constraint_new_idx,
+                                 int **constraint_type) {
   int retcode = 0;
 
   const HighsLp &lp = ((Highs *)model)->getLp();
@@ -99,7 +164,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   // problem size for malloc
   int nCols_clp = lp.num_col_;
   int nRows_clp = lp.num_row_;
-  int nnz_clp = lp.a_matrix_.start_[lp.num_col_];
+  int nnz_clp = lp.a_matrix_.numNz();
   *nCols_origin = nCols_clp;
   *nRows = nRows_clp;    // need not recalculate
   *nCols = nCols_clp;    // need recalculate
@@ -107,10 +172,10 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   *nnz = nnz_clp;        // need recalculate
   *offset = lp.offset_;  // need not recalculate
   if (lp.sense_ == ObjSense::kMinimize) {
-    *sign_origin = 1.0;
+    *sense_origin = 1.0;
     printf("Minimize\n");
   } else if (lp.sense_ == ObjSense::kMaximize) {
-    *sign_origin = -1.0;
+    *sense_origin = -1.0;
     printf("Maximize\n");
   }
   if (*offset != 0.0) {
@@ -119,9 +184,6 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
     printf("No obj offset\n");
   }
   // allocate buffer memory
-  constraint_type *constraint_type_clp = NULL;  // the ONLY one need to free
-  // int *constraint_original_idx = NULL;  // pass by user is better, for
-  // postsolve recovering dual
 
   const double *lhs_clp = lp.row_lower_.data();
   const double *rhs_clp = lp.row_upper_.data();
@@ -130,7 +192,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   const double *A_csc_val = lp.a_matrix_.value_.data();
   int has_lower, has_upper;
 
-  CUPDLP_INIT(constraint_type_clp, nRows_clp);
+  CUPDLP_INIT(*constraint_type, nRows_clp);
   CUPDLP_INIT(*constraint_new_idx, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
@@ -140,14 +202,14 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
 
     // count number of equations and rows
     if (has_lower && has_upper && lhs_clp[i] == rhs_clp[i]) {
-      constraint_type_clp[i] = EQ;
+      (*constraint_type)[i] = EQ;
       (*nEqs)++;
     } else if (has_lower && !has_upper) {
-      constraint_type_clp[i] = GEQ;
+      (*constraint_type)[i] = GEQ;
     } else if (!has_lower && has_upper) {
-      constraint_type_clp[i] = LEQ;
+      (*constraint_type)[i] = LEQ;
     } else if (has_lower && has_upper) {
-      constraint_type_clp[i] = BOUND;
+      (*constraint_type)[i] = BOUND;
       (*nCols)++;
       (*nnz)++;
       (*nEqs)++;
@@ -158,7 +220,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
 
       // what if regard free as bounded
       printf("Warning: constraint %d has no lower and upper bound\n", i);
-      constraint_type_clp[i] = BOUND;
+      (*constraint_type)[i] = BOUND;
       (*nCols)++;
       (*nnz)++;
       (*nEqs)++;
@@ -176,7 +238,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
 
   // cost, lower, upper
   for (int i = 0; i < nCols_clp; i++) {
-    (*cost)[i] = lp.col_cost_[i] * (*sign_origin);
+    (*cost)[i] = lp.col_cost_[i] * (*sense_origin);
     (*lower)[i] = lp.col_lower_[i];
 
     (*upper)[i] = lp.col_upper_[i];
@@ -187,7 +249,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
   // slack bounds
   for (int i = 0, j = nCols_clp; i < *nRows; i++) {
-    if (constraint_type_clp[i] == BOUND) {
+    if ((*constraint_type)[i] == BOUND) {
       (*lower)[j] = lhs_clp[i];
       (*upper)[j] = rhs_clp[i];
       j++;
@@ -202,11 +264,11 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   // permute LP rhs
   // EQ or BOUND first
   for (int i = 0, j = 0; i < *nRows; i++) {
-    if (constraint_type_clp[i] == EQ) {
+    if ((*constraint_type)[i] == EQ) {
       (*rhs)[j] = lhs_clp[i];
       (*constraint_new_idx)[i] = j;
       j++;
-    } else if (constraint_type_clp[i] == BOUND) {
+    } else if ((*constraint_type)[i] == BOUND) {
       (*rhs)[j] = 0.0;
       (*constraint_new_idx)[i] = j;
       j++;
@@ -214,11 +276,11 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
   // then LEQ or GEQ
   for (int i = 0, j = *nEqs; i < *nRows; i++) {
-    if (constraint_type_clp[i] == LEQ) {
+    if ((*constraint_type)[i] == LEQ) {
       (*rhs)[j] = -rhs_clp[i];  // multiply -1
       (*constraint_new_idx)[i] = j;
       j++;
-    } else if (constraint_type_clp[i] == GEQ) {
+    } else if ((*constraint_type)[i] == GEQ) {
       (*rhs)[j] = lhs_clp[i];
       (*constraint_new_idx)[i] = j;
       j++;
@@ -236,8 +298,8 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
     // same order as in rhs
     // EQ or BOUND first
     for (int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
-      if (constraint_type_clp[A_csc_idx[j]] == EQ ||
-          constraint_type_clp[A_csc_idx[j]] == BOUND) {
+      if ((*constraint_type)[A_csc_idx[j]] == EQ ||
+          (*constraint_type)[A_csc_idx[j]] == BOUND) {
         (*csc_idx)[k] = (*constraint_new_idx)[A_csc_idx[j]];
         (*csc_val)[k] = A_csc_val[j];
         k++;
@@ -245,11 +307,11 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
     }
     // then LEQ or GEQ
     for (int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
-      if (constraint_type_clp[A_csc_idx[j]] == LEQ) {
+      if ((*constraint_type)[A_csc_idx[j]] == LEQ) {
         (*csc_idx)[k] = (*constraint_new_idx)[A_csc_idx[j]];
         (*csc_val)[k] = -A_csc_val[j];  // multiply -1
         k++;
-      } else if (constraint_type_clp[A_csc_idx[j]] == GEQ) {
+      } else if ((*constraint_type)[A_csc_idx[j]] == GEQ) {
         (*csc_idx)[k] = (*constraint_new_idx)[A_csc_idx[j]];
         (*csc_val)[k] = A_csc_val[j];
         k++;
@@ -259,7 +321,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
 
   // slacks for BOUND
   for (int i = 0, j = nCols_clp; i < *nRows; i++) {
-    if (constraint_type_clp[i] == BOUND) {
+    if ((*constraint_type)[i] == BOUND) {
       (*csc_idx)[(*csc_beg)[j]] = (*constraint_new_idx)[i];
       (*csc_val)[(*csc_beg)[j]] = -1.0;
       j++;
@@ -267,11 +329,6 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
 
 exit_cleanup:
-  // free buffer memory
-  if (constraint_type_clp != NULL) {
-    free(constraint_type_clp);
-    constraint_type_clp = NULL;
-  }
 
   return retcode;
 }

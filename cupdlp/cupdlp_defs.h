@@ -208,7 +208,7 @@ struct CUPDLP_PROBLEM {
   cupdlp_float *hasUpper;
   cupdlp_float
       offset;  // true objVal = c'x * sig + offset, sig = 1 (min) or -1 (max)
-  cupdlp_float sign_origin;  // sig = 1 (min) or -1 (max)
+  cupdlp_float sense_origin;  // sig = 1 (min) or -1 (max)
 };
 
 struct CUPDLP_RES_OBJ {
@@ -225,6 +225,8 @@ struct CUPDLP_RES_OBJ {
   cupdlp_float *dualResidual;
   cupdlp_float *dSlackPos;
   cupdlp_float *dSlackNeg;
+  cupdlp_float *dSlackPosAverage;
+  cupdlp_float *dSlackNegAverage;
   cupdlp_float *dLowerFiltered;
   cupdlp_float *dUpperFiltered;
 

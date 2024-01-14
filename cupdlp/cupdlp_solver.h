@@ -28,7 +28,8 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
 void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
                                    const double *aty, const double *x,
                                    const double *y, double *dDualFeasibility,
-                                   double *dDualObj, double *dComplementarity);
+                                   double *dDualObj, double *dComplementarity,
+                                   double *dSlackPos, double *dSlackNeg);
 
 void PDHG_Compute_Residuals(CUPDLPwork *work);
 
@@ -50,17 +51,20 @@ void PDHG_Compute_SolvingTime(CUPDLPwork *pdhg);
 
 cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg);
 
-void PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
-                    cupdlp_int *constraint_new_idx, cupdlp_float *x_origin,
-                    cupdlp_float *y_origin);
+cupdlp_retcode PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
+                              cupdlp_int *constraint_new_idx,
+                              cupdlp_int *constraint_type,
+                              cupdlp_float *col_value, cupdlp_float *col_dual,
+                              cupdlp_float *row_value, cupdlp_float *row_dual,
+                              cupdlp_int *value_valid, cupdlp_int *dual_valid);
 
-cupdlp_retcode LP_SolvePDHG(CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam,
-                            cupdlp_int *intParam,
-                            cupdlp_bool *ifChangeFloatParam,
-                            cupdlp_float *floatParam, char *fp,
-                            cupdlp_float *x_origin, cupdlp_int nCols_origin,
-                            cupdlp_float *y_origin, cupdlp_bool ifSaveSol,
-                            cupdlp_int *constraint_new_idx);
+cupdlp_retcode LP_SolvePDHG(
+    CUPDLPwork *pdhg, cupdlp_bool *ifChangeIntParam, cupdlp_int *intParam,
+    cupdlp_bool *ifChangeFloatParam, cupdlp_float *floatParam, char *fp,
+    cupdlp_int nCols_origin, cupdlp_float *col_value, cupdlp_float *col_dual,
+    cupdlp_float *row_value, cupdlp_float *row_dual, cupdlp_int *value_valid,
+    cupdlp_int *dual_valid, cupdlp_bool ifSaveSol, char *fp_sol,
+    cupdlp_int *constraint_new_idx, cupdlp_int *constraint_type);
 
 #ifdef __cplusplus
 }

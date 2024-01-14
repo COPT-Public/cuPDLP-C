@@ -28,7 +28,7 @@ int formulateLP(void *model, double **cost, int *nCols, int *nRows, int *nnz,
 int formulateLP_new(void *model, double **cost, int *nCols, int *nRows,
                     int *nnz, int *nEqs, int **csc_beg, int **csc_idx,
                     double **csc_val, double **rhs, double **lower,
-                    double **upper, double *offset, double *sign_origin,
+                    double **upper, double *offset, double *sense_origin,
                     int *nCols_origin, int **constraint_new_idx);
 
 void loadMps(void *model, const char *filename);

@@ -2,42 +2,70 @@
 #include "wrapper_highs.h"
 
 /*
-    min cTx
-    s.t. Aeq x = b
-         Aineq x <= bineq
-         ub >= x >= 0
-         colUbIdx: index of columns with upper bound (not all columns have upper
-   bound)
+  HiGHS IO for cuPDLP.
+
+  For cuPDLP, the problem is formulated as
+      min  cT x
+      s.t.   Aeq x = beq
+           Aineq x >= bineq
+           lb <= x <= ub
 */
 cupdlp_retcode main(int argc, char **argv) {
   cupdlp_retcode retcode = RETCODE_OK;
 
   char *fname = "./example/afiro.mps";
-  char *fout = "./solution.json";
+  char *fout = "./solution-sum.json";
+  char *fout_sol = "./solution.json";
 
-  int nCols;
-  int nRows;
-  int nEqs;
-  int nCols_origin;
   cupdlp_bool ifSaveSol = false;
   cupdlp_bool ifPresolve = false;
 
-  int nnz = 0;
-  double *rhs = NULL;
-  double *cost = NULL;
+  // for cuPDLP
+  int nCols_pdlp = 0;
+  int nRows_pdlp = 0;
+  int nEqs_pdlp = 0;
+  int nnz_pdlp = 0;
 
+  cupdlp_float *rhs = NULL;
+  cupdlp_float *cost = NULL;
   cupdlp_float *lower = NULL;
   cupdlp_float *upper = NULL;
 
   // -------------------------
   int *csc_beg = NULL, *csc_idx = NULL;
   double *csc_val = NULL;
+
+  // for model to solve, need to free
   double offset =
-      0.0;  // true objVal = sig * c'x - offset, sig = 1 (min) or -1 (max)
-  double sign_origin = 1;  // 1 (min) or -1 (max)
+      0.0;  // true objVal = sig * c'x + offset, sig = 1 (min) or -1 (max)
+  double sense = 1;  // 1 (min) or -1 (max)
   int *constraint_new_idx = NULL;
-  cupdlp_float *x_origin = cupdlp_NULL;
-  cupdlp_float *y_origin = cupdlp_NULL;
+  int *constraint_type = NULL;
+
+  // for model to solve, need not to free
+  int nCols = 0;
+  cupdlp_float *col_value = cupdlp_NULL;
+  cupdlp_float *col_dual = cupdlp_NULL;
+  cupdlp_float *row_value = cupdlp_NULL;
+  cupdlp_float *row_dual = cupdlp_NULL;
+
+  // for original model, need to free
+  int nCols_org = 0;
+  int nRows_org = 0;
+  cupdlp_float *col_value_org = cupdlp_NULL;
+  cupdlp_float *col_dual_org = cupdlp_NULL;
+  cupdlp_float *row_value_org = cupdlp_NULL;
+  cupdlp_float *row_dual_org = cupdlp_NULL;
+
+  // for presolved model, need to free
+  int nCols_pre = 0;
+  int nRows_pre = 0;
+  cupdlp_float *col_value_pre = cupdlp_NULL;
+  cupdlp_float *col_dual_pre = cupdlp_NULL;
+  cupdlp_float *row_value_pre = cupdlp_NULL;
+  cupdlp_float *row_dual_pre = cupdlp_NULL;
+  cupdlp_int value_valid = 0;
+  cupdlp_int dual_valid = 0;
 
   void *model = NULL;
   void *presolvedmodel = NULL;
@@ -55,9 +83,6 @@ cupdlp_retcode main(int argc, char **argv) {
 
   // load parameters
   for (cupdlp_int i = 0; i < argc - 1; i++) {
-    // if (strcmp(argv[i], "-niter") == 0) {
-    //   niters = atof(argv[i + 1]);
-    // } else
     if (strcmp(argv[i], "-fname") == 0) {
       fname = argv[i + 1];
     } else if (strcmp(argv[i], "-out") == 0) {
@@ -68,10 +93,12 @@ cupdlp_retcode main(int argc, char **argv) {
       ifSaveSol = atoi(argv[i + 1]);
     } else if (strcmp(argv[i], "-ifPre") == 0) {
       ifPresolve = atoi(argv[i + 1]);
+    } else if (strcmp(argv[i], "-outSol") == 0) {
+      fout_sol = argv[i + 1];
     }
-  }
-  if (strcmp(argv[argc - 1], "-h") == 0) {
-    print_script_usage();
+    if (strcmp(argv[argc - 1], "-h") == 0) {
+      print_script_usage();
+    }
   }
 
   // set solver parameters
@@ -84,6 +111,8 @@ cupdlp_retcode main(int argc, char **argv) {
 
   model = createModel_highs();
   CUPDLP_CALL(loadMps_highs(model, fname));
+  getModelSize_highs(model, &nCols_org, &nRows_org, NULL);
+  nCols = nCols_org;
 
   model2solve = model;
 
@@ -95,33 +124,16 @@ cupdlp_retcode main(int argc, char **argv) {
   if (ifPresolve) {
     presolvedmodel = createModel_highs();
     presolvedmodel = presolvedModel_highs(presolvedmodel, model);
+    getModelSize_highs(presolvedmodel, &nCols_pre, &nRows_pre, NULL);
     model2solve = presolvedmodel;
+    nCols = nCols_pre;
   }
   presolve_time = getTimeStamp() - presolve_time;
 
-  // CUPDLP_CALL(formulateLP(model, &cost, &nCols, &nRows, &nnz, &nEqs,
-  // &csc_beg,
-  //                         &csc_idx, &csc_val, &rhs, &lower, &upper,
-  //                         &offset));
-
-  // CUPDLP_CALL(formulateLP_new(
-  //     model, &cost, &nCols, &nRows, &nnz, &nEqs, &csc_beg, &csc_idx,
-  //     &csc_val, &rhs, &lower, &upper, &offset, &nCols_origin,
-  //     &constraint_new_idx));
-
-  CUPDLP_CALL(formulateLP_highs(model2solve, &cost, &nCols, &nRows, &nnz, &nEqs,
-                                &csc_beg, &csc_idx, &csc_val, &rhs, &lower,
-                                &upper, &offset, &sign_origin, &nCols_origin,
-                                &constraint_new_idx));
-
-  /*
-      min cTx
-      s.t. Aeq x = b
-           Aineq x <= bineq
-           ub >= x >= 0
-           colUbIdx: index of columns with upper bound (not all columns have
-     upper bound)
-  */
+  CUPDLP_CALL(formulateLP_highs(model2solve, &cost, &nCols_pdlp, &nRows_pdlp,
+                                &nnz_pdlp, &nEqs_pdlp, &csc_beg, &csc_idx,
+                                &csc_val, &rhs, &lower, &upper, &offset, &sense,
+                                &nCols, &constraint_new_idx, &constraint_type));
 
   if (retcode != RETCODE_OK) {
     cupdlp_printf("Error reading MPS file\n");
@@ -129,7 +141,7 @@ cupdlp_retcode main(int argc, char **argv) {
     goto exit_cleanup;
   }
 
-  CUPDLP_CALL(Init_Scaling(scaling, nCols, nRows, cost, rhs));
+  CUPDLP_CALL(Init_Scaling(scaling, nCols_pdlp, nRows_pdlp, cost, rhs));
   cupdlp_int ifScaling = 1;
 
   if (ifChangeIntParam[IF_SCALING]) {
@@ -148,7 +160,8 @@ cupdlp_retcode main(int argc, char **argv) {
     scaling->ifPcScaling = intParam[IF_PC_SCALING];
   }
 
-  // these two handles need to be established first
+  // the work object needs to be established first
+  // free inside cuPDLP
   CUPDLPwork *w = cupdlp_NULL;
   CUPDLP_INIT_ZERO(w, 1);
 #if !(CUPDLP_CPU)
@@ -163,15 +176,15 @@ cupdlp_retcode main(int argc, char **argv) {
   // currently, only supprot that input matrix is CSC, and store both CSC and
   // CSR
   CUPDLP_CALL(csc_create(&csc_cpu));
-  csc_cpu->nRows = nRows;
-  csc_cpu->nCols = nCols;
-  csc_cpu->nMatElem = nnz;
-  csc_cpu->colMatBeg = (int *)malloc((1 + nCols) * sizeof(int));
-  csc_cpu->colMatIdx = (int *)malloc(nnz * sizeof(int));
-  csc_cpu->colMatElem = (double *)malloc(nnz * sizeof(double));
+  csc_cpu->nRows = nRows_pdlp;
+  csc_cpu->nCols = nCols_pdlp;
+  csc_cpu->nMatElem = nnz_pdlp;
+  csc_cpu->colMatBeg = (int *)malloc((1 + nCols_pdlp) * sizeof(int));
+  csc_cpu->colMatIdx = (int *)malloc(nnz_pdlp * sizeof(int));
+  csc_cpu->colMatElem = (double *)malloc(nnz_pdlp * sizeof(double));
   memcpy(csc_cpu->colMatBeg, csc_beg, (nCols + 1) * sizeof(int));
-  memcpy(csc_cpu->colMatIdx, csc_idx, nnz * sizeof(int));
-  memcpy(csc_cpu->colMatElem, csc_val, nnz * sizeof(double));
+  memcpy(csc_cpu->colMatIdx, csc_idx, nnz_pdlp * sizeof(int));
+  memcpy(csc_cpu->colMatElem, csc_val, nnz_pdlp * sizeof(double));
 #if !(CUPDLP_CPU)
   csc_cpu->cuda_csc = NULL;
 #endif
@@ -184,20 +197,19 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_float alloc_matrix_time = 0.0;
   cupdlp_float copy_vec_time = 0.0;
 
-  CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, offset, sign_origin,
-                            csc_cpu, src_matrix_format, dst_matrix_format, rhs,
-                            lower, upper, &alloc_matrix_time, &copy_vec_time));
+  CUPDLP_CALL(problem_alloc(prob, nRows_pdlp, nCols_pdlp, nEqs_pdlp, cost,
+                            offset, sense, csc_cpu, src_matrix_format,
+                            dst_matrix_format, rhs, lower, upper,
+                            &alloc_matrix_time, &copy_vec_time));
 
   // solve
-  // cupdlp_printf("Enter main solve loop\n");
-
   w->problem = prob;
   w->scaling = scaling;
   PDHG_Alloc(w);
   w->timers->dScalingTime = scaling_time;
   w->timers->dPresolveTime = presolve_time;
-  CUPDLP_COPY_VEC(w->rowScale, scaling->rowScale, cupdlp_float, nRows);
-  CUPDLP_COPY_VEC(w->colScale, scaling->colScale, cupdlp_float, nCols);
+  CUPDLP_COPY_VEC(w->rowScale, scaling->rowScale, cupdlp_float, nRows_pdlp);
+  CUPDLP_COPY_VEC(w->colScale, scaling->colScale, cupdlp_float, nCols_pdlp);
 
 #if !(CUPDLP_CPU)
   w->timers->AllocMem_CopyMatToDeviceTime += alloc_matrix_time;
@@ -208,30 +220,72 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_printf("--------------------------------------------------\n");
   cupdlp_printf("enter main solve loop\n");
   cupdlp_printf("--------------------------------------------------\n");
-  // CUPDLP_CALL(LP_SolvePDHG(prob, cupdlp_NULL, cupdlp_NULL, cupdlp_NULL,
-  // cupdlp_NULL));
-  //   CUPDLP_CALL(LP_SolvePDHG(prob, ifChangeIntParam, intParam,
-  //                               ifChangeFloatParam, floatParam, fout));
 
-  CUPDLP_INIT(x_origin, nCols_origin);
-  CUPDLP_INIT(y_origin, nRows);
+  CUPDLP_INIT(col_value_org, nCols_org);
+  CUPDLP_INIT(col_dual_org, nCols_org);
+  CUPDLP_INIT(row_value_org, nRows_org);
+  CUPDLP_INIT(row_dual_org, nRows_org);
+
+  if (ifPresolve) {
+    CUPDLP_INIT(col_value_pre, nCols_pre);
+    CUPDLP_INIT(col_dual_pre, nCols_pre);
+    CUPDLP_INIT(row_value_pre, nRows_pre);
+    CUPDLP_INIT(row_dual_pre, nRows_pre);
+
+    col_value = col_value_pre;
+    col_dual = col_dual_pre;
+    row_value = row_value_pre;
+    row_dual = row_dual_pre;
+  } else {
+    col_value = col_value_org;
+    col_dual = col_dual_org;
+    row_value = row_value_org;
+    row_dual = row_dual_org;
+  }
 
   CUPDLP_CALL(LP_SolvePDHG(w, ifChangeIntParam, intParam, ifChangeFloatParam,
-                           floatParam, fout, x_origin, nCols_origin, y_origin,
-                           ifSaveSol, constraint_new_idx));
+                           floatParam, fout, nCols, col_value, col_dual,
+                           row_value, row_dual, &value_valid, &dual_valid, 0,
+                           fout_sol, constraint_new_idx, constraint_type));
 
-  // print result
-  // TODO: implement after adding IO
+  // postsolve
+  if (ifPresolve) {
+    postsolvedModel_highs(
+        model, nCols_pre, nRows_pre, col_value_pre, col_dual_pre, row_value_pre,
+        row_dual_pre, value_valid, dual_valid, nCols_org, nRows_org,
+        col_value_org, col_dual_org, row_value_org, row_dual_org);
+  }
+
+  // write solution
+  if (ifSaveSol) {
+    writeSol(fout_sol, nCols_org, nRows_org, col_value_org, col_dual_org,
+             row_value_org, row_dual_org);
+  }
 
 exit_cleanup:
+  // free model and solution
   deleteModel_highs(model);
   if (ifPresolve) {
     deleteModel_highs(presolvedmodel);
+    if (col_value_pre != NULL) cupdlp_free(col_value_pre);
+    if (col_dual_pre != NULL) cupdlp_free(col_dual_pre);
+    if (row_value_pre != NULL) cupdlp_free(row_value);
+    if (row_dual_pre != NULL) cupdlp_free(row_dual);
   }
+  if (col_value_org != NULL) cupdlp_free(col_value_org);
+  if (col_dual_org != NULL) cupdlp_free(col_dual_org);
+  if (row_value_org != NULL) cupdlp_free(row_value_org);
+  if (row_dual_org != NULL) cupdlp_free(row_dual_org);
+  col_value = NULL;
+  col_dual = NULL;
+  row_value = NULL;
+  row_dual = NULL;
 
+  // free problem
   if (scaling) {
     scaling_clear(scaling);
   }
+
   if (cost != NULL) cupdlp_free(cost);
   if (csc_beg != NULL) cupdlp_free(csc_beg);
   if (csc_idx != NULL) cupdlp_free(csc_idx);
@@ -240,14 +294,11 @@ exit_cleanup:
   if (lower != NULL) cupdlp_free(lower);
   if (upper != NULL) cupdlp_free(upper);
   if (constraint_new_idx != NULL) cupdlp_free(constraint_new_idx);
-  if (x_origin != NULL) cupdlp_free(x_origin);
-  if (y_origin != NULL) cupdlp_free(y_origin);
+  if (constraint_type != NULL) cupdlp_free(constraint_type);
+
   // free memory
   csc_clear(csc_cpu);
   problem_clear(prob);
-
-  // freealldata(Aeqp, Aeqi, Aeqx, Aineqp, Aineqi, Aineqx, colUbIdx, colUbElem,
-  //             rhs, cost, x, s, t, sx, ss, st, y, lower, upper);
 
   return retcode;
 }

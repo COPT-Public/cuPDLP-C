@@ -240,6 +240,12 @@ void resobj_clear(CUPDLPresobj *resobj) {
     if (resobj->dSlackNeg) {
       CUPDLP_FREE_VEC(resobj->dSlackNeg);
     }
+    if (resobj->dSlackPosAverage) {
+      CUPDLP_FREE_VEC(resobj->dSlackPosAverage);
+    }
+    if (resobj->dSlackNegAverage) {
+      CUPDLP_FREE_VEC(resobj->dSlackNegAverage);
+    }
     if (resobj->dLowerFiltered) {
       CUPDLP_FREE_VEC(resobj->dLowerFiltered);
     }
@@ -760,6 +766,8 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   CUPDLP_INIT_ZERO_VEC(resobj->dualResidualAverage, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dSlackPos, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dSlackNeg, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->dSlackPosAverage, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->dSlackNegAverage, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dLowerFiltered, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dUpperFiltered, ncols);
 
@@ -1481,9 +1489,7 @@ const char *termIterateNames[] = {
 };
 #endif
 
-void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
-               cupdlp_int nx, cupdlp_float *y, cupdlp_int ny,
-               cupdlp_bool ifSaveSol) {
+void writeJson(const char *fout, CUPDLPwork *work) {
   FILE *fptr;
 
   cupdlp_printf("--------------------------------\n");
@@ -1546,30 +1552,92 @@ void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
   fprintf(fptr, "\"terminationIterate\":\"%s\"",
           termIterateNames[work->resobj->termIterate]);
 
-  // print solutions
-  if (ifSaveSol) {
-    // primal solution
-    fprintf(fptr, ",\"x\":[");
-    if (x && nx > 0) {
-      for (int i = 0; i < nx - 1; ++i) {
-        fprintf(fptr, "%f,", x[i]);
-      }
-      fprintf(fptr, "%f", x[nx - 1]);
-    }
-    fprintf(fptr, "]");
+  // // print solutions
+  // if (ifSaveSol) {
+  //   // primal solution
+  //   fprintf(fptr, ",\"x\":[");
+  //   if (x && nx > 0) {
+  //     for (int i = 0; i < nx - 1; ++i) {
+  //       fprintf(fptr, "%f,", x[i]);
+  //     }
+  //     fprintf(fptr, "%f", x[nx - 1]);
+  //   }
+  //   fprintf(fptr, "]");
 
-    // dual solution
-    fprintf(fptr, ",\"y\":[");
-    if (y && ny > 0) {
-      for (int i = 0; i < ny - 1; ++i) {
-        fprintf(fptr, "%f,", y[i]);
-      }
-      fprintf(fptr, "%f", y[ny - 1]);
-    }
-    fprintf(fptr, "]");
-  }
+  //   // dual solution
+  //   fprintf(fptr, ",\"y\":[");
+  //   if (y && ny > 0) {
+  //     for (int i = 0; i < ny - 1; ++i) {
+  //       fprintf(fptr, "%f,", y[i]);
+  //     }
+  //     fprintf(fptr, "%f", y[ny - 1]);
+  //   }
+  //   fprintf(fptr, "]");
+  // }
 
   fprintf(fptr, "}");
+  // Close the file
+  fclose(fptr);
+}
+
+void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
+              cupdlp_float *col_value, cupdlp_float *col_dual,
+              cupdlp_float *row_value, cupdlp_float *row_dual) {
+  FILE *fptr;
+
+  cupdlp_printf("--------------------------------\n");
+  cupdlp_printf("--- saving sol to %s\n", fout);
+  cupdlp_printf("--------------------------------\n");
+  // Open a file in writing mode
+  fptr = fopen(fout, "w");
+  fprintf(fptr, "{");
+
+  // col value
+  fprintf(fptr, "\"col_value\": [");
+  if (col_value && nCols) {
+    for (int i = 0; i < nCols - 1; ++i) {
+      fprintf(fptr, "%f,", col_value[i]);
+    }
+    fprintf(fptr, "%f", col_value[nCols - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // col dual
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"col_dual\": [");
+  if (col_dual && nCols) {
+    for (int i = 0; i < nCols - 1; ++i) {
+      fprintf(fptr, "%f,", col_dual[i]);
+    }
+    fprintf(fptr, "%f", col_dual[nCols - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // row value
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"row_value\": [");
+  if (row_value && nRows) {
+    for (int i = 0; i < nRows - 1; ++i) {
+      fprintf(fptr, "%f,", row_value[i]);
+    }
+    fprintf(fptr, "%f", row_value[nRows - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // row dual
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"row_dual\": [");
+  if (row_dual && nRows) {
+    for (int i = 0; i < nRows - 1; ++i) {
+      fprintf(fptr, "%f,", row_dual[i]);
+    }
+    fprintf(fptr, "%f", row_dual[nRows - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // end writing
+  fprintf(fptr, "}");
+
   // Close the file
   fclose(fptr);
 }

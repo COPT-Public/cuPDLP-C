@@ -232,7 +232,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
                                int *nRows, int *nnz, int *nEqs, int **csc_beg,
                                int **csc_idx, double **csc_val, double **rhs,
                                double **lower, double **upper, double *offset,
-                               double *sign_origin, int *nCols_origin,
+                               double *sense_origin, int *nCols_origin,
                                int **constraint_new_idx) {
   int retcode = 0;
 
@@ -246,7 +246,7 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   *nEqs = 0;                                         // need recalculate
   *nnz = nnz_clp;                                    // need recalculate
   *offset = ((ClpModel *)model)->objectiveOffset();  // need not recalculate
-  *sign_origin = ((ClpModel *)model)->getObjSense();
+  *sense_origin = ((ClpModel *)model)->getObjSense();
   if (*offset != 0.0) {
     printf("Has obj offset %f\n", *offset);
   } else {
