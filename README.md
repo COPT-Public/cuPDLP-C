@@ -75,7 +75,7 @@ or
 |`dDualTol`|`double`|`>=0`|`1e-4`|Dual feasibility tolerance for termination|
 |`dGapTol`|`double`|`>=0`|`1e-4`|Duality gap tolerance for termination|
 |`dTimeLim`|`double`|`>=0`|`3600`|Time limit (in seconds)|
-|`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-KKTverion|
+|`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-KKTversion|
 <!-- |`-ifPre`|`bool`|`true, false`|`false`|Whether to use HiGHS presolver (and thus postsolver)| -->
 <!-- |`dFeasTol`|`double`|`>=0`|`1e-8`|Not used yet, maybe infeasibility tolerance| -->
 <!-- |`dScalingLimit`|`double`|`>0`|`1`|Maybe to control scaling magnitude| -->
