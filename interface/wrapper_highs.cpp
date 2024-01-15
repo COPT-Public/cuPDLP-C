@@ -162,14 +162,14 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   const HighsLp &lp = ((Highs *)model)->getLp();
 
   // problem size for malloc
-  int nCols_clp = lp.num_col_;
-  int nRows_clp = lp.num_row_;
-  int nnz_clp = lp.a_matrix_.numNz();
-  *nCols_origin = nCols_clp;
-  *nRows = nRows_clp;    // need not recalculate
-  *nCols = nCols_clp;    // need recalculate
+  int nCols_highs = lp.num_col_;
+  int nRows_highs = lp.num_row_;
+  int nnz_highs = lp.a_matrix_.numNz();
+  *nCols_origin = nCols_highs;
+  *nRows = nRows_highs;  // need not recalculate
+  *nCols = nCols_highs;  // need recalculate
   *nEqs = 0;             // need recalculate
-  *nnz = nnz_clp;        // need recalculate
+  *nnz = nnz_highs;      // need recalculate
   *offset = lp.offset_;  // need not recalculate
   if (lp.sense_ == ObjSense::kMinimize) {
     *sense_origin = 1.0;
@@ -185,23 +185,23 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
   // allocate buffer memory
 
-  const double *lhs_clp = lp.row_lower_.data();
-  const double *rhs_clp = lp.row_upper_.data();
+  const double *lhs_highs = lp.row_lower_.data();
+  const double *rhs_highs = lp.row_upper_.data();
   const int *A_csc_beg = lp.a_matrix_.start_.data();
   const int *A_csc_idx = lp.a_matrix_.index_.data();
   const double *A_csc_val = lp.a_matrix_.value_.data();
   int has_lower, has_upper;
 
-  CUPDLP_INIT(*constraint_type, nRows_clp);
+  CUPDLP_INIT(*constraint_type, nRows_highs);
   CUPDLP_INIT(*constraint_new_idx, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
-  for (int i = 0; i < nRows_clp; i++) {
-    has_lower = lhs_clp[i] > -1e20;
-    has_upper = rhs_clp[i] < 1e20;
+  for (int i = 0; i < nRows_highs; i++) {
+    has_lower = lhs_highs[i] > -1e20;
+    has_upper = rhs_highs[i] < 1e20;
 
     // count number of equations and rows
-    if (has_lower && has_upper && lhs_clp[i] == rhs_clp[i]) {
+    if (has_lower && has_upper && lhs_highs[i] == rhs_highs[i]) {
       (*constraint_type)[i] = EQ;
       (*nEqs)++;
     } else if (has_lower && !has_upper) {
@@ -237,21 +237,21 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   CUPDLP_INIT(*rhs, *nRows);
 
   // cost, lower, upper
-  for (int i = 0; i < nCols_clp; i++) {
+  for (int i = 0; i < nCols_highs; i++) {
     (*cost)[i] = lp.col_cost_[i] * (*sense_origin);
     (*lower)[i] = lp.col_lower_[i];
 
     (*upper)[i] = lp.col_upper_[i];
   }
   // slack costs
-  for (int i = nCols_clp; i < *nCols; i++) {
+  for (int i = nCols_highs; i < *nCols; i++) {
     (*cost)[i] = 0.0;
   }
   // slack bounds
-  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
+  for (int i = 0, j = nCols_highs; i < *nRows; i++) {
     if ((*constraint_type)[i] == BOUND) {
-      (*lower)[j] = lhs_clp[i];
-      (*upper)[j] = rhs_clp[i];
+      (*lower)[j] = lhs_highs[i];
+      (*upper)[j] = rhs_highs[i];
       j++;
     }
   }
@@ -265,7 +265,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   // EQ or BOUND first
   for (int i = 0, j = 0; i < *nRows; i++) {
     if ((*constraint_type)[i] == EQ) {
-      (*rhs)[j] = lhs_clp[i];
+      (*rhs)[j] = lhs_highs[i];
       (*constraint_new_idx)[i] = j;
       j++;
     } else if ((*constraint_type)[i] == BOUND) {
@@ -277,11 +277,11 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   // then LEQ or GEQ
   for (int i = 0, j = *nEqs; i < *nRows; i++) {
     if ((*constraint_type)[i] == LEQ) {
-      (*rhs)[j] = -rhs_clp[i];  // multiply -1
+      (*rhs)[j] = -rhs_highs[i];  // multiply -1
       (*constraint_new_idx)[i] = j;
       j++;
     } else if ((*constraint_type)[i] == GEQ) {
-      (*rhs)[j] = lhs_clp[i];
+      (*rhs)[j] = lhs_highs[i];
       (*constraint_new_idx)[i] = j;
       j++;
     }
@@ -289,12 +289,12 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
 
   // formulate and permute LP matrix
   // beg remains the same
-  for (int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
-  for (int i = nCols_clp + 1; i < *nCols + 1; i++)
+  for (int i = 0; i < nCols_highs + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
+  for (int i = nCols_highs + 1; i < *nCols + 1; i++)
     (*csc_beg)[i] = (*csc_beg)[i - 1] + 1;
 
   // row idx changes
-  for (int i = 0, k = 0; i < nCols_clp; i++) {
+  for (int i = 0, k = 0; i < nCols_highs; i++) {
     // same order as in rhs
     // EQ or BOUND first
     for (int j = (*csc_beg)[i]; j < (*csc_beg)[i + 1]; j++) {
@@ -320,7 +320,7 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
 
   // slacks for BOUND
-  for (int i = 0, j = nCols_clp; i < *nRows; i++) {
+  for (int i = 0, j = nCols_highs; i < *nRows; i++) {
     if ((*constraint_type)[i] == BOUND) {
       (*csc_idx)[(*csc_beg)[j]] = (*constraint_new_idx)[i];
       (*csc_val)[(*csc_beg)[j]] = -1.0;

@@ -453,6 +453,7 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
   CUPDLPresobj *resobj = pdhg->resobj;
   CUPDLPiterates *iterates = pdhg->iterates;
   CUPDLPtimers *timers = pdhg->timers;
+  CUPDLPscaling *scaling = pdhg->scaling;
 
   timers->dSolvingBeg = getTimeStamp();
 
@@ -498,14 +499,14 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
       }
 
       if (PDHG_Check_Termination(pdhg, bool_print)) {
-        cupdlp_printf("Optimal current solution.\n");
+        // cupdlp_printf("Optimal current solution.\n");
         resobj->termIterate = LAST_ITERATE;
         resobj->termCode = OPTIMAL;
         break;
       }
 
       if (PDHG_Check_Termination_Average(pdhg, bool_print)) {
-        cupdlp_printf("Optimal average solution.\n");
+        // cupdlp_printf("Optimal average solution.\n");
 
         CUPDLP_COPY_VEC(iterates->x->data, iterates->xAverage->data,
                         cupdlp_float, problem->nCols);
@@ -526,13 +527,13 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
       }
 
       if (timers->dSolvingTime > settings->dTimeLim) {
-        cupdlp_printf("Time limit reached.\n");
+        // cupdlp_printf("Time limit reached.\n");
         resobj->termCode = TIMELIMIT_OR_ITERLIMIT;
         break;
       }
 
       if (timers->nIter == (settings->nIterLim - 1)) {
-        cupdlp_printf("Iteration limit reached.\n");
+        // cupdlp_printf("Iteration limit reached.\n");
         resobj->termCode = TIMELIMIT_OR_ITERLIMIT;
         break;
       }
@@ -541,10 +542,63 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
     }
     CUPDLP_CALL(PDHG_Update_Iterate(pdhg));
   }
+
   // print at last
   PDHG_Print_Header(pdhg);
   PDHG_Print_Iter(pdhg);
   PDHG_Print_Iter_Average(pdhg);
+
+  cupdlp_printf("\n");
+  cupdlp_printf("%-27s ", "Solving information:");
+
+  switch (resobj->termCode) {
+    case OPTIMAL:
+      if (resobj->termIterate == LAST_ITERATE) {
+        cupdlp_printf("Optimal current solution.\n");
+      } else if (resobj->termIterate == AVERAGE_ITERATE) {
+        cupdlp_printf("Optimal average solution.\n");
+      }
+      break;
+    case TIMELIMIT_OR_ITERLIMIT:
+      if (timers->dSolvingTime > settings->dTimeLim) {
+        cupdlp_printf("Time limit reached.\n");
+      } else if (timers->nIter == (settings->nIterLim - 1)) {
+        cupdlp_printf("Iteration limit reached.\n");
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  if (resobj->termCode == OPTIMAL && resobj->termIterate == AVERAGE_ITERATE) {
+    cupdlp_printf("%27s %+15.8e\n",
+                  "Primal objective:", resobj->dPrimalObjAverage);
+    cupdlp_printf("%27s %+15.8e\n", "Dual objective:", resobj->dDualObjAverage);
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Primal infeas (abs/rel):", resobj->dPrimalFeasAverage,
+                  resobj->dPrimalFeasAverage / (1.0 + scaling->dNormRhs));
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Dual infeas (abs/rel):", resobj->dDualFeasAverage,
+                  resobj->dDualFeasAverage / (1.0 + scaling->dNormCost));
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Duality gap (abs/rel):", fabs(resobj->dDualityGapAverage),
+                  resobj->dRelObjGapAverage);
+  } else {
+    cupdlp_printf("%27s %+15.8e\n", "Primal objective:", resobj->dPrimalObj);
+    cupdlp_printf("%27s %+15.8e\n", "Dual objective:", resobj->dDualObj);
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Primal infeas (abs/rel):", resobj->dPrimalFeas,
+                  resobj->dPrimalFeas / (1.0 + scaling->dNormRhs));
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Dual infeas (abs/rel):", resobj->dDualFeas,
+                  resobj->dDualFeas / (1.0 + scaling->dNormCost));
+    cupdlp_printf("%27s %8.2e / %8.2e\n",
+                  "Duality gap (abs/rel):", fabs(resobj->dDualityGap),
+                  resobj->dRelObjGap);
+  }
+  cupdlp_printf("%27s %d\n", "Number of iterations:", timers->nIter);
+  cupdlp_printf("\n");
 
 #if PDHG_USE_TIMERS
   cupdlp_printf("Timing information:\n");

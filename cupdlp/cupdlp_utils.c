@@ -384,7 +384,7 @@ void PDHG_PrintPDHGParam(CUPDLPwork *w) {
   cupdlp_printf("    dPrimalTol:        %.4e\n", settings->dPrimalTol);
   cupdlp_printf("    dDualTol:          %.4e\n", settings->dDualTol);
   cupdlp_printf("    dGapTol:           %.4e\n", settings->dGapTol);
-  cupdlp_printf("    dFeasTol:          %.4e\n", resobj->dFeasTol);
+  // cupdlp_printf("    dFeasTol:          %.4e\n", resobj->dFeasTol);
   cupdlp_printf("    eRestartMethod:    %d\n", settings->eRestartMethod);
   cupdlp_printf("\n");
   cupdlp_printf("--------------------------------------------------\n");
@@ -412,7 +412,7 @@ void PDHG_PrintUserParamHelper() {
 
   cupdlp_printf("    -nIterLim:  maximum iteration number\n");
   cupdlp_printf("                type:    int\n");
-  cupdlp_printf("                default: 10000000\n");
+  cupdlp_printf("                default: INT_MAX\n");
   cupdlp_printf("                range:   >= 0\n");
   cupdlp_printf("\n");
 
@@ -424,7 +424,8 @@ void PDHG_PrintUserParamHelper() {
 
   cupdlp_printf("    -eLineSearchMethod: which line search method to use\n");
   cupdlp_printf(
-      "                        0-Fixed, 1-Malitsky-Pock, 2-Adaptive\n");
+      "                        0-Fixed, 1-Malitsky (not support), "
+      "2-Adaptive\n");
   cupdlp_printf("                type:    int\n");
   cupdlp_printf("                default: 2\n");
   cupdlp_printf("                range:   0 to 2\n");
@@ -448,20 +449,20 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("                range:   >= 0\n");
   cupdlp_printf("\n");
 
-  cupdlp_printf("    -dFeasTol: feasibility tolerance\n");
-  cupdlp_printf("                type:    double\n");
-  cupdlp_printf("                default: 1e-8\n");
-  cupdlp_printf("                range:   >= 0\n");
-  cupdlp_printf("\n");
+  // cupdlp_printf("    -dFeasTol: feasibility tolerance\n");
+  // cupdlp_printf("                type:    double\n");
+  // cupdlp_printf("                default: 1e-8\n");
+  // cupdlp_printf("                range:   >= 0\n");
+  // cupdlp_printf("\n");
 
   cupdlp_printf("    -dTimeLim: time limit (in seconds)\n");
   cupdlp_printf("                type:    double\n");
   cupdlp_printf("                default: 3600\n");
-  cupdlp_printf("                range:   > 0\n");
+  cupdlp_printf("                range:   >= 0\n");
   cupdlp_printf("\n");
 
   cupdlp_printf("    -eRestartMethod: which restart method to use\n");
-  cupdlp_printf("                     0-None, 1-GPU\n");
+  cupdlp_printf("                     0-None, 1-KKTversion\n");
   cupdlp_printf("                type:    int\n");
   cupdlp_printf("                default: 1\n");
   cupdlp_printf("                range:   0 to 1\n");
@@ -485,11 +486,12 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("                range:   true or false\n");
   cupdlp_printf("\n");
 
-  cupdlp_printf("    -ifPresolve: whether to presolve problem\n");
-  cupdlp_printf("                type:    bool\n");
-  cupdlp_printf("                default: true\n");
-  cupdlp_printf("                range:   true or false\n");
-  cupdlp_printf("\n");
+  // cupdlp_printf(
+  //     "    -ifPre: whether to use HiGHS presolver (and thus postsolver)\n");
+  // cupdlp_printf("                type:    bool\n");
+  // cupdlp_printf("                default: true\n");
+  // cupdlp_printf("                range:   true or false\n");
+  // cupdlp_printf("\n");
 }
 
 cupdlp_retcode getUserParam(int argc, char **argv,
@@ -561,7 +563,7 @@ cupdlp_retcode getUserParam(int argc, char **argv,
     } else if (strcmp(argv[i], "-nLogInt") == 0) {
       ifChangeIntParam[N_LOG_INTERVAL] = true;
       intParam[N_LOG_INTERVAL] = atoi(argv[i + 1]);
-    } else if (strcmp(argv[i], "-ifPresolve") == 0) {
+    } else if (strcmp(argv[i], "-ifPre") == 0) {
       ifChangeIntParam[IF_PRESOLVE] = true;
       intParam[IF_PRESOLVE] = atoi(argv[i + 1]);
     }
@@ -1592,13 +1594,25 @@ void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
   fptr = fopen(fout, "w");
   fprintf(fptr, "{");
 
+  // nCols
+  fprintf(fptr, "\n");
+
+  fprintf(fptr, "\"nCols\": %d", nCols);
+
+  // nRows
+  fprintf(fptr, ",\n");
+
+  fprintf(fptr, "\"nRows\": %d", nRows);
+
   // col value
+  fprintf(fptr, ",\n");
+
   fprintf(fptr, "\"col_value\": [");
   if (col_value && nCols) {
     for (int i = 0; i < nCols - 1; ++i) {
-      fprintf(fptr, "%f,", col_value[i]);
+      fprintf(fptr, "%.14f,", col_value[i]);
     }
-    fprintf(fptr, "%f", col_value[nCols - 1]);
+    fprintf(fptr, "%.14f", col_value[nCols - 1]);
   }
   fprintf(fptr, "]");
 
@@ -1607,9 +1621,9 @@ void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
   fprintf(fptr, "\"col_dual\": [");
   if (col_dual && nCols) {
     for (int i = 0; i < nCols - 1; ++i) {
-      fprintf(fptr, "%f,", col_dual[i]);
+      fprintf(fptr, "%.14f,", col_dual[i]);
     }
-    fprintf(fptr, "%f", col_dual[nCols - 1]);
+    fprintf(fptr, "%.14f", col_dual[nCols - 1]);
   }
   fprintf(fptr, "]");
 
@@ -1618,9 +1632,9 @@ void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
   fprintf(fptr, "\"row_value\": [");
   if (row_value && nRows) {
     for (int i = 0; i < nRows - 1; ++i) {
-      fprintf(fptr, "%f,", row_value[i]);
+      fprintf(fptr, "%.14f,", row_value[i]);
     }
-    fprintf(fptr, "%f", row_value[nRows - 1]);
+    fprintf(fptr, "%.14f", row_value[nRows - 1]);
   }
   fprintf(fptr, "]");
 
@@ -1629,13 +1643,14 @@ void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
   fprintf(fptr, "\"row_dual\": [");
   if (row_dual && nRows) {
     for (int i = 0; i < nRows - 1; ++i) {
-      fprintf(fptr, "%f,", row_dual[i]);
+      fprintf(fptr, "%.14f,", row_dual[i]);
     }
-    fprintf(fptr, "%f", row_dual[nRows - 1]);
+    fprintf(fptr, "%.14f", row_dual[nRows - 1]);
   }
   fprintf(fptr, "]");
 
   // end writing
+  fprintf(fptr, "\n");
   fprintf(fptr, "}");
 
   // Close the file

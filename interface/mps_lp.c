@@ -4,10 +4,21 @@ void print_script_usage() {
   printf("Test Script User Parameters:\n");
   printf("\n");
 
-  printf("  -fname <str> : path for .mps or .mps.gz LP file\n");
+  printf("  -h: print this helper\n");
   printf("\n");
-  printf("  -fout <str>  : path for .json output file\n");
+  printf("  -fname <str>    : path for .mps or .mps.gz LP file\n");
   printf("\n");
+  printf("  -out <str>      : path for .json output file\n");
+  printf("\n");
+  printf("  -outSol <str>   : path for .json output solution file\n");
+  printf("\n");
+  printf(
+      "  -savesol <bool> : whether to write solution to .json solution file\n");
+  printf("\n");
+  // printf(
+  //     "  -ifPre <bool>   : whether to use presolver (and thus
+  //     postsolver)\n");
+  // printf("\n");
 }
 
 void freealldata(int *Aeqp, int *Aeqi, double *Aeqx, int *Aineqp, int *Aineqi,

@@ -89,6 +89,7 @@ cupdlp_retcode main(int argc, char **argv) {
       fout = argv[i + 1];
     } else if (strcmp(argv[i], "-h") == 0) {
       print_script_usage();
+      break;
     } else if (strcmp(argv[i], "-savesol") == 0) {
       ifSaveSol = atoi(argv[i + 1]);
     } else if (strcmp(argv[i], "-ifPre") == 0) {
@@ -96,9 +97,9 @@ cupdlp_retcode main(int argc, char **argv) {
     } else if (strcmp(argv[i], "-outSol") == 0) {
       fout_sol = argv[i + 1];
     }
-    if (strcmp(argv[argc - 1], "-h") == 0) {
-      print_script_usage();
-    }
+  }
+  if (strcmp(argv[argc - 1], "-h") == 0) {
+    print_script_usage();
   }
 
   // set solver parameters
@@ -248,18 +249,29 @@ cupdlp_retcode main(int argc, char **argv) {
                            row_value, row_dual, &value_valid, &dual_valid, 0,
                            fout_sol, constraint_new_idx, constraint_type));
 
-  // postsolve
-  if (ifPresolve) {
-    postsolvedModel_highs(
-        model, nCols_pre, nRows_pre, col_value_pre, col_dual_pre, row_value_pre,
-        row_dual_pre, value_valid, dual_valid, nCols_org, nRows_org,
-        col_value_org, col_dual_org, row_value_org, row_dual_org);
-  }
+  // // postsolve
+  // if (ifPresolve) {
+  //   postsolvedModel_highs(
+  //       model, nCols_pre, nRows_pre, col_value_pre, col_dual_pre,
+  //       row_value_pre, row_dual_pre, value_valid, dual_valid, nCols_org,
+  //       nRows_org, col_value_org, col_dual_org, row_value_org, row_dual_org);
+  // }
 
-  // write solution
+  // // write solution
+  // if (ifSaveSol) {
+  //   writeSol(fout_sol, nCols_org, nRows_org, col_value_org, col_dual_org,
+  //            row_value_org, row_dual_org);
+  // }
+
   if (ifSaveSol) {
-    writeSol(fout_sol, nCols_org, nRows_org, col_value_org, col_dual_org,
-             row_value_org, row_dual_org);
+    if (ifPresolve) {
+      // currently no postsolve
+      writeSol(fout_sol, nCols_pre, nRows_pre, col_value_pre, col_dual_pre,
+               row_value_pre, row_dual_pre);
+    } else {
+      writeSol(fout_sol, nCols_org, nRows_org, col_value_org, col_dual_org,
+               row_value_org, row_dual_org);
+    }
   }
 
 exit_cleanup:
