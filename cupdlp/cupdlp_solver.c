@@ -562,12 +562,13 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
     case TIMELIMIT_OR_ITERLIMIT:
       if (timers->dSolvingTime > settings->dTimeLim) {
         cupdlp_printf("Time limit reached.\n");
-      } else if (timers->nIter == (settings->nIterLim - 1)) {
+      } else if (timers->nIter >= (settings->nIterLim - 1)) {
         cupdlp_printf("Iteration limit reached.\n");
       }
       break;
 
     default:
+      cupdlp_printf("Unexpected.\n");
       break;
   }
 
