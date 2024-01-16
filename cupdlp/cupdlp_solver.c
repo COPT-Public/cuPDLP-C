@@ -603,36 +603,37 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
 
 #if PDHG_USE_TIMERS
   cupdlp_printf("Timing information:\n");
-  // cupdlp_printf("%20s %e in %d iterations\n", "Total solver time",
+  // cupdlp_printf("%21s %e in %d iterations\n", "Total solver time",
   //               timers->dSolvingTime, timers->nIter);
   cupdlp_printf(
-      "%20s %e in %d iterations\n", "Total solver time",
+      "%21s %e in %d iterations\n", "Total solver time",
       timers->dSolvingTime + timers->dScalingTime + timers->dPresolveTime,
       timers->nIter);
-  cupdlp_printf("%20s %e in %d iterations\n", "Solve time",
+  cupdlp_printf("%21s %e in %d iterations\n", "Solve time",
                 timers->dSolvingTime, timers->nIter);
-  cupdlp_printf("%20s %e \n", "Iters per sec",
+  cupdlp_printf("%21s %e \n", "Iters per sec",
                 timers->nIter / timers->dSolvingTime);
-  cupdlp_printf("%20s %e\n", "Scaling time", timers->dScalingTime);
-  cupdlp_printf("%20s %e\n", "Presolve time", timers->dPresolveTime);
-  cupdlp_printf("%20s %e in %d calls\n", "Ax", timers->dAxTime,
+  cupdlp_printf("%21s %e\n", "Scaling time", timers->dScalingTime);
+  cupdlp_printf("%21s %e\n", "Presolve time", timers->dPresolveTime);
+  cupdlp_printf("%21s %e in %d calls\n", "Ax", timers->dAxTime,
                 timers->nAxCalls);
-  cupdlp_printf("%20s %e in %d calls\n", "Aty", timers->dAtyTime,
+  cupdlp_printf("%21s %e in %d calls\n", "Aty", timers->dAtyTime,
                 timers->nAtyCalls);
-  cupdlp_printf("%20s %e in %d calls\n", "ComputeResiduals",
+  cupdlp_printf("%21s %e in %d calls\n", "ComputeResiduals",
                 timers->dComputeResidualsTime, timers->nComputeResidualsCalls);
-  cupdlp_printf("%20s %e in %d calls\n", "UpdateIterates",
+  cupdlp_printf("%21s %e in %d calls\n", "UpdateIterates",
                 timers->dUpdateIterateTime, timers->nUpdateIterateCalls);
 #endif
 
 #if !(CUPDLP_CPU)
+  cupdlp_printf("\n");
   cupdlp_printf("GPU Timing information:\n");
-  cupdlp_printf("%20s %e\n", "CudaPrepare", timers->CudaPrepareTime);
-  cupdlp_printf("%20s %e\n", "Alloc&CopyMatToDevice",
+  cupdlp_printf("%21s %e\n", "CudaPrepare", timers->CudaPrepareTime);
+  cupdlp_printf("%21s %e\n", "Alloc&CopyMatToDevice",
                 timers->AllocMem_CopyMatToDeviceTime);
-  cupdlp_printf("%20s %e\n", "CopyVecToDevice", timers->CopyVecToDeviceTime);
-  cupdlp_printf("%20s %e\n", "DeviceMatVecProd", timers->DeviceMatVecProdTime);
-  cupdlp_printf("%20s %e\n", "CopyVecToHost", timers->CopyVecToHostTime);
+  cupdlp_printf("%21s %e\n", "CopyVecToDevice", timers->CopyVecToDeviceTime);
+  cupdlp_printf("%21s %e\n", "DeviceMatVecProd", timers->DeviceMatVecProdTime);
+  cupdlp_printf("%21s %e\n", "CopyVecToHost", timers->CopyVecToHostTime);
 #endif
 
 exit_cleanup:
@@ -665,10 +666,10 @@ cupdlp_retcode PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
   cupdlp_float *col_buffer2 = NULL;
   // no need for row_buffer2
   // cupdlp_float *row_buffer2 = NULL;
-  CUPDLP_INIT_VEC(col_buffer, problem->nCols);
-  CUPDLP_INIT_VEC(row_buffer, problem->nRows);
-  CUPDLP_INIT_VEC(col_buffer2, problem->nCols);
-  // CUPDLP_INIT_VEC(row_buffer2, problem->nRows);
+  CUPDLP_INIT(col_buffer, problem->nCols);
+  CUPDLP_INIT(row_buffer, problem->nRows);
+  CUPDLP_INIT(col_buffer2, problem->nCols);
+  // CUPDLP_INIT(row_buffer2, problem->nRows);
 
   // unscale
   if (scaling->ifScaled) {
@@ -773,10 +774,10 @@ cupdlp_retcode PDHG_PostSolve(CUPDLPwork *pdhg, cupdlp_int nCols_origin,
 
 exit_cleanup:
   // free buffer
-  CUPDLP_FREE_VEC(col_buffer);
-  CUPDLP_FREE_VEC(row_buffer);
-  CUPDLP_FREE_VEC(col_buffer2);
-  // CUPDLP_FREE_VEC(row_buffer2);
+  CUPDLP_FREE(col_buffer);
+  CUPDLP_FREE(row_buffer);
+  CUPDLP_FREE(col_buffer2);
+  // CUPDLP_FREE(row_buffer2);
 
   return retcode;
 }
