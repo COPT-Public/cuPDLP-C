@@ -32,7 +32,9 @@ int loadMps_highs(void *model, const char *filename);  // ok 0, fail 1
 void deleteModel_highs(void *model);
 void *createModel_highs();
 
-void *presolvedModel_highs(void *presolve, void *model);
+int presolvedModel_highs(
+    void *presolve,
+    void *model);  // ok 0, fail 1, infeasOrUnbounded 2, opt 3
 void *postsolvedModel_highs(void *model, int nCols_pre, int nRows_pre,
                             double *col_value_pre, double *col_dual_pre,
                             double *row_value_pre, double *row_dual_pre,

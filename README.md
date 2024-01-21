@@ -77,7 +77,7 @@ or
 |`dTimeLim`|`double`|`>=0`|`3600`|Time limit (in seconds)|
 |`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-KKTversion|
 <!-- |`-ifPre`|`bool`|`true, false`|`false`|Whether to use HiGHS presolver (and thus postsolver)| -->
-<!-- |`dFeasTol`|`double`|`>=0`|`1e-8`|Not used yet, maybe infeasibility tolerance| -->
+|`dFeasTol`|`double`|`>=0`|`1e-8`|Tolerance for primal and dual infeasibility check|
 <!-- |`dScalingLimit`|`double`|`>0`|`1`|Maybe to control scaling magnitude| -->
 <!-- |`iScalingMethod`|`int`|`0-5`|`0`|Which scaling to use: 0-Column, 1-Row, 2-Col&Row, 3-Ruiz, 4-Col&Row&Obj, 5-Ruiz| -->
 <!-- |``|``|``|``|| -->

@@ -44,10 +44,13 @@ extern "C" int loadMps_highs(void *model, const char *filename) {
   return 0;
 }
 
-extern "C" void *presolvedModel_highs(void *presolve, void *model) {
+// ok 0, fail 1, infeasOrUnbounded 2, opt 3
+extern "C" int presolvedModel_highs(void *presolve, void *model) {
   cout << "--------------------------------------------------" << endl;
   cout << "running presolve" << endl;
   cout << "--------------------------------------------------" << endl;
+
+  int retcode = 0;
 
   HighsStatus return_status;
   return_status = ((Highs *)model)->presolve();
@@ -56,13 +59,22 @@ extern "C" void *presolvedModel_highs(void *presolve, void *model) {
 
   HighsPresolveStatus model_presolve_status =
       ((Highs *)model)->getModelPresolveStatus();
+
+  // cout << "presolve status: " << (int)model_presolve_status << endl;
   if (model_presolve_status == HighsPresolveStatus::kTimeout) {
     printf("Presolve timeout: return status = %d\n", (int)return_status);
+    retcode = 1;
+  } else if (model_presolve_status == HighsPresolveStatus::kInfeasible ||
+             model_presolve_status ==
+                 HighsPresolveStatus::kUnboundedOrInfeasible) {
+    retcode = 2;
+  } else if (model_presolve_status == HighsPresolveStatus::kReducedToEmpty) {
+    retcode = 3;
   }
   HighsLp lp = ((Highs *)model)->getPresolvedLp();
   ((Highs *)presolve)->passModel(lp);
 
-  return presolve;
+  return retcode;
 }
 
 extern "C" void *postsolvedModel_highs(

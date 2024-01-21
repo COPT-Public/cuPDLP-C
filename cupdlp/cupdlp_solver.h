@@ -33,6 +33,22 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
 
 void PDHG_Compute_Residuals(CUPDLPwork *work);
 
+void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
+                                       const cupdlp_float *dSlackPos,
+                                       const cupdlp_float *dSlackNeg,
+                                       const cupdlp_float *aty,
+                                       const cupdlp_float dualObj,
+                                       cupdlp_float *dPrimalInfeasObj,
+                                       cupdlp_float *dPrimalInfeasRes);
+
+void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
+                                     const cupdlp_float *ax,
+                                     const cupdlp_float primalObj,
+                                     cupdlp_float *dDualInfeasObj,
+                                     cupdlp_float *dDualInfeasRes);
+
+void PDHG_Compute_Infeas_Residuals(CUPDLPwork *work);
+
 void PDHG_Init_Variables(CUPDLPwork *work);
 
 void PDHG_Check_Data(CUPDLPwork *work);
@@ -40,6 +56,15 @@ void PDHG_Check_Data(CUPDLPwork *work);
 cupdlp_bool PDHG_Check_Termination(CUPDLPwork *pdhg, int bool_print);
 
 cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print);
+
+termination_code PDHG_Check_Infeasibility(CUPDLPwork *pdhg, int bool_print);
+
+termination_code PDHG_Check_Primal_Infeasibility(CUPDLPwork *pdhg,
+                                                 cupdlp_float dPrimalInfeasObj,
+                                                 cupdlp_float dPrimalInfeasRes);
+termination_code PDHG_Check_Dual_Infeasibility(CUPDLPwork *pdhg,
+                                               cupdlp_float dDualInfeasObj,
+                                               cupdlp_float dDualInfeasRes);
 
 void PDHG_Print_Header(CUPDLPwork *pdhg);
 

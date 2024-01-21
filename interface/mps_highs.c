@@ -69,6 +69,7 @@ cupdlp_retcode main(int argc, char **argv) {
 
   void *model = NULL;
   void *presolvedmodel = NULL;
+  int presolve_status = -1;
   void *model2solve = NULL;
 
   CUPDLPscaling *scaling =
@@ -124,8 +125,16 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_float presolve_time = getTimeStamp();
   if (ifPresolve) {
     presolvedmodel = createModel_highs();
-    presolvedmodel = presolvedModel_highs(presolvedmodel, model);
+    presolve_status = presolvedModel_highs(presolvedmodel, model);
     getModelSize_highs(presolvedmodel, &nCols_pre, &nRows_pre, NULL);
+    // ok 0, fail 1, infeasOrUnbounded 2, opt 3
+    if (presolve_status != 0) {
+      if (presolve_status == 3) {
+        // postsolve from a trivial solution
+      }
+      cupdlp_printf("Solved by HiGHS presolver\n");
+      goto exit_cleanup;
+    }
     model2solve = presolvedmodel;
     nCols = nCols_pre;
   }
@@ -135,12 +144,6 @@ cupdlp_retcode main(int argc, char **argv) {
                                 &nnz_pdlp, &nEqs_pdlp, &csc_beg, &csc_idx,
                                 &csc_val, &rhs, &lower, &upper, &offset, &sense,
                                 &nCols, &constraint_new_idx, &constraint_type));
-
-  if (retcode != RETCODE_OK) {
-    cupdlp_printf("Error reading MPS file\n");
-    retcode = RETCODE_FAILED;
-    goto exit_cleanup;
-  }
 
   CUPDLP_CALL(Init_Scaling(scaling, nCols_pdlp, nRows_pdlp, cost, rhs));
   cupdlp_int ifScaling = 1;
@@ -222,16 +225,16 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_printf("enter main solve loop\n");
   cupdlp_printf("--------------------------------------------------\n");
 
-  CUPDLP_INIT(col_value_org, nCols_org);
-  CUPDLP_INIT(col_dual_org, nCols_org);
-  CUPDLP_INIT(row_value_org, nRows_org);
-  CUPDLP_INIT(row_dual_org, nRows_org);
+  CUPDLP_INIT_ZERO(col_value_org, nCols_org);
+  CUPDLP_INIT_ZERO(col_dual_org, nCols_org);
+  CUPDLP_INIT_ZERO(row_value_org, nRows_org);
+  CUPDLP_INIT_ZERO(row_dual_org, nRows_org);
 
   if (ifPresolve) {
-    CUPDLP_INIT(col_value_pre, nCols_pre);
-    CUPDLP_INIT(col_dual_pre, nCols_pre);
-    CUPDLP_INIT(row_value_pre, nRows_pre);
-    CUPDLP_INIT(row_dual_pre, nRows_pre);
+    CUPDLP_INIT_ZERO(col_value_pre, nCols_pre);
+    CUPDLP_INIT_ZERO(col_dual_pre, nCols_pre);
+    CUPDLP_INIT_ZERO(row_value_pre, nRows_pre);
+    CUPDLP_INIT_ZERO(row_dual_pre, nRows_pre);
 
     col_value = col_value_pre;
     col_dual = col_dual_pre;

@@ -252,6 +252,30 @@ void resobj_clear(CUPDLPresobj *resobj) {
     if (resobj->dUpperFiltered) {
       CUPDLP_FREE_VEC(resobj->dUpperFiltered);
     }
+    if (resobj->primalInfeasRay) {
+      CUPDLP_FREE_VEC(resobj->primalInfeasRay);
+    }
+    if (resobj->primalInfeasConstr) {
+      CUPDLP_FREE_VEC(resobj->primalInfeasConstr);
+    }
+    if (resobj->primalInfeasBound) {
+      CUPDLP_FREE_VEC(resobj->primalInfeasBound);
+    }
+    if (resobj->dualInfeasRay) {
+      CUPDLP_FREE_VEC(resobj->dualInfeasRay);
+    }
+    if (resobj->dualInfeasLbRay) {
+      CUPDLP_FREE_VEC(resobj->dualInfeasLbRay);
+    }
+    if (resobj->dualInfeasUbRay) {
+      CUPDLP_FREE_VEC(resobj->dualInfeasUbRay);
+    }
+    if (resobj->dualInfeasConstr) {
+      CUPDLP_FREE_VEC(resobj->dualInfeasConstr);
+    }
+    // if (resobj->dualInfeasBound) {
+    //   CUPDLP_FREE_VEC(resobj->dualInfeasBound);
+    // }
     CUPDLP_FREE_VEC(resobj);
   }
 }
@@ -384,7 +408,7 @@ void PDHG_PrintPDHGParam(CUPDLPwork *w) {
   cupdlp_printf("    dPrimalTol:        %.4e\n", settings->dPrimalTol);
   cupdlp_printf("    dDualTol:          %.4e\n", settings->dDualTol);
   cupdlp_printf("    dGapTol:           %.4e\n", settings->dGapTol);
-  // cupdlp_printf("    dFeasTol:          %.4e\n", resobj->dFeasTol);
+  cupdlp_printf("    dFeasTol:          %.4e\n", resobj->dFeasTol);
   cupdlp_printf("    eRestartMethod:    %d\n", settings->eRestartMethod);
   cupdlp_printf("\n");
   cupdlp_printf("--------------------------------------------------\n");
@@ -449,11 +473,11 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("                range:   >= 0\n");
   cupdlp_printf("\n");
 
-  // cupdlp_printf("    -dFeasTol: feasibility tolerance\n");
-  // cupdlp_printf("                type:    double\n");
-  // cupdlp_printf("                default: 1e-8\n");
-  // cupdlp_printf("                range:   >= 0\n");
-  // cupdlp_printf("\n");
+  cupdlp_printf("    -dFeasTol: feasibility tolerance\n");
+  cupdlp_printf("                type:    double\n");
+  cupdlp_printf("                default: 1e-8\n");
+  cupdlp_printf("                range:   >= 0\n");
+  cupdlp_printf("\n");
 
   cupdlp_printf("    -dTimeLim: time limit (in seconds)\n");
   cupdlp_printf("                type:    double\n");
@@ -773,6 +797,15 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   CUPDLP_INIT_ZERO_VEC(resobj->dLowerFiltered, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dUpperFiltered, ncols);
 
+  CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasRay, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasConstr, nrows);
+  CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasBound, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasRay, nrows);
+  CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasLbRay, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasUbRay, ncols);
+  CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasConstr, ncols);
+  // CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasBound, nrows);
+
   // need to translate to cuda type
   // for (int i = 0; i < ncols; i++)
   // {
@@ -806,6 +839,18 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   resobj->dPrimalFeasLastCandidate = 0.0;
   resobj->dDualFeasLastCandidate = 0.0;
   resobj->dDualityGapLastCandidate = 0.0;
+
+  resobj->primalCode = FEASIBLE;
+  resobj->dualCode = FEASIBLE;
+  resobj->termInfeasIterate = LAST_ITERATE;
+  resobj->dPrimalInfeasObj = 0.0;
+  resobj->dDualInfeasObj = 0.0;
+  resobj->dPrimalInfeasRes = 1.0;
+  resobj->dDualInfeasRes = 1.0;
+  resobj->dPrimalInfeasObjAverage = 0.0;
+  resobj->dDualInfeasObjAverage = 0.0;
+  resobj->dPrimalInfeasResAverage = 1.0;
+  resobj->dDualInfeasResAverage = 1.0;
 
   resobj->termCode = TIMELIMIT_OR_ITERLIMIT;
   resobj->termIterate = LAST_ITERATE;
@@ -1478,13 +1523,12 @@ void cscPrintDense(const char *s, CUPDLPcsc *csc) {
 }
 
 #ifndef CUPDLP_OUTPUT_NAMES
-const char *termCodeNames[] = {
-    "OPTIMAL",
-    "INFEASIBLE",
-    "UNBOUNDED",
-    "INFEASIBLE_OR_UNBOUNDED",
-    "TIMELIMIT_OR_ITERLIMIT",
-};
+const char *termCodeNames[] = {"OPTIMAL",
+                               "INFEASIBLE",
+                               "UNBOUNDED",
+                               "INFEASIBLE_OR_UNBOUNDED",
+                               "TIMELIMIT_OR_ITERLIMIT",
+                               "FEASIBLE"};
 const char *termIterateNames[] = {
     "LAST_ITERATE",
     "AVERAGE_ITERATE",
