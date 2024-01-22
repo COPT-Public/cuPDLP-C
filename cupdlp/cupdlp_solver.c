@@ -668,10 +668,10 @@ cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
 }
 
 void PDHG_Print_Header(CUPDLPwork *pdhg) {
-  // cupdlp_printf("%5s  %15s  %15s   %8s  %8s  %10s  %8s %7s\n", "Iter",
+  // cupdlp_printf("%9s  %15s  %15s   %8s  %8s  %10s  %8s %7s\n", "Iter",
   //               "Primal.Obj", "Dual.Obj", "Gap", "Compl", "Primal.Inf",
   //               "Dual.Inf", "Time");
-  cupdlp_printf("%5s  %15s  %15s   %8s  %10s  %8s %7s\n", "Iter", "Primal.Obj",
+  cupdlp_printf("%9s  %15s  %15s   %8s  %10s  %8s %7s\n", "Iter", "Primal.Obj",
                 "Dual.Obj", "Gap", "Primal.Inf", "Dual.Inf", "Time");
 }
 
@@ -685,13 +685,13 @@ void PDHG_Print_Iter(CUPDLPwork *pdhg) {
   else
     cupdlp_snprintf(timeString, 8, "%6ds", (cupdlp_int)timers->dSolvingTime);
 
-  // cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
+  // cupdlp_printf("%9d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
   // [L]\n",
   //               timers->nIter, resobj->dPrimalObj, resobj->dDualObj,
   //               resobj->dDualityGap, resobj->dComplementarity,
   //               resobj->dPrimalFeas, resobj->dDualFeas, timeString);
 
-  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [L]\n",
+  cupdlp_printf("%9d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [L]\n",
                 timers->nIter, resobj->dPrimalObj, resobj->dDualObj,
                 resobj->dDualityGap, resobj->dPrimalFeas, resobj->dDualFeas,
                 timeString);
@@ -707,13 +707,13 @@ void PDHG_Print_Iter_Average(CUPDLPwork *pdhg) {
   else
     cupdlp_snprintf(timeString, 8, "%6ds", (cupdlp_int)timers->dSolvingTime);
 
-  // cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
+  // cupdlp_printf("%9d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
   // [A]\n",
   //               timers->nIter, resobj->dPrimalObjAverage,
   //               resobj->dDualObjAverage, resobj->dDualityGapAverage,
   //               resobj->dComplementarityAverage, resobj->dPrimalFeasAverage,
   //               resobj->dDualFeasAverage, timeString);
-  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [A]\n",
+  cupdlp_printf("%9d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [A]\n",
                 timers->nIter, resobj->dPrimalObjAverage,
                 resobj->dDualObjAverage, resobj->dDualityGapAverage,
                 resobj->dPrimalFeasAverage, resobj->dDualFeasAverage,

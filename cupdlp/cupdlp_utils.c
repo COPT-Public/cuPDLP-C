@@ -1595,8 +1595,13 @@ void writeJson(const char *fout, CUPDLPwork *work) {
   }
   fprintf(fptr, "\"terminationCode\":\"%s\",",
           termCodeNames[work->resobj->termCode]);
-  fprintf(fptr, "\"terminationIterate\":\"%s\"",
+  fprintf(fptr, "\"terminationIterate\":\"%s\",",
           termIterateNames[work->resobj->termIterate]);
+  fprintf(fptr, "\"primalCode\":\"%s\",",
+          termCodeNames[work->resobj->primalCode]);
+  fprintf(fptr, "\"dualCode\":\"%s\",", termCodeNames[work->resobj->dualCode]);
+  fprintf(fptr, "\"terminationInfeasIterate\":\"%s\"",
+          termIterateNames[work->resobj->termInfeasIterate]);
 
   // // print solutions
   // if (ifSaveSol) {
