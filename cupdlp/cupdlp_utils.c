@@ -1574,9 +1574,9 @@ void writeJson(const char *fout, CUPDLPwork *work) {
   fprintf(fptr, "\"dDualFeasAverage\":%f,", work->resobj->dDualFeasAverage);
   fprintf(fptr, "\"dDualityGap\":%f,", work->resobj->dDualityGap);
   fprintf(fptr, "\"dDualityGapAverage\":%f,", work->resobj->dDualityGapAverage);
-  fprintf(fptr, "\"dComplementarity\":%f,", work->resobj->dComplementarity);
-  fprintf(fptr, "\"dComplementarityAverage\":%f,",
-          work->resobj->dComplementarityAverage);
+  // fprintf(fptr, "\"dComplementarity\":%f,", work->resobj->dComplementarity);
+  // fprintf(fptr, "\"dComplementarityAverage\":%f,",
+  //         work->resobj->dComplementarityAverage);
 
   //  todo should this be added to postsolve?
   // todo, fix dNormCost and this

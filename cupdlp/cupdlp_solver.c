@@ -67,9 +67,9 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   // todo, compute Neumaier
   //    *dDualObj = Dotprod_Neumaier(problem->rhs, y, lp->nRows);
   cupdlp_dot(work, lp->nRows, y, problem->rhs, dDualObj);
-  *dDualObj = *dDualObj * problem->sense_origin + problem->offset;
 
-  *dComplementarity = 0.0;
+  // *dComplementarity = 0.0;
+
   // @note:
   // original dual residual in pdlp:
   // they compute:
@@ -115,10 +115,10 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   cupdlp_edot(dSlackPos, problem->hasLower, lp->nCols);
 
   cupdlp_float temp = 0.0;
-  cupdlp_dot(work, lp->nCols, x, dSlackPos, &temp);
-  *dComplementarity += temp;
-  cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
-  *dComplementarity -= temp;
+  // cupdlp_dot(work, lp->nCols, x, dSlackPos, &temp);
+  // *dComplementarity += temp;
+  // cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
+  // *dComplementarity -= temp;
   cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
   *dDualObj += temp;
 
@@ -130,12 +130,14 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
 
   cupdlp_edot(dSlackNeg, problem->hasUpper, lp->nCols);
 
-  cupdlp_dot(work, lp->nCols, x, dSlackNeg, &temp);
-  *dComplementarity -= temp;
-  cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
-  *dComplementarity += temp;
+  // cupdlp_dot(work, lp->nCols, x, dSlackNeg, &temp);
+  // *dComplementarity -= temp;
+  // cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
+  // *dComplementarity += temp;
   cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
   *dDualObj -= temp;
+
+  *dDualObj = *dDualObj * problem->sense_origin + problem->offset;
 
   alpha = -1.0;
   cupdlp_axpy(work, lp->nCols, &alpha, dSlackPos, dualResidual);
@@ -666,9 +668,11 @@ cupdlp_bool PDHG_Check_Termination_Average(CUPDLPwork *pdhg, int bool_print) {
 }
 
 void PDHG_Print_Header(CUPDLPwork *pdhg) {
-  cupdlp_printf("%5s  %15s  %15s   %8s  %8s  %10s  %8s %7s\n", "Iter",
-                "Primal.Obj", "Dual.Obj", "Gap", "Compl", "Primal.Inf",
-                "Dual.Inf", "Time");
+  // cupdlp_printf("%5s  %15s  %15s   %8s  %8s  %10s  %8s %7s\n", "Iter",
+  //               "Primal.Obj", "Dual.Obj", "Gap", "Compl", "Primal.Inf",
+  //               "Dual.Inf", "Time");
+  cupdlp_printf("%5s  %15s  %15s   %8s  %10s  %8s %7s\n", "Iter", "Primal.Obj",
+                "Dual.Obj", "Gap", "Primal.Inf", "Dual.Inf", "Time");
 }
 
 void PDHG_Print_Iter(CUPDLPwork *pdhg) {
@@ -681,10 +685,16 @@ void PDHG_Print_Iter(CUPDLPwork *pdhg) {
   else
     cupdlp_snprintf(timeString, 8, "%6ds", (cupdlp_int)timers->dSolvingTime);
 
-  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s [L]\n",
+  // cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
+  // [L]\n",
+  //               timers->nIter, resobj->dPrimalObj, resobj->dDualObj,
+  //               resobj->dDualityGap, resobj->dComplementarity,
+  //               resobj->dPrimalFeas, resobj->dDualFeas, timeString);
+
+  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [L]\n",
                 timers->nIter, resobj->dPrimalObj, resobj->dDualObj,
-                resobj->dDualityGap, resobj->dComplementarity,
-                resobj->dPrimalFeas, resobj->dDualFeas, timeString);
+                resobj->dDualityGap, resobj->dPrimalFeas, resobj->dDualFeas,
+                timeString);
 }
 
 void PDHG_Print_Iter_Average(CUPDLPwork *pdhg) {
@@ -697,11 +707,17 @@ void PDHG_Print_Iter_Average(CUPDLPwork *pdhg) {
   else
     cupdlp_snprintf(timeString, 8, "%6ds", (cupdlp_int)timers->dSolvingTime);
 
-  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s [A]\n",
+  // cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %8.2e  %10.2e  %8.2e %7s
+  // [A]\n",
+  //               timers->nIter, resobj->dPrimalObjAverage,
+  //               resobj->dDualObjAverage, resobj->dDualityGapAverage,
+  //               resobj->dComplementarityAverage, resobj->dPrimalFeasAverage,
+  //               resobj->dDualFeasAverage, timeString);
+  cupdlp_printf("%5d  %+15.8e  %+15.8e  %+8.2e  %10.2e  %8.2e %7s [A]\n",
                 timers->nIter, resobj->dPrimalObjAverage,
                 resobj->dDualObjAverage, resobj->dDualityGapAverage,
-                resobj->dComplementarityAverage, resobj->dPrimalFeasAverage,
-                resobj->dDualFeasAverage, timeString);
+                resobj->dPrimalFeasAverage, resobj->dDualFeasAverage,
+                timeString);
 }
 
 void PDHG_Compute_SolvingTime(CUPDLPwork *pdhg) {
@@ -783,9 +799,9 @@ cupdlp_retcode PDHG_Solve(CUPDLPwork *pdhg) {
                         cupdlp_float, problem->nRows);
         CUPDLP_COPY_VEC(iterates->aty->data, iterates->atyAverage->data,
                         cupdlp_float, problem->nCols);
-        CUPDLP_COPY_VEC(resobj->dSlackPosAverage, resobj->dSlackPos,
+        CUPDLP_COPY_VEC(resobj->dSlackPos, resobj->dSlackPosAverage,
                         cupdlp_float, problem->nCols);
-        CUPDLP_COPY_VEC(resobj->dSlackNegAverage, resobj->dSlackNeg,
+        CUPDLP_COPY_VEC(resobj->dSlackNeg, resobj->dSlackNegAverage,
                         cupdlp_float, problem->nCols);
 
         resobj->termIterate = AVERAGE_ITERATE;

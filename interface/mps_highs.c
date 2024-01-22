@@ -132,7 +132,7 @@ cupdlp_retcode main(int argc, char **argv) {
       if (presolve_status == 3) {
         // postsolve from a trivial solution
       }
-      cupdlp_printf("Solved by HiGHS presolver\n");
+      cupdlp_printf("Solved by HiGHS presolver.\n");
       goto exit_cleanup;
     }
     model2solve = presolvedmodel;
