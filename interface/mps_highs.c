@@ -186,7 +186,7 @@ cupdlp_retcode main(int argc, char **argv) {
   csc_cpu->colMatBeg = (int *)malloc((1 + nCols_pdlp) * sizeof(int));
   csc_cpu->colMatIdx = (int *)malloc(nnz_pdlp * sizeof(int));
   csc_cpu->colMatElem = (double *)malloc(nnz_pdlp * sizeof(double));
-  memcpy(csc_cpu->colMatBeg, csc_beg, (nCols + 1) * sizeof(int));
+  memcpy(csc_cpu->colMatBeg, csc_beg, (nCols_pdlp + 1) * sizeof(int));
   memcpy(csc_cpu->colMatIdx, csc_idx, nnz_pdlp * sizeof(int));
   memcpy(csc_cpu->colMatElem, csc_val, nnz_pdlp * sizeof(double));
 #if !(CUPDLP_CPU)
