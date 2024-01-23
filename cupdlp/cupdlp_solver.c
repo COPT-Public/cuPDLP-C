@@ -322,11 +322,12 @@ void PDHG_Compute_Infeas_Residuals(CUPDLPwork *work) {
 
   // average solution
   PDHG_Compute_Primal_Infeasibility(
-      work, iterates->y->data, resobj->dSlackPos, resobj->dSlackNeg,
-      iterates->atyAverage->data, resobj->dDualObjAverage,
-      &resobj->dPrimalInfeasObjAverage, &resobj->dPrimalInfeasResAverage);
+      work, iterates->yAverage->data, resobj->dSlackPosAverage,
+      resobj->dSlackNegAverage, iterates->atyAverage->data,
+      resobj->dDualObjAverage, &resobj->dPrimalInfeasObjAverage,
+      &resobj->dPrimalInfeasResAverage);
   PDHG_Compute_Dual_Infeasibility(
-      work, iterates->x->data, iterates->axAverage->data,
+      work, iterates->xAverage->data, iterates->axAverage->data,
       resobj->dPrimalObjAverage, &resobj->dDualInfeasObjAverage,
       &resobj->dDualInfeasResAverage);
 
