@@ -194,7 +194,7 @@ void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
                         &slackNegSq);
   dScale = sqrt(yNrmSq + slackPosNrmSq + slackNegSq);
   // dScale /= sqrt(problem->data->nRows + 2 * problem->data->nCols);
-  if (dScale < 1e-12) {
+  if (dScale < 1e-8) {
     dScale = 1.0;
   }
   cupdlp_scaleVector(work, 1 / dScale, resobj->dualInfeasRay,
@@ -248,7 +248,7 @@ void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
                   problem->data->nCols);
   cupdlp_twoNorm(work, problem->data->nCols, resobj->primalInfeasRay, &pScale);
   // pScale /= sqrt(problem->data->nCols);
-  if (pScale < 1e-12) {
+  if (pScale < 1e-8) {
     pScale = 1.0;
   }
   cupdlp_scaleVector(work, 1.0 / pScale, resobj->primalInfeasRay,
@@ -1108,7 +1108,8 @@ cupdlp_retcode LP_SolvePDHG(
     cupdlp_int nCols_origin, cupdlp_float *col_value, cupdlp_float *col_dual,
     cupdlp_float *row_value, cupdlp_float *row_dual, cupdlp_int *value_valid,
     cupdlp_int *dual_valid, cupdlp_bool ifSaveSol, char *fp_sol,
-    cupdlp_int *constraint_new_idx, cupdlp_int *constraint_type) {
+    cupdlp_int *constraint_new_idx, cupdlp_int *constraint_type,
+    cupdlp_int *model_status) {
   cupdlp_retcode retcode = RETCODE_OK;
 
   PDHG_PrintHugeCUPDHG();
@@ -1117,6 +1118,8 @@ cupdlp_retcode LP_SolvePDHG(
                                 ifChangeFloatParam, floatParam));
 
   CUPDLP_CALL(PDHG_Solve(pdhg));
+
+  *model_status = (cupdlp_int)pdhg->resobj->termCode;
 
   CUPDLP_CALL(PDHG_PostSolve(pdhg, nCols_origin, constraint_new_idx,
                              constraint_type, col_value, col_dual, row_value,

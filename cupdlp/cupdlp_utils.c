@@ -1546,6 +1546,9 @@ void writeJson(const char *fout, CUPDLPwork *work) {
 
   fprintf(fptr, "{");
 
+  // solver
+  fprintf(fptr, "\"solver\":\"%s\",", "cuPDLP-C");
+
   // timers
   fprintf(fptr, "\"nIter\":%d,", work->timers->nIter);
   fprintf(fptr, "\"nAtyCalls\":%d,", work->timers->nAtyCalls);
@@ -1564,34 +1567,38 @@ void writeJson(const char *fout, CUPDLPwork *work) {
           work->timers->DeviceMatVecProdTime);
 #endif
   // residuals
-  fprintf(fptr, "\"dPrimalObj\":%f,", work->resobj->dPrimalObj);
-  fprintf(fptr, "\"dDualObj\":%f,", work->resobj->dDualObj);
-  fprintf(fptr, "\"dPrimalFeas\":%f,", work->resobj->dPrimalFeas);
-  fprintf(fptr, "\"dDualFeas\":%f,", work->resobj->dDualFeas);
-  fprintf(fptr, "\"dPrimalObjAverage\":%f,", work->resobj->dPrimalObjAverage);
-  fprintf(fptr, "\"dDualObjAverage\":%f,", work->resobj->dDualObjAverage);
-  fprintf(fptr, "\"dPrimalFeasAverage\":%f,", work->resobj->dPrimalFeasAverage);
-  fprintf(fptr, "\"dDualFeasAverage\":%f,", work->resobj->dDualFeasAverage);
-  fprintf(fptr, "\"dDualityGap\":%f,", work->resobj->dDualityGap);
-  fprintf(fptr, "\"dDualityGapAverage\":%f,", work->resobj->dDualityGapAverage);
-  // fprintf(fptr, "\"dComplementarity\":%f,", work->resobj->dComplementarity);
-  // fprintf(fptr, "\"dComplementarityAverage\":%f,",
+  fprintf(fptr, "\"dPrimalObj\":%.14f,", work->resobj->dPrimalObj);
+  fprintf(fptr, "\"dDualObj\":%.14f,", work->resobj->dDualObj);
+  fprintf(fptr, "\"dPrimalFeas\":%.14f,", work->resobj->dPrimalFeas);
+  fprintf(fptr, "\"dDualFeas\":%.14f,", work->resobj->dDualFeas);
+  fprintf(fptr, "\"dPrimalObjAverage\":%.14f,",
+          work->resobj->dPrimalObjAverage);
+  fprintf(fptr, "\"dDualObjAverage\":%.14f,", work->resobj->dDualObjAverage);
+  fprintf(fptr, "\"dPrimalFeasAverage\":%.14f,",
+          work->resobj->dPrimalFeasAverage);
+  fprintf(fptr, "\"dDualFeasAverage\":%.14f,", work->resobj->dDualFeasAverage);
+  fprintf(fptr, "\"dDualityGap\":%.14f,", work->resobj->dDualityGap);
+  fprintf(fptr, "\"dDualityGapAverage\":%.14f,",
+          work->resobj->dDualityGapAverage);
+  // fprintf(fptr, "\"dComplementarity\":%.14f,",
+  // work->resobj->dComplementarity); fprintf(fptr,
+  // "\"dComplementarityAverage\":%.14f,",
   //         work->resobj->dComplementarityAverage);
 
   //  todo should this be added to postsolve?
   // todo, fix dNormCost and this
   if (work->resobj->termIterate == AVERAGE_ITERATE) {
-    fprintf(fptr, "\"dRelPrimalFeas\":%f,",
+    fprintf(fptr, "\"dRelPrimalFeas\":%.14f,",
             work->resobj->dPrimalFeasAverage / (1.0 + work->scaling->dNormRhs));
-    fprintf(fptr, "\"dRelDualFeas\":%f,",
+    fprintf(fptr, "\"dRelDualFeas\":%.14f,",
             work->resobj->dDualFeasAverage / (1.0 + work->scaling->dNormCost));
-    fprintf(fptr, "\"dRelDualityGap\":%f,", work->resobj->dRelObjGapAverage);
+    fprintf(fptr, "\"dRelDualityGap\":%.14f,", work->resobj->dRelObjGapAverage);
   } else {
-    fprintf(fptr, "\"dRelPrimalFeas\":%f,",
+    fprintf(fptr, "\"dRelPrimalFeas\":%.14f,",
             work->resobj->dPrimalFeas / (1.0 + work->scaling->dNormRhs));
-    fprintf(fptr, "\"dRelDualFeas\":%f,",
+    fprintf(fptr, "\"dRelDualFeas\":%.14f,",
             work->resobj->dDualFeas / (1.0 + work->scaling->dNormCost));
-    fprintf(fptr, "\"dRelDualityGap\":%f,", work->resobj->dRelObjGap);
+    fprintf(fptr, "\"dRelDualityGap\":%.14f,", work->resobj->dRelObjGap);
   }
   fprintf(fptr, "\"terminationCode\":\"%s\",",
           termCodeNames[work->resobj->termCode]);
@@ -1602,29 +1609,6 @@ void writeJson(const char *fout, CUPDLPwork *work) {
   fprintf(fptr, "\"dualCode\":\"%s\",", termCodeNames[work->resobj->dualCode]);
   fprintf(fptr, "\"terminationInfeasIterate\":\"%s\"",
           termIterateNames[work->resobj->termInfeasIterate]);
-
-  // // print solutions
-  // if (ifSaveSol) {
-  //   // primal solution
-  //   fprintf(fptr, ",\"x\":[");
-  //   if (x && nx > 0) {
-  //     for (int i = 0; i < nx - 1; ++i) {
-  //       fprintf(fptr, "%f,", x[i]);
-  //     }
-  //     fprintf(fptr, "%f", x[nx - 1]);
-  //   }
-  //   fprintf(fptr, "]");
-
-  //   // dual solution
-  //   fprintf(fptr, ",\"y\":[");
-  //   if (y && ny > 0) {
-  //     for (int i = 0; i < ny - 1; ++i) {
-  //       fprintf(fptr, "%f,", y[i]);
-  //     }
-  //     fprintf(fptr, "%f", y[ny - 1]);
-  //   }
-  //   fprintf(fptr, "]");
-  // }
 
   fprintf(fptr, "}");
   // Close the file

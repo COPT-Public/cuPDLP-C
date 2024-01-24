@@ -34,7 +34,7 @@ void *createModel_highs();
 
 int presolvedModel_highs(
     void *presolve,
-    void *model);  // ok 0, fail 1, infeasOrUnbounded 2, opt 3
+    void *model);  // ok 0, timeout 1, infeasOrUnbounded 2, opt 3
 void *postsolvedModel_highs(void *model, int nCols_pre, int nRows_pre,
                             double *col_value_pre, double *col_dual_pre,
                             double *row_value_pre, double *row_dual_pre,
@@ -44,6 +44,12 @@ void *postsolvedModel_highs(void *model, int nCols_pre, int nRows_pre,
                             double *row_dual_org);
 
 void getModelSize_highs(void *model, int *nCols, int *nRows, int *nnz);
+
+void writeJsonFromHiGHS_highs(const char *fout, void *model);
+
+// call if HiGHS presolver reduce model to empty (thus optimal)
+void postsolveModelFromEmpty_highs(void *model);
+void writeSolFromHiGHS_highs(const char *fout, void *model);
 
 #ifdef __cplusplus
 }

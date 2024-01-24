@@ -25,6 +25,7 @@ cupdlp_retcode main(int argc, char **argv) {
   int nRows_pdlp = 0;
   int nEqs_pdlp = 0;
   int nnz_pdlp = 0;
+  int status_pdlp = -1;
 
   cupdlp_float *rhs = NULL;
   cupdlp_float *cost = NULL;
@@ -127,12 +128,24 @@ cupdlp_retcode main(int argc, char **argv) {
     presolvedmodel = createModel_highs();
     presolve_status = presolvedModel_highs(presolvedmodel, model);
     getModelSize_highs(presolvedmodel, &nCols_pre, &nRows_pre, NULL);
-    // ok 0, fail 1, infeasOrUnbounded 2, opt 3
-    if (presolve_status != 0) {
-      if (presolve_status == 3) {
-        // postsolve from a trivial solution
+    // ok 0, timeout 1, infeasOrUnbounded 2, opt 3
+    if (presolve_status == 2) {
+      cupdlp_printf(
+          "Infeasible or Unbounded LP detected by HiGHS presolver.\n");
+      writeJsonFromHiGHS_highs(fout, model);
+      if (ifSaveSol) {
+        printf("--- no sol file saved.\n");
       }
+      goto exit_cleanup;
+    } else if (presolve_status == 3) {
       cupdlp_printf("Solved by HiGHS presolver.\n");
+      // postsolve from a trivial solution
+      postsolveModelFromEmpty_highs(model);
+      writeJsonFromHiGHS_highs(fout, model);
+      if (ifSaveSol) {
+        // write out solution
+        writeSolFromHiGHS_highs(fout_sol, model);
+      }
       goto exit_cleanup;
     }
     model2solve = presolvedmodel;
@@ -250,7 +263,8 @@ cupdlp_retcode main(int argc, char **argv) {
   CUPDLP_CALL(LP_SolvePDHG(w, ifChangeIntParam, intParam, ifChangeFloatParam,
                            floatParam, fout, nCols, col_value, col_dual,
                            row_value, row_dual, &value_valid, &dual_valid, 0,
-                           fout_sol, constraint_new_idx, constraint_type));
+                           fout_sol, constraint_new_idx, constraint_type,
+                           &status_pdlp));
 
   // // postsolve
   // if (ifPresolve) {
@@ -267,6 +281,12 @@ cupdlp_retcode main(int argc, char **argv) {
   // }
 
   if (ifSaveSol) {
+    // infeasible or unbounded
+    if (status_pdlp == 1 || status_pdlp == 2 || status_pdlp == 3) {
+      printf("--- no sol file saved.\n");
+      goto exit_cleanup;
+    }
+
     if (ifPresolve) {
       // currently no postsolve
       writeSol(fout_sol, nCols_pre, nRows_pre, col_value_pre, col_dual_pre,

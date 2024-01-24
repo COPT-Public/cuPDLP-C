@@ -44,7 +44,7 @@ extern "C" int loadMps_highs(void *model, const char *filename) {
   return 0;
 }
 
-// ok 0, fail 1, infeasOrUnbounded 2, opt 3
+// ok 0, timeout 1, infeasOrUnbounded 2, opt 3
 extern "C" int presolvedModel_highs(void *presolve, void *model) {
   cout << "--------------------------------------------------" << endl;
   cout << "running presolve" << endl;
@@ -140,6 +140,140 @@ void getModelSize_highs(void *model, int *nCols, int *nRows, int *nnz) {
   }
 
   return;
+}
+
+void writeJsonFromHiGHS_highs(const char *fout, void *model) {
+  FILE *fptr;
+
+  printf("--------------------------------\n");
+  printf("--- saving to %s\n", fout);
+  printf("--------------------------------\n");
+
+  // Open a file in writing mode
+  fptr = fopen(fout, "w");
+
+  fprintf(fptr, "{");
+  fprintf(fptr, "\n");
+
+  // solver
+  fprintf(fptr, "\"solver\":\"%s\",", "HiGHS presolver");
+
+  // status
+  HighsModelStatus model_status = ((Highs *)model)->getModelStatus();
+  string model_status_str = ((Highs *)model)->modelStatusToString(model_status);
+  const char *model_status_c_str = nullptr;
+  model_status_c_str = model_status_str.c_str();
+  fprintf(fptr, "\"terminationCode\":\"%s\",", model_status_c_str);
+
+  // objective
+  double objective = ((Highs *)model)->getObjectiveValue();
+  fprintf(fptr, "\"dPrimalObj\":%.14f,", objective);
+  fprintf(fptr, "\"dDualObj\":%.14f", objective);
+
+  fprintf(fptr, "\n");
+  fprintf(fptr, "}");
+  // Close the file
+  fclose(fptr);
+
+  // cout << model_status_c_str << endl;
+
+  return;
+}
+
+void postsolveModelFromEmpty_highs(void *model) {
+  HighsStatus return_status;
+
+  HighsSolution sol;
+  HighsBasis basis;
+  sol.value_valid = true;
+  sol.dual_valid = true;
+  basis.valid = true;
+
+  return_status = ((Highs *)model)->postsolve(sol, basis);
+  assert(return_status == HighsStatus::kOk);
+}
+
+void writeSolFromHiGHS_highs(const char *fout, void *model) {
+  const HighsLp &lp = ((Highs *)model)->getLp();
+  HighsSolution sol = ((Highs *)model)->getSolution();
+
+  int nCols = lp.num_col_;
+  int nRows = lp.num_row_;
+  double *col_value = sol.col_value.data();
+  double *col_dual = sol.col_dual.data();
+  double *row_value = sol.row_value.data();
+  double *row_dual = sol.row_dual.data();
+
+  FILE *fptr;
+
+  printf("--------------------------------\n");
+  printf("--- saving sol to %s\n", fout);
+  printf("--------------------------------\n");
+  // Open a file in writing mode
+  fptr = fopen(fout, "w");
+  fprintf(fptr, "{");
+
+  // nCols
+  fprintf(fptr, "\n");
+
+  fprintf(fptr, "\"nCols\": %d", nCols);
+
+  // nRows
+  fprintf(fptr, ",\n");
+
+  fprintf(fptr, "\"nRows\": %d", nRows);
+
+  // col value
+  fprintf(fptr, ",\n");
+
+  fprintf(fptr, "\"col_value\": [");
+  if (col_value && nCols) {
+    for (int i = 0; i < nCols - 1; ++i) {
+      fprintf(fptr, "%.14f,", col_value[i]);
+    }
+    fprintf(fptr, "%.14f", col_value[nCols - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // col dual
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"col_dual\": [");
+  if (col_dual && nCols) {
+    for (int i = 0; i < nCols - 1; ++i) {
+      fprintf(fptr, "%.14f,", col_dual[i]);
+    }
+    fprintf(fptr, "%.14f", col_dual[nCols - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // row value
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"row_value\": [");
+  if (row_value && nRows) {
+    for (int i = 0; i < nRows - 1; ++i) {
+      fprintf(fptr, "%.14f,", row_value[i]);
+    }
+    fprintf(fptr, "%.14f", row_value[nRows - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // row dual
+  fprintf(fptr, ",\n");
+  fprintf(fptr, "\"row_dual\": [");
+  if (row_dual && nRows) {
+    for (int i = 0; i < nRows - 1; ++i) {
+      fprintf(fptr, "%.14f,", row_dual[i]);
+    }
+    fprintf(fptr, "%.14f", row_dual[nRows - 1]);
+  }
+  fprintf(fptr, "]");
+
+  // end writing
+  fprintf(fptr, "\n");
+  fprintf(fptr, "}");
+
+  // Close the file
+  fclose(fptr);
 }
 
 /*
