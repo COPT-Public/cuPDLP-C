@@ -1,4 +1,4 @@
 [submodule "third-party/pybind11"]
 	path = pycupdlp/pybind11
-	url = git@github.com:pybind/pybind11.git
+    url = ssh://git@ssh.github.com:443/pybind/pybind11.git
 	branch = stable
