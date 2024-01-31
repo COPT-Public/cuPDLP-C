@@ -42,6 +42,19 @@ cmake -DBUILD_CUDA=ON \
 -DCMAKE_CUDA_FLAGS_RELEASE="-O2 -DNDEBUG" ..
 ```  
 
+## Alternative Interfaces
+### The Python Interface
+If you wish to use the Python interface, use the following steps:
+```
+git submodule update --init --recursive
+```
+then build the target `pycupdlp`
+```
+cmake --build . --target pycupdlp 
+```
+
+(Optional) You may checkout the setup scripts under `pycupdlp`.
+
 ## Usage
 
 Usage example: set `nIterLim` to `5000` and solve.
@@ -76,23 +89,14 @@ or
 |`dGapTol`|`double`|`>=0`|`1e-4`|Duality gap tolerance for termination|
 |`dTimeLim`|`double`|`>=0`|`3600`|Time limit (in seconds)|
 |`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-KKTversion|
-<!-- |`-ifPre`|`bool`|`true, false`|`false`|Whether to use HiGHS presolver (and thus postsolver)| -->
 |`dFeasTol`|`double`|`>=0`|`1e-8`|Tolerance for primal and dual infeasibility check|
+
+<!-- |`-ifPre`|`bool`|`true, false`|`false`|Whether to use HiGHS presolver (and thus postsolver)| -->
 <!-- |`dScalingLimit`|`double`|`>0`|`1`|Maybe to control scaling magnitude| -->
 <!-- |`iScalingMethod`|`int`|`0-5`|`0`|Which scaling to use: 0-Column, 1-Row, 2-Col&Row, 3-Ruiz, 4-Col&Row&Obj, 5-Ruiz| -->
 <!-- |``|``|``|``|| -->
 
-## The Python Interface
-If you wish to use the Python interface, use the following steps:
-```
-git submodule update --init --recursive
-```
-then build the target `pycupdlp`
-```
-cmake --build . --target pycupdlp 
-```
 
-(Optional) You may checkout the setup scripts under `pycupdlp`.
 
 
 
