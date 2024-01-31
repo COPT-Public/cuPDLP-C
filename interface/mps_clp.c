@@ -34,7 +34,7 @@ cupdlp_retcode main(int argc, char **argv) {
   double *csc_val = NULL;
   double offset =
       0.0;  // true objVal = sig * c'x - offset, sig = 1 (min) or -1 (max)
-  double sign_origin = 1;  // 1 (min) or -1 (max)
+  double sense_origin = 1;  // 1 (min) or -1 (max)
   int *constraint_new_idx = NULL;
   cupdlp_float *x_origin = cupdlp_NULL;
   cupdlp_float *y_origin = cupdlp_NULL;
@@ -111,7 +111,7 @@ cupdlp_retcode main(int argc, char **argv) {
 
   CUPDLP_CALL(formulateLP_new(model2solve, &cost, &nCols, &nRows, &nnz, &nEqs,
                               &csc_beg, &csc_idx, &csc_val, &rhs, &lower,
-                              &upper, &offset, &sign_origin, &nCols_origin,
+                              &upper, &offset, &sense_origin, &nCols_origin,
                               &constraint_new_idx));
 
   /*
@@ -184,9 +184,10 @@ cupdlp_retcode main(int argc, char **argv) {
   cupdlp_float alloc_matrix_time = 0.0;
   cupdlp_float copy_vec_time = 0.0;
 
-  CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, offset, sign_origin,
-                            csc_cpu, src_matrix_format, dst_matrix_format, rhs,
-                            lower, upper, &alloc_matrix_time, &copy_vec_time));
+  CUPDLP_CALL(problem_alloc(prob, nRows, nCols, nEqs, cost, offset,
+                            sense_origin, csc_cpu, src_matrix_format,
+                            dst_matrix_format, rhs, lower, upper,
+                            &alloc_matrix_time, &copy_vec_time));
 
   // solve
   // cupdlp_printf("Enter main solve loop\n");

@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+
 #include "cupdlp_defs.h"
 
 #ifdef __cplusplus
@@ -179,9 +180,11 @@ void csrPrintDense(const char *s, CUPDLPcsr *csr);
 
 void cscPrintDense(const char *s, CUPDLPcsc *csc);
 
-void writeJson(const char *fout, CUPDLPwork *work, cupdlp_float *x,
-               cupdlp_int nx, cupdlp_float *y, cupdlp_int ny,
-               cupdlp_bool ifSaveSol);
+void writeJson(const char *fout, CUPDLPwork *work);
+
+void writeSol(const char *fout, cupdlp_int nCols, cupdlp_int nRows,
+              cupdlp_float *col_value, cupdlp_float *col_dual,
+              cupdlp_float *row_value, cupdlp_float *row_dual);
 
 #ifdef __cplusplus
 }

@@ -159,8 +159,8 @@ int main(int argc, char *argv[]) {
   y_origin.setOnes();
 
   LP_SolvePDHG(w, ifChangeIntParam, intParam, ifChangeFloatParam, floatParam,
-               fout, x_origin.data(), nCols, y_origin.data(), ifSaveSol,
-               constraint_new_idx);
+               fout, nCols, x_origin.data(), NULL, NULL, y_origin.data(), NULL,
+               NULL, ifSaveSol, NULL, constraint_new_idx, NULL);
 
   // print result
   // TODO: implement after adding IO

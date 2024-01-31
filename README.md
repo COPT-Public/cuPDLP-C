@@ -1,23 +1,22 @@
 # cuPDLP-C
 
-Code for solving LP on GPU using first-order methods. 
+Code for solving LP on GPU using the first-order algorithm -- PDLP.
 
 This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl).
 
 ## Compile
 <!-- We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein. -->
 
-We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)). 
+We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)).
 
 Note that if you install HiGHS using the [precompiled binaries](https://github.com/JuliaBinaryWrappers/HiGHS_jll.jl/releases), the compressed MPS files cannot be read.
-You can build and install with the zlib support from source, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more. 
+You can build and install with the zlib support from source, see [this page](https://ergo-code.github.io/HiGHS/dev/interfaces/cpp/link/) to find out more.
 Once you setup HiGHS and CUDA, set the following environment variables.
 
 ```shell
 export HIGHS_HOME=/path-to-highs
 export CUDA_HOME=/path-to-cuda
 ```
-
 
 By setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version), you have the GPU version of cuPDLP-C.
 
@@ -31,7 +30,8 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_CUDA=ON ..
 cmake --build . --target plc
 ```
-then you can find the binary `plc` in the folder `build/bin/`.
+
+then you can find the binary `plc` in the folder `<cuPDLP-C>/build/bin/`.
 
 - when using the release mode, we suggest the following options,
 
@@ -50,32 +50,54 @@ Usage example: set `nIterLim` to `5000` and solve.
 ./bin/plc -fname <mpsfile> -nIterLim 5000
 ```
 
+For the helper: use `-h`.
+```shell
+./bin/plc -h
+```
+or
+```shell
+./bin/plc <something> -h <something>
+```
+
 | Param | Type | Range | Default | Description |
 |:---:|:---:|:---:|:---:|:---:|
 |`fname`|`str`|` `|` `|`.mps` file of the LP instance|
-|`fout`|`str`|` `|`./solution.json`|`.json` file to save result|
+|`out`|`str`|` `|`./solution-sum.json`|`.json` file to save result|
+|`outSol`|`str`|` `|`./solution.json`|`.json` file to save result|
 |`savesol`|`bool`|`true, false`|`false`|whether to write solution to `.json` output|
 |`ifScaling`|`bool`|`true, false`|`true`|Whether to use scaling|
 |`ifRuizScaling`|`bool`|`true, false`|`true`|Whether to use Ruiz scaling (10 times)|
 |`ifL2Scaling`|`bool`|`true, false`|`false`|Whether to use L2 scaling|
 |`ifPcScaling`|`bool`|`true, false`|`true`|Whether to use Pock-Chambolle scaling|
-|`nIterLim`|`int`|`>=0`|`10000000`|Maximum iteration number|
-|`eLineSearchMethod`|`int`|`0-2`|`2`|Choose line search: 0-fixed, 1-Malitsky, 2-Adaptive|
+|`nIterLim`|`int`|`>=0`|`INT_MAX`|Maximum iteration number|
+|`eLineSearchMethod`|`int`|`0, 2`|`2`|Choose line search: 0-fixed, ~~1-Malitsky~~, 2-Adaptive|
 |`dPrimalTol`|`double`|`>=0`|`1e-4`|Primal feasibility tolerance for termination|
 |`dDualTol`|`double`|`>=0`|`1e-4`|Dual feasibility tolerance for termination|
 |`dGapTol`|`double`|`>=0`|`1e-4`|Duality gap tolerance for termination|
-|`dFeasTol`|`double`|`>=0`|`1e-8`|Not used yet, maybe infeasibility tolerance|
-|`dTimeLim`|`double`|`>0`|`3600`|Time limit (in seconds)|
-|`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-GPU|
+|`dTimeLim`|`double`|`>=0`|`3600`|Time limit (in seconds)|
+|`eRestartMethod`|`int`|`0-1`|`1`|Choose restart: 0-none, 1-KKTversion|
+<!-- |`-ifPre`|`bool`|`true, false`|`false`|Whether to use HiGHS presolver (and thus postsolver)| -->
+|`dFeasTol`|`double`|`>=0`|`1e-8`|Tolerance for primal and dual infeasibility check|
 <!-- |`dScalingLimit`|`double`|`>0`|`1`|Maybe to control scaling magnitude| -->
 <!-- |`iScalingMethod`|`int`|`0-5`|`0`|Which scaling to use: 0-Column, 1-Row, 2-Col&Row, 3-Ruiz, 4-Col&Row&Obj, 5-Ruiz| -->
 <!-- |``|``|``|``|| -->
 
+## The Python Interface
+If you wish to use the Python interface, use the following steps:
+```
+git submodule update --init --recursive
+```
+then build the target `pycupdlp`
+```
+cmake --build . --target pycupdlp 
+```
 
+(Optional) You may checkout the setup scripts under `pycupdlp`.
 
 
 
 ## The PDLP Algorithm
+
 Consider the generic linear programming problem:
 
 $$
@@ -118,8 +140,8 @@ where $\lambda = \Pi_\Lambda(c - K^\top y)$
 
 $$
 \lambda_i \begin{cases} = 0 & l_i=-\infty, u_i=+\infty\\
-\leq 0 & l_i=-\infty, u_i<+\infty\\ 
-\geq 0 & l_i<-\infty, u_i=+\infty\\ 
+\leq 0 & l_i=-\infty, u_i<+\infty\\
+\geq 0 & l_i<-\infty, u_i=+\infty\\
 \text{free} & l_i>-\infty, u_i<+\infty  \end{cases}.$$
 
 $\\|\cdot\\|$ is 2-norm, and $|\cdot|$ is absolute value.
