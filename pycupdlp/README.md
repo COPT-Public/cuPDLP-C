@@ -11,7 +11,7 @@ You can solve **mps** files simply like:
 import pycupdlp
 c = pycupdlp.cupdlp()
 c.readMPS('path to your mps file')
-c.set_params({'ifScaling':0})
+c.setParams({'ifScaling':0})
 c.solve()
 ```
 

@@ -1,6 +1,6 @@
 # cuPDLP-C
 
-Code for solving LP on GPU using first-order methods.
+Code for solving LP on GPU using the first-order algorithm -- PDLP.
 
 This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl).
 
@@ -81,6 +81,20 @@ or
 <!-- |`dScalingLimit`|`double`|`>0`|`1`|Maybe to control scaling magnitude| -->
 <!-- |`iScalingMethod`|`int`|`0-5`|`0`|Which scaling to use: 0-Column, 1-Row, 2-Col&Row, 3-Ruiz, 4-Col&Row&Obj, 5-Ruiz| -->
 <!-- |``|``|``|``|| -->
+
+## The Python Interface
+If you wish to use the Python interface, use the following steps:
+```
+git submodule update --init --recursive
+```
+then build the target `pycupdlp`
+```
+cmake --build . --target pycupdlp 
+```
+
+(Optional) You may checkout the setup scripts under `pycupdlp`.
+
+
 
 ## The PDLP Algorithm
 
