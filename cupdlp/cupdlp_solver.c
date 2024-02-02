@@ -205,7 +205,8 @@ void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
                      problem->data->nCols);
 
   // dual obj
-  *dPrimalInfeasObj = dualObj / dScale;
+  *dPrimalInfeasObj =
+      (dualObj - problem->offset) / problem->sense_origin / dScale;
 
   // dual constraints [ATy1 + GTy2 + lambda]
   CUPDLP_COPY_VEC(resobj->dualInfeasConstr, aty, cupdlp_float,
@@ -255,7 +256,8 @@ void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
                      problem->data->nCols);
 
   // primal obj
-  *dDualInfeasObj = primalObj / pScale;
+  *dDualInfeasObj =
+      (primalObj - problem->offset) / problem->sense_origin / pScale;
 
   // primal constraints [Ax, min(Gx, 0)]
   CUPDLP_COPY_VEC(resobj->primalInfeasConstr, ax, cupdlp_float,
@@ -313,26 +315,24 @@ void PDHG_Compute_Infeas_Residuals(CUPDLPwork *work) {
   CUPDLPresobj *resobj = work->resobj;
 
   // current solution
-  PDHG_Compute_Primal_Infeasibility(
-      work, iterates->y->data, resobj->dSlackPos, resobj->dSlackNeg,
-      iterates->aty->data,
-      (resobj->dDualObj - problem->offset) / problem->sense_origin,
-      &resobj->dPrimalInfeasObj, &resobj->dPrimalInfeasRes);
-  PDHG_Compute_Dual_Infeasibility(
-      work, iterates->x->data, iterates->ax->data,
-      (resobj->dPrimalObj - problem->offset) / problem->sense_origin,
-      &resobj->dDualInfeasObj, &resobj->dDualInfeasRes);
+  PDHG_Compute_Primal_Infeasibility(work, iterates->y->data, resobj->dSlackPos,
+                                    resobj->dSlackNeg, iterates->aty->data,
+                                    resobj->dDualObj, &resobj->dPrimalInfeasObj,
+                                    &resobj->dPrimalInfeasRes);
+  PDHG_Compute_Dual_Infeasibility(work, iterates->x->data, iterates->ax->data,
+                                  resobj->dPrimalObj, &resobj->dDualInfeasObj,
+                                  &resobj->dDualInfeasRes);
 
   // average solution
   PDHG_Compute_Primal_Infeasibility(
       work, iterates->yAverage->data, resobj->dSlackPosAverage,
       resobj->dSlackNegAverage, iterates->atyAverage->data,
-      (resobj->dDualObjAverage - problem->offset) / problem->sense_origin,
-      &resobj->dPrimalInfeasObjAverage, &resobj->dPrimalInfeasResAverage);
+      resobj->dDualObjAverage, &resobj->dPrimalInfeasObjAverage,
+      &resobj->dPrimalInfeasResAverage);
   PDHG_Compute_Dual_Infeasibility(
       work, iterates->xAverage->data, iterates->axAverage->data,
-      (resobj->dPrimalObjAverage - problem->offset) / problem->sense_origin,
-      &resobj->dDualInfeasObjAverage, &resobj->dDualInfeasResAverage);
+      resobj->dPrimalObjAverage, &resobj->dDualInfeasObjAverage,
+      &resobj->dDualInfeasResAverage);
 
 #if problem_USE_TIMERS
   problem->dComputeResidualsTime += getTimeStamp() - dStartTime;
