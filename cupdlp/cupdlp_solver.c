@@ -308,28 +308,31 @@ void PDHG_Compute_Infeas_Residuals(CUPDLPwork *work) {
   ++problem->nComputeResidualsCalls;
   double dStartTime = getTimeStamp();
 #endif
+  CUPDLPproblem *problem = work->problem;
   CUPDLPiterates *iterates = work->iterates;
   CUPDLPresobj *resobj = work->resobj;
 
   // current solution
-  PDHG_Compute_Primal_Infeasibility(work, iterates->y->data, resobj->dSlackPos,
-                                    resobj->dSlackNeg, iterates->aty->data,
-                                    resobj->dDualObj, &resobj->dPrimalInfeasObj,
-                                    &resobj->dPrimalInfeasRes);
-  PDHG_Compute_Dual_Infeasibility(work, iterates->x->data, iterates->ax->data,
-                                  resobj->dPrimalObj, &resobj->dDualInfeasObj,
-                                  &resobj->dDualInfeasRes);
+  PDHG_Compute_Primal_Infeasibility(
+      work, iterates->y->data, resobj->dSlackPos, resobj->dSlackNeg,
+      iterates->aty->data,
+      (resobj->dDualObj - problem->offset) / problem->sense_origin,
+      &resobj->dPrimalInfeasObj, &resobj->dPrimalInfeasRes);
+  PDHG_Compute_Dual_Infeasibility(
+      work, iterates->x->data, iterates->ax->data,
+      (resobj->dPrimalObj - problem->offset) / problem->sense_origin,
+      &resobj->dDualInfeasObj, &resobj->dDualInfeasRes);
 
   // average solution
   PDHG_Compute_Primal_Infeasibility(
       work, iterates->yAverage->data, resobj->dSlackPosAverage,
       resobj->dSlackNegAverage, iterates->atyAverage->data,
-      resobj->dDualObjAverage, &resobj->dPrimalInfeasObjAverage,
-      &resobj->dPrimalInfeasResAverage);
+      (resobj->dDualObjAverage - problem->offset) / problem->sense_origin,
+      &resobj->dPrimalInfeasObjAverage, &resobj->dPrimalInfeasResAverage);
   PDHG_Compute_Dual_Infeasibility(
       work, iterates->xAverage->data, iterates->axAverage->data,
-      resobj->dPrimalObjAverage, &resobj->dDualInfeasObjAverage,
-      &resobj->dDualInfeasResAverage);
+      (resobj->dPrimalObjAverage - problem->offset) / problem->sense_origin,
+      &resobj->dDualInfeasObjAverage, &resobj->dDualInfeasResAverage);
 
 #if problem_USE_TIMERS
   problem->dComputeResidualsTime += getTimeStamp() - dStartTime;
