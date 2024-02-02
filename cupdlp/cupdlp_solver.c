@@ -205,7 +205,8 @@ void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
                      problem->data->nCols);
 
   // dual obj
-  *dPrimalInfeasObj = dualObj / dScale;
+  *dPrimalInfeasObj =
+      (dualObj - problem->offset) / problem->sense_origin / dScale;
 
   // dual constraints [ATy1 + GTy2 + lambda]
   CUPDLP_COPY_VEC(resobj->dualInfeasConstr, aty, cupdlp_float,
@@ -255,7 +256,8 @@ void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
                      problem->data->nCols);
 
   // primal obj
-  *dDualInfeasObj = primalObj / pScale;
+  *dDualInfeasObj =
+      (primalObj - problem->offset) / problem->sense_origin / pScale;
 
   // primal constraints [Ax, min(Gx, 0)]
   CUPDLP_COPY_VEC(resobj->primalInfeasConstr, ax, cupdlp_float,
