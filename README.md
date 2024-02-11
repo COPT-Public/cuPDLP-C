@@ -1,6 +1,8 @@
 # cuPDLP-C
 
-Code for solving LP on GPU using the first-order algorithm -- PDLP.
+> cuPDLP is now available in [COPT 7.1](https://shanshu.ai/copt)!
+
+Code for solving LP on GPU using the first-order algorithm -- PDLP. 
 
 This is the C implementation of the Julia version [cuPDLP.jl](https://github.com/jinwen-yang/cuPDLP.jl).
 
