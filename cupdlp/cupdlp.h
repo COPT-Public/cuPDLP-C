@@ -5,7 +5,7 @@
 #include "cupdlp_cs.h"
 #include "cupdlp_defs.h"
 #include "cupdlp_linalg.h"
-#include "cupdlp_mps.h"
+//#include "cupdlp_mps.h" Is this still needed?
 #include "cupdlp_proj.h"
 #include "cupdlp_restart.h"
 #include "cupdlp_scaling_cuda.h"
