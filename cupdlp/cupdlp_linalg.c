@@ -141,6 +141,27 @@ double nrminf(cupdlp_int n, const double *x, cupdlp_int incx) {
 #endif
 }
 
+cupdlp_int nrminfindex(cupdlp_int n, const double *x, cupdlp_int incx) {
+#ifdef USE_MY_BLAS
+  assert(incx == 1);
+
+  double nrm = 0.0;
+  cupdlp_int index = 0;
+
+  for (int i = 0; i < n; ++i) {
+    double tmp = fabs(x[i]);
+    if (tmp > nrm) {
+      nrm = tmp;
+      index = i;
+    }
+  }
+
+  return index;
+#else
+  return dnrminfindex(n, x, incx);
+#endif
+}
+
 double twoNorm(double *x, cupdlp_int n) { return nrm2(n, x, 1); }
 
 double twoNormSquared(double *x, cupdlp_int n) { return pow(twoNorm(x, n), 2); }
@@ -290,7 +311,7 @@ cupdlp_float diffDotDiff(cupdlp_float *x1, cupdlp_float *x2, cupdlp_float *y1,
 
 /*------------------------ new added --------------------*/
 
-double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
+double dot(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx, const cupdlp_float *y,
            cupdlp_int incy) {
 #ifdef USE_MY_BLAS
   assert(incx == 1 && incy == 1);
@@ -307,11 +328,11 @@ double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
 #endif
 }
 
-double Dotprod(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
+double Dotprod(const cupdlp_float *x, const cupdlp_float *y, cupdlp_int n) {
   return dot(n, x, 1, y, 1);
 }
 
-double Dotprod_Neumaier(cupdlp_float *x, cupdlp_float *y, cupdlp_int n) {
+double Dotprod_Neumaier(const cupdlp_float *x, const cupdlp_float *y, cupdlp_int n) {
   return dot(n, x, 1, y, 1);
 }
 
@@ -567,6 +588,20 @@ cupdlp_int cupdlp_twoNorm(CUPDLPwork *w, const cupdlp_int n,
 #endif
 #else
   *res = nrm2(n, x, 1);
+#endif
+  return 0;
+}
+
+cupdlp_int cupdlp_infNormIndex(CUPDLPwork *w, const cupdlp_int n,
+                               const cupdlp_float *x, cupdlp_int *res) {
+#ifndef CUPDLP_CPU
+#ifndef SFLOAT
+  CHECK_CUBLAS(cublasIdamax(w->cublashandle, n, x, 1, res));
+#else
+  CHECK_CUBLAS(cublasIsamax(w->cublashandle, n, x, 1, res));
+#endif
+#else
+  *res = nrminfindex(n, x, 1);
 #endif
   return 0;
 }
