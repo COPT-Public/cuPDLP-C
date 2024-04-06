@@ -15,14 +15,14 @@ add_library(cupdlp SHARED
 target_compile_definitions(cupdlp
         PUBLIC
         # If the debug configuration pass the DEBUG define to the compiler
-        $<$<CONFIG:Debug>:CUPDLP_DEBUG>
+        $<$<CONFIG:Debug>:-DCUPDLP_DEBUG=1>
 )
 
 if (${CUDA_LIBRARY-NOTFOUND})
     message(NOTICE "- CPU version PDLP")
     target_compile_definitions(cupdlp
             PUBLIC
-            -DCUPDLP_CPU
+            -DCUPDLP_CPU=1
     )
     target_link_libraries(cupdlp m)
 else()
