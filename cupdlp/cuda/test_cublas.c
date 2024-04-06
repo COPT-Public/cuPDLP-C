@@ -1,7 +1,7 @@
 #include "cupdlp_cuda_kernels.cuh"
 #include "cupdlp_cudalinalg.cuh"
 
-void use_cublas(cublasHandle_t cublashandle) {
+int use_cublas(cublasHandle_t cublashandle) {
   cupdlp_int len = 10;
   // cupdlp_int len = 1<<10;
 
@@ -65,6 +65,8 @@ void use_cublas(cublasHandle_t cublashandle) {
   free(h_vec2);
   cudaFree(d_vec1);
   cudaFree(d_vec2);
+
+  return 0;
 }
 int main() {
   // try cupdlp_edot_cuda
