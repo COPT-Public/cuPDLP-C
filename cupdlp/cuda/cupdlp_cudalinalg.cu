@@ -55,7 +55,7 @@ extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
                                   cusparseDnVecDescr_t vecAx, void *dBuffer,
                                   const cupdlp_float alpha,
                                   const cupdlp_float beta) {
-  // hAx = alpha * Acsc * hX + beta * hAx
+  // hAx = alpha * Acsr * hX + beta * hAx
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
 
