@@ -54,8 +54,8 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   cupdlp_int nRows = csc->nRows;
   cupdlp_int nCols = csc->nCols;
 
-  cupdlp_float *current_col_scaling;  // for variable
-  cupdlp_float *current_row_scaling;  // for constraint
+  cupdlp_float *current_col_scaling = NULL;  // for variable
+  cupdlp_float *current_row_scaling = NULL;  // for constraint
   CUPDLP_INIT_ZERO(current_col_scaling, nCols);
   CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
@@ -128,8 +128,8 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   cupdlp_int nRows = csc->nRows;
   cupdlp_int nCols = csc->nCols;
 
-  cupdlp_float *current_col_scaling;  // for variable
-  cupdlp_float *current_row_scaling;  // for constraint
+  cupdlp_float *current_col_scaling = NULL;  // for variable
+  cupdlp_float *current_row_scaling = NULL;  // for constraint
   CUPDLP_INIT_ZERO(current_col_scaling, nCols);
   CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
@@ -179,8 +179,8 @@ cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   cupdlp_int nCols = csc->nCols;
   cupdlp_float alpha = scaling->PcAlpha;
 
-  cupdlp_float *current_col_scaling;  // for variable
-  cupdlp_float *current_row_scaling;  // for constraint
+  cupdlp_float *current_col_scaling = NULL;  // for variable
+  cupdlp_float *current_row_scaling = NULL;  // for constraint
   CUPDLP_INIT_ZERO(current_col_scaling, nCols);
   CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
@@ -393,6 +393,9 @@ cupdlp_retcode Init_Scaling(CUPDLPscaling *scaling, cupdlp_int ncols,
                             cupdlp_int nrows, cupdlp_float *cost,
                             cupdlp_float *rhs) {
   cupdlp_retcode retcode = RETCODE_OK;
+
+  scaling->rowScale = NULL;
+  scaling->colScale = NULL;
 
   scaling->ifRuizScaling = 1;
   scaling->ifL2Scaling = 0;
