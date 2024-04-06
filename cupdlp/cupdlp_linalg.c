@@ -290,7 +290,7 @@ cupdlp_float diffDotDiff(cupdlp_float *x1, cupdlp_float *x2, cupdlp_float *y1,
 
 /*------------------------ new added --------------------*/
 
-double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
+double dot(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx, const cupdlp_float *y,
            cupdlp_int incy) {
 #ifdef USE_MY_BLAS
   assert(incx == 1 && incy == 1);
