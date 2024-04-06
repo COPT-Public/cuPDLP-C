@@ -133,7 +133,7 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   CUPDLP_INIT_ZERO(current_col_scaling, nCols);
   CUPDLP_INIT_ZERO(current_row_scaling, nRows);
 
-  if (nRows > 0 && csc != NULL) {
+  if (nRows > 0) {
     for (int j = 0; j < nCols; j++) {
       if (csc->colMatBeg[j] == csc->colMatBeg[j + 1]) {
         current_col_scaling[j] = 1.0;
@@ -189,7 +189,7 @@ cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
     exit(1);
   }
 
-  if (nRows > 0 && csc != NULL) {
+  if (nRows > 0) {
     for (int i = 0; i < nCols; i++) {
       for (int j = csc->colMatBeg[i]; j < csc->colMatBeg[i + 1]; j++) {
         current_col_scaling[i] += POWF(ABS(csc->colMatElem[j]), alpha);
