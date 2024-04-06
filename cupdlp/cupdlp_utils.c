@@ -1064,9 +1064,13 @@ void PDHG_Destroy(CUPDLPwork **w) {
 void PDHG_Init_Data(CUPDLPwork *work) {}
 
 double my_clock(void) {
+#if defined(_WIN32) || defined(_WIN64)
+  return (double)clock() / CLOCKS_PER_SEC;
+#else
   struct timeval t;
   gettimeofday(&t, NULL);
   return (1e-06 * t.tv_usec + t.tv_sec);
+#endif
 }
 
 double getTimeStamp(void) { return my_clock(); }
