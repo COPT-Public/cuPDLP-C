@@ -336,15 +336,14 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   const int *A_csc_beg = lp.a_matrix_.start_.data();
   const int *A_csc_idx = lp.a_matrix_.index_.data();
   const double *A_csc_val = lp.a_matrix_.value_.data();
-  int has_lower, has_upper;
 
   CUPDLP_INIT(*constraint_type, nRows_highs);
   CUPDLP_INIT(*constraint_new_idx, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_highs; i++) {
-    has_lower = lhs_highs[i] > -1e20;
-    has_upper = rhs_highs[i] < 1e20;
+    int has_lower = lhs_highs[i] > -1e20;
+    int has_upper = rhs_highs[i] < 1e20;
 
     // count number of equations and rows
     if (has_lower && has_upper && lhs_highs[i] == rhs_highs[i]) {

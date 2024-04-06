@@ -319,63 +319,61 @@ cupdlp_int PDHG_Clear(CUPDLPwork *w) {
   CUPDLPtimers *timers = w->timers;
   CUPDLPscaling *scaling = w->scaling;
 
-  if (w) {
-    cupdlp_float begin = getTimeStamp();
+  cupdlp_float begin = getTimeStamp();
 #if !(CUPDLP_CPU)
 
-    // CUDAmv *MV = w->MV;
-    // if (MV)
-    // {
-    //     cupdlp_float begin = getTimeStamp();
-    //     cuda_free_mv(MV);
-    //     timers->FreeDeviceMemTime += getTimeStamp() - begin;
-    // }
-    CHECK_CUBLAS(cublasDestroy(w->cublashandle))
-    CHECK_CUSPARSE(cusparseDestroy(w->cusparsehandle))
-    CHECK_CUDA(cudaFree(w->dBuffer))
-    if (w->buffer2) CUPDLP_FREE_VEC(w->buffer2);
-    if (w->buffer3) CUPDLP_FREE_VEC(w->buffer3);
+  // CUDAmv *MV = w->MV;
+  // if (MV)
+  // {
+  //     cupdlp_float begin = getTimeStamp();
+  //     cuda_free_mv(MV);
+  //     timers->FreeDeviceMemTime += getTimeStamp() - begin;
+  // }
+  CHECK_CUBLAS(cublasDestroy(w->cublashandle))
+  CHECK_CUSPARSE(cusparseDestroy(w->cusparsehandle))
+  CHECK_CUDA(cudaFree(w->dBuffer))
+  if (w->buffer2) CUPDLP_FREE_VEC(w->buffer2);
+  if (w->buffer3) CUPDLP_FREE_VEC(w->buffer3);
 #endif
-    if (w->colScale) CUPDLP_FREE_VEC(w->colScale);
-    if (w->rowScale) CUPDLP_FREE_VEC(w->rowScale);
+  if (w->colScale) CUPDLP_FREE_VEC(w->colScale);
+  if (w->rowScale) CUPDLP_FREE_VEC(w->rowScale);
 
-    if (w->buffer) {
-      // CUPDLP_FREE_VEC(w->buffer);
-      vec_clear(w->buffer);
-    }
+  if (w->buffer) {
+    // CUPDLP_FREE_VEC(w->buffer);
+    vec_clear(w->buffer);
+  }
 
-    if (problem) {
-      // problem_clear(problem);
-      problem = cupdlp_NULL;
-    }
+  if (problem) {
+    // problem_clear(problem);
+    problem = cupdlp_NULL;
+  }
 
-    if (iterates) {
-      iterates_clear(iterates);
-    }
+  if (iterates) {
+    iterates_clear(iterates);
+  }
 
-    if (resobj) {
-      resobj_clear(resobj);
-    }
+  if (resobj) {
+    resobj_clear(resobj);
+  }
 
 #if !(CUPDLP_CPU)
     timers->FreeDeviceMemTime += getTimeStamp() - begin;
 #endif
 
-    if (settings) {
-      settings_clear(settings);
-    }
-    if (stepsize) {
-      stepsize_clear(stepsize);
-    }
-    if (timers) {
-      timers_clear(timers);
-    }
-    if (scaling) {
-      // scaling_clear(scaling);
-      scaling = cupdlp_NULL;
-    }
-    cupdlp_free(w);
+  if (settings) {
+    settings_clear(settings);
   }
+  if (stepsize) {
+    stepsize_clear(stepsize);
+  }
+  if (timers) {
+    timers_clear(timers);
+  }
+  if (scaling) {
+    // scaling_clear(scaling);
+    scaling = cupdlp_NULL;
+  }
+  cupdlp_free(w);
 
   return 0;
 }

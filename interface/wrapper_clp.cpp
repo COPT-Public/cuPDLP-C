@@ -90,7 +90,6 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
       ((const ClpModel *)model)->matrix()->getVectorStarts();
   const int *A_csc_idx = ((const ClpModel *)model)->matrix()->getIndices();
   const double *A_csc_val = ((const ClpModel *)model)->matrix()->getElements();
-  int has_lower, has_upper;
 
   // cupdlp_printf("------------------------------------------------\n");
   // vecIntPrint("A_csc_beg", A_csc_beg, nCols_clp + 1);
@@ -122,8 +121,8 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_clp; i++) {
-    has_lower = lhs_clp[i] > -1e20;
-    has_upper = rhs_clp[i] < 1e20;
+    int has_lower = lhs_clp[i] > -1e20;
+    int has_upper = rhs_clp[i] < 1e20;
 
     // count number of equations and rows
     if (has_lower && has_upper && lhs_clp[i] == rhs_clp[i]) {
@@ -265,15 +264,14 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
       ((const ClpModel *)model)->matrix()->getVectorStarts();
   const int *A_csc_idx = ((const ClpModel *)model)->matrix()->getIndices();
   const double *A_csc_val = ((const ClpModel *)model)->matrix()->getElements();
-  int has_lower, has_upper;
 
   CUPDLP_INIT(constraint_type_clp, nRows_clp);
   CUPDLP_INIT(*constraint_new_idx, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_clp; i++) {
-    has_lower = lhs_clp[i] > -1e20;
-    has_upper = rhs_clp[i] < 1e20;
+    int has_lower = lhs_clp[i] > -1e20;
+    int has_upper = rhs_clp[i] < 1e20;
 
     // count number of equations and rows
     if (has_lower && has_upper && lhs_clp[i] == rhs_clp[i]) {
