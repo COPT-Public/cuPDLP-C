@@ -469,7 +469,7 @@ void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
       break;
     case MULTI_GPU:
 #if !(CUPDLP_CPU)
-      Ax_multi_gpu(d, ax, x);
+      Ax_multi_gpu(d, ax->data, x->data);
 #else
       printf("GPU not supported in CPU build\n");
       exit(1);

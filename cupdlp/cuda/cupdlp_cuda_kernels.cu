@@ -8,7 +8,7 @@ dim3 cuda_gridsize(cupdlp_int n) {
     x = ceil(sqrt(k));
     y = (n - 1) / (x * CUPDLP_BLOCK_SIZE) + 1;
   }
-  dim3 d = {x, y, 1};
+  dim3 d = {(unsigned int)x, (unsigned int)y, 1};
   return d;
 }
 
