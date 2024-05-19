@@ -11,7 +11,7 @@ target_include_directories(cudalin PUBLIC "/usr/local/cuda/include")
 target_compile_definitions(cudalin
         PUBLIC
         # If the debug configuration pass the DEBUG define to the compiler
-        $<$<CONFIG:Debug>:CUPDLP_DEBUG>
+        $<$<CONFIG:Debug>:-DCUPDLP_DEBUG=1>
 )
 
 target_link_libraries(cudalin ${CUDA_LIBRARY} m)

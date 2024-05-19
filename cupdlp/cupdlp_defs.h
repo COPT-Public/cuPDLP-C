@@ -1,6 +1,13 @@
 #ifndef CUPDLP_H_GUARD
 #define CUPDLP_H_GUARD
 
+#ifndef CUPDLP_CPU
+#define CUPDLP_CPU (0)
+#endif
+#ifndef CUPDLP_DEBUG
+#define CUPDLP_DEBUG (0)
+#endif
+
 #if !(CUPDLP_CPU)
 #include "cuda/cupdlp_cuda_kernels.cuh"
 #include "cuda/cupdlp_cudalinalg.cuh"
