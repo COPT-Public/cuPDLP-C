@@ -6,7 +6,11 @@
 #define CUPDLP_CUPDLP_UTILS_H
 
 #include <stdio.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include "cupdlp_defs.h"
 
