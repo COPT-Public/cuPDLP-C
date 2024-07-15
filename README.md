@@ -59,6 +59,30 @@ cmake --build . --target pycupdlp
 
 (Optional) You may checkout the setup scripts under `pycupdlp`.
 
+### The Julia Interface
+If you wish to use the Julia interface, use the following steps:
+- Set `path-to-cupdlpc` as environment path `CUPDLP_HOME` and turn on `BUILD_JULIA` option in the `CMakeLists.txt`. `CUPDLP_HOME` is for loading libraries.
+- Type in `julia` in command line to start a Julia REPL. Then type in `]` to enter Pkg mode and type in `dev ./jlcupdlp/cuPDLPc/`. Type in `[Backspace]` to leave Pkg mode.
+- To test whether everything is ready, try to run test file in Julia REPL by typing in
+```julia
+julia> include("jlcupdlp/cuPDLPc/test/test.jl")
+```
+
+Currently, for a Julia user solving
+$$
+\begin{aligned}
+\min\ & c^\top x + \text{offset} \\
+\text{s.t.}\ & \text{lhs} <= A x <= \text{rhs} \\
+& l \leq x \leq u
+\end{aligned}
+$$
+we provide the following methods:
+- `cuPDLP_C()` to init our solver.
+- `load_lp!(cost, A, lhs, rhs, l, u, sense, offset)` to load the problems. Sense can be set by 1 (min) and -1 (max).
+- `setParam!()` to set a parameter. All parameters are the same as in C below.
+- `help()` for help.
+- `solve!()` to start solving.
+
 ## Usage
 
 Usage example: set `nIterLim` to `5000` and solve.

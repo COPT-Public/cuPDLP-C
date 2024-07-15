@@ -1,0 +1,7 @@
+name = "cuPDLPc"
+uuid = "fac22fad-ac86-4738-9594-3bb27db4d23e"
+authors = ["Tianhao Liu <38656352+SkyLiu0@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"

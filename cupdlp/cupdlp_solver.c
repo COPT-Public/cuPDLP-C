@@ -1127,7 +1127,9 @@ cupdlp_retcode LP_SolvePDHG(
                              constraint_type, col_value, col_dual, row_value,
                              row_dual, value_valid, dual_valid));
 
-  writeJson(fp, pdhg);
+  if (fp) {
+    writeJson(fp, pdhg);
+  }
 
   if (ifSaveSol && fp_sol) {
     if (strcmp(fp, fp_sol) != 0) {
