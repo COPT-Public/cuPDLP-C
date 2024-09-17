@@ -304,8 +304,8 @@ exit_cleanup:
     deleteModel_highs(presolvedmodel);
     if (col_value_pre != NULL) cupdlp_free(col_value_pre);
     if (col_dual_pre != NULL) cupdlp_free(col_dual_pre);
-    if (row_value_pre != NULL) cupdlp_free(row_value);
-    if (row_dual_pre != NULL) cupdlp_free(row_dual);
+    if (row_value_pre != NULL) cupdlp_free(row_value_pre);
+    if (row_dual_pre != NULL) cupdlp_free(row_dual_pre);
   }
   if (col_value_org != NULL) cupdlp_free(col_value_org);
   if (col_dual_org != NULL) cupdlp_free(col_dual_org);
@@ -332,8 +332,11 @@ exit_cleanup:
   if (constraint_type != NULL) cupdlp_free(constraint_type);
 
   // free memory
-  csc_clear(csc_cpu);
+  csc_clear_host(csc_cpu);
   problem_clear(prob);
+  #if !(CUPDLP_CPU)
+    CHECK_CUDA(cudaDeviceReset())
+  #endif
 
   return retcode;
 }

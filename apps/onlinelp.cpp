@@ -172,5 +172,8 @@ exit_cleanup:
   }
   // free memory
   problem_clear(prob);
+  #if !(CUPDLP_CPU)
+    CHECK_CUDA(cudaDeviceReset())
+  #endif
   return 0;
 }

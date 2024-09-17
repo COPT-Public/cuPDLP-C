@@ -170,6 +170,8 @@ void csc2dense(CUPDLPdense *dense, CUPDLPcsc *csc);
 
 cupdlp_int csc_clear(CUPDLPcsc *csc);
 
+cupdlp_int csc_clear_host(CUPDLPcsc *csc);
+
 cupdlp_int csr_clear(CUPDLPcsr *csr);
 
 void dense_clear(CUPDLPdense *dense);

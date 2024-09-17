@@ -251,10 +251,13 @@ exit_cleanup:
   dense_clear(dense);
   // csr_clear(csr);
   // csc_clear(csc);
-  csc_clear(csc_cpu);
+  csc_clear_host(csc_cpu);
   problem_clear(prob);
   freealldata(Aeqp, Aeqi, Aeqx, Aineqp, Aineqi, Aineqx, colUbIdx, colUbElem,
               rhs, cost, x, s, t, sx, ss, st, y, lower, upper);
+  #if !(CUPDLP_CPU)
+    CHECK_CUDA(cudaDeviceReset())
+  #endif
 
   return retcode;
 }

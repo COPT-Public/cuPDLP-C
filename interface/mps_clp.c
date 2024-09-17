@@ -245,8 +245,11 @@ exit_cleanup:
   if (x_origin != NULL) cupdlp_free(x_origin);
   if (y_origin != NULL) cupdlp_free(y_origin);
   // free memory
-  csc_clear(csc_cpu);
+  csc_clear_host(csc_cpu);
   problem_clear(prob);
+  #if !(CUPDLP_CPU)
+    CHECK_CUDA(cudaDeviceReset())
+  #endif
 
   // freealldata(Aeqp, Aeqi, Aeqx, Aineqp, Aineqi, Aineqx, colUbIdx, colUbElem,
   //             rhs, cost, x, s, t, sx, ss, st, y, lower, upper);

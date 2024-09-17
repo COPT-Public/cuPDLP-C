@@ -42,7 +42,23 @@ cupdlp_int csc_clear(CUPDLPcsc *csc) {
     if (csc->colMatElem) {
       CUPDLP_FREE_VEC(csc->colMatElem);
     }
-    CUPDLP_FREE_VEC(csc);
+    cupdlp_free(csc);
+  }
+  return 0;
+}
+
+cupdlp_int csc_clear_host(CUPDLPcsc *csc) {
+  if (csc) {
+    if (csc->colMatBeg) {
+      cupdlp_free(csc->colMatBeg);
+    }
+    if (csc->colMatIdx) {
+      cupdlp_free(csc->colMatIdx);
+    }
+    if (csc->colMatElem) {
+      cupdlp_free(csc->colMatElem);
+    }
+    cupdlp_free(csc);
   }
   return 0;
 }
@@ -63,7 +79,7 @@ cupdlp_int csr_clear(CUPDLPcsr *csr) {
     if (csr->rowMatElem) {
       CUPDLP_FREE_VEC(csr->rowMatElem);
     }
-    CUPDLP_FREE_VEC(csr);
+    cupdlp_free(csr);
   }
   return 0;
 }
@@ -130,7 +146,7 @@ void problem_clear(CUPDLPproblem *problem) {
     if (problem->hasUpper) {
       CUPDLP_FREE_VEC(problem->hasUpper);
     }
-    CUPDLP_FREE_VEC(problem);
+    cupdlp_free(problem);
   }
 }
 
@@ -216,7 +232,7 @@ void iterates_clear(CUPDLPiterates *iterates) {
       // CUPDLP_FREE_VEC(iterates->atyAverage);
       vec_clear(iterates->atyAverage);
     }
-    CUPDLP_FREE_VEC(iterates);
+    cupdlp_free(iterates);
   }
 }
 
@@ -276,7 +292,7 @@ void resobj_clear(CUPDLPresobj *resobj) {
     // if (resobj->dualInfeasBound) {
     //   CUPDLP_FREE_VEC(resobj->dualInfeasBound);
     // }
-    CUPDLP_FREE_VEC(resobj);
+    cupdlp_free(resobj);
   }
 }
 
@@ -299,12 +315,10 @@ void timers_clear(CUPDLPtimers *timers) {
 void scaling_clear(CUPDLPscaling *scaling) {
   if (scaling) {
     if (scaling->colScale) {
-      // cupdlp_free(scaling->colScale);
-      CUPDLP_FREE_VEC(scaling->colScale);  // now on gpu
+      cupdlp_free(scaling->colScale);
     }
     if (scaling->rowScale) {
-      // cupdlp_free(scaling->rowScale);
-      CUPDLP_FREE_VEC(scaling->rowScale);  // now on gpu
+      cupdlp_free(scaling->rowScale);
     }
     cupdlp_free(scaling);
   }
@@ -1054,9 +1068,6 @@ exit_cleanup:
 void PDHG_Destroy(CUPDLPwork **w) {
   if (w && *w) {
     PDHG_Clear(*w);
-#if !(CUPDLP_CPU)
-    CHECK_CUDA_IGNORE(cudaDeviceReset())
-#endif
   }
 }
 
