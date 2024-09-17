@@ -196,6 +196,98 @@ extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
    naive_sub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(z, x, y, len);
 }
 
+
+extern "C" void cupdlp_movement_interaction_cuda(
+    cupdlp_float *dX2, cupdlp_float *dY2, cupdlp_float *dInter, cupdlp_float *buffer,
+    const cupdlp_float *xUpdate, const cupdlp_float *x,
+    const cupdlp_float *yUpdate, const cupdlp_float *y,
+    const cupdlp_float *atyUpdate, const cupdlp_float *aty,
+    int nRows, int nCols)
+{
+  cudaDeviceProp prop;
+  CHECK_CUDA_IGNORE(cudaGetDeviceProperties(&prop, 0));
+  if (prop.warpSize != 32) {
+    printf("warpSize\n");
+    exit(1);
+  }
+
+  constexpr int RED_BLOCK_SIZE = 256;
+  constexpr int RED_ELS_PER_THREAD = 4;
+  constexpr int RED_ELS_PER_BLOCK = RED_BLOCK_SIZE * RED_ELS_PER_THREAD;
+
+  constexpr int SUM_BLOCK_SIZE = 512;
+  constexpr int SUM_ELS_PER_THREAD = 2;
+  constexpr int SUM_ELS_PER_BLOCK = SUM_BLOCK_SIZE * SUM_ELS_PER_THREAD;
+
+  int nBlocksCols = (nCols + RED_ELS_PER_BLOCK - 1) / RED_ELS_PER_BLOCK;
+  int nBlocksRows = (nRows + RED_ELS_PER_BLOCK - 1) / RED_ELS_PER_BLOCK;
+
+  int buf_size = 256 * ((max(nBlocksCols,nBlocksRows) + 256 - 1) / 256);
+
+  // buffer has size max(nCols, nRows, 2048)
+
+  // we have buf_size <= max(nBlocksCols, nBlocksRows) + 256 - 1
+  //                  <= max(nCols, nRows) / (4 * 256) + 1 + 256 - 1,
+  // since RED_ELS_PER_BLOCK = 4 * 256
+
+  // assume wlog that nRows <= nCols
+
+  // if nCols <= 2 * 4 * 256, then
+  // buf_size <= 2 + 256 <= 258,
+  // so 5 * buf_size <= 1290 <= max(nCols, nRows, 2048)
+
+  // if nCols > 2 * 4 * 256, then
+  // buf_size <= nCols / (4 * 256) + nCols / 8 <= nCols * 3/16
+  // so 5 * buf_size <= 15/16 * nCols <= max(nCols, nRows, 2048)
+
+  cupdlp_float *buf_1 = buffer + 0 * buf_size;
+  cupdlp_float *buf_2 = buffer + 1 * buf_size;
+  cupdlp_float *buf_3 = buffer + 2 * buf_size;
+  cupdlp_float *buf_4 = buffer + 3 * buf_size;
+  cupdlp_float *buf_5 = buffer + 4 * buf_size;
+
+  int nBlocks = nBlocksCols;
+  movement_1_kernel<<<nBlocks, RED_BLOCK_SIZE>>>(buf_1, buf_2, xUpdate, x, atyUpdate, aty, nCols);
+
+  while (nBlocks > 1) {
+    int nBlocks2 = (nBlocks + SUM_ELS_PER_BLOCK - 1) / SUM_ELS_PER_BLOCK;
+    sum_kernel<<<nBlocks2, SUM_BLOCK_SIZE>>>(buf_3, buf_1, nBlocks);
+    sum_kernel<<<nBlocks2, SUM_BLOCK_SIZE>>>(buf_4, buf_2, nBlocks);
+    nBlocks = nBlocks2;
+    cupdlp_float *tmp = buf_1;
+    buf_1 = buf_3;
+    buf_3 = tmp;
+    tmp = buf_2;
+    buf_2 = buf_4;
+    buf_4 = tmp;
+  }
+
+  CHECK_CUDA_STRICT(cudaMemcpyAsync(buf_5 + 0, buf_1, sizeof(cupdlp_float), cudaMemcpyDeviceToDevice))
+  CHECK_CUDA_STRICT(cudaMemcpyAsync(buf_5 + 1, buf_2, sizeof(cupdlp_float), cudaMemcpyDeviceToDevice))
+
+  nBlocks = nBlocksRows;
+  movement_2_kernel<<<nBlocks, RED_BLOCK_SIZE>>>(buf_1, yUpdate, y, nRows);
+
+  while (nBlocks > 1) {
+    int nBlocks2 = (nBlocks + SUM_ELS_PER_BLOCK - 1) / SUM_ELS_PER_BLOCK;
+    sum_kernel<<<nBlocks2, SUM_BLOCK_SIZE>>>(buf_2, buf_1, nBlocks);
+    nBlocks = nBlocks2;
+    cupdlp_float *tmp = buf_1;
+    buf_1 = buf_2;
+    buf_2 = tmp;
+  }
+
+  cupdlp_float res[3];
+  CHECK_CUDA_STRICT(cudaMemcpyAsync(buf_5 + 2, buf_1, sizeof(cupdlp_float), cudaMemcpyDeviceToDevice))
+  CHECK_CUDA_STRICT(cudaDeviceSynchronize())
+  CHECK_CUDA_STRICT(cudaMemcpy(res, buf_5, 3 * sizeof(cupdlp_float), cudaMemcpyDeviceToHost))
+  CHECK_CUDA_LAST();
+
+  *dX2 = res[0];
+  *dY2 = res[2];
+  *dInter = res[1];
+}
+
 extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle)
 {
 #if PRINT_CUDA_INFO

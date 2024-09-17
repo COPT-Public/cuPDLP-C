@@ -124,3 +124,142 @@ __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
   cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < len) z[i] = x[i] - y[i];
 }
+
+
+#define QUARTER_WARP_REDUCE_2(val1, val2) { \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 4); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 4); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 2); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 2); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 1); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 1); \
+}
+
+#define FULL_WARP_REDUCE_2(val1, val2) { \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 16); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 16); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 8); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 8); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 4); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 4); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 2); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 2); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 1); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 1); \
+}
+
+// assumes block size = 256, warp size = 32
+__global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_float * __restrict__ res_y,
+                                  const cupdlp_float * __restrict__ xUpdate, const cupdlp_float * __restrict__ x,
+                                  const cupdlp_float * __restrict__ atyUpdate, const cupdlp_float * __restrict__ aty,
+                                  int nCols) {
+
+  __shared__ cupdlp_float shared_x[32];
+  __shared__ cupdlp_float shared_y[32];
+  cupdlp_float val_x = 0.0;
+  cupdlp_float val_y = 0.0;
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nCols; i += blockDim.x * gridDim.x) {
+      cupdlp_float dx = xUpdate[i] - x[i];
+      cupdlp_float day = atyUpdate[i] - aty[i];
+      val_x += dx*dx;
+      val_y += day*dx;
+  }
+
+  int lane = threadIdx.x % 32;
+  int wid = threadIdx.x / 32;
+
+  FULL_WARP_REDUCE_2(val_x, val_y)
+  if (lane == 0) {
+    shared_x[wid] = val_x;
+    shared_y[wid] = val_y;
+  }
+  __syncthreads();
+
+  if (wid == 0) {
+    val_x = (threadIdx.x < blockDim.x / 32) ? shared_x[lane] : 0.0;
+    val_y = (threadIdx.x < blockDim.x / 32) ? shared_y[lane] : 0.0;
+    QUARTER_WARP_REDUCE_2(val_x, val_y)
+    if (threadIdx.x == 0) {
+      res_x[blockIdx.x] = val_x;
+      res_y[blockIdx.x] = val_y;
+    }
+  }
+}
+
+#define QUARTER_WARP_REDUCE(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+
+#define HALF_WARP_REDUCE(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+
+#define FULL_WARP_REDUCE(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 16); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+
+// assumes: block size = 256, warp size = 32
+__global__ void movement_2_kernel(cupdlp_float * __restrict__ res,
+                                  const cupdlp_float * __restrict__ yUpdate, const cupdlp_float * __restrict__ y,
+                                  int nRows) {
+
+  __shared__ cupdlp_float shared[32];
+  cupdlp_float val = 0.0;
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nRows; i += blockDim.x * gridDim.x) {
+      cupdlp_float d = yUpdate[i] - y[i];
+      val += d*d;
+  }
+
+  int lane = threadIdx.x % 32;
+  int wid = threadIdx.x / 32;
+
+  FULL_WARP_REDUCE(val)
+  if (lane == 0) {
+    shared[wid] = val;
+  }
+  __syncthreads();
+
+  if (wid == 0) {
+    val = (threadIdx.x < blockDim.x / 32) ? shared[lane] : 0.0;
+    QUARTER_WARP_REDUCE(val)
+    if (threadIdx.x == 0) {
+      res[blockIdx.x] = val;
+    }
+  }
+}
+
+// assumes: block size = 512, warp size = 32
+__global__ void sum_kernel(cupdlp_float * __restrict__ res, const cupdlp_float * __restrict__ x, int n) {
+
+  __shared__ cupdlp_float shared[32];
+  cupdlp_float val = 0.0;
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += blockDim.x * gridDim.x) {
+      val += x[i];
+  }
+
+  int lane = threadIdx.x % 32;
+  int wid = threadIdx.x / 32;
+
+  FULL_WARP_REDUCE(val)
+  if (lane == 0) {
+    shared[wid] = val;
+  }
+  __syncthreads();
+
+  if (wid == 0) {
+    val = (threadIdx.x < blockDim.x / 32) ? shared[lane] : 0.0;
+    HALF_WARP_REDUCE(val)
+    if (threadIdx.x == 0) {
+      res[blockIdx.x] = val;
+    }
+  }
+}

@@ -182,4 +182,17 @@ __global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
 
 __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
                                  const cupdlp_float *y, const cupdlp_int len);
+
+
+__global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_float * __restrict__ res_y,
+                                  const cupdlp_float * __restrict__ xUpdate, const cupdlp_float * __restrict__ x,
+                                  const cupdlp_float * __restrict__ atyUpdate, const cupdlp_float * __restrict__ aty,
+                                  int nCols);
+
+__global__ void movement_2_kernel(cupdlp_float * __restrict__ res,
+                                  const cupdlp_float * __restrict__ yUpdate, const cupdlp_float * __restrict__ y,
+                                  int nRows);
+
+__global__ void sum_kernel(cupdlp_float * __restrict__ res, const cupdlp_float * __restrict__ x, int n);
+
 #endif

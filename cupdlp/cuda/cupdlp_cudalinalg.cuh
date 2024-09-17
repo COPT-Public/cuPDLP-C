@@ -100,6 +100,13 @@ extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                 const cupdlp_float *y, const cupdlp_int len);
 
+extern "C" void cupdlp_movement_interaction_cuda(
+    cupdlp_float *dX2, cupdlp_float *dY2, cupdlp_float *dInter, cupdlp_float *buffer,
+    const cupdlp_float *xUpdate, const cupdlp_float *x,
+    const cupdlp_float *yUpdate, const cupdlp_float *y,
+    const cupdlp_float *atyUpdate, const cupdlp_float *aty,
+    int nRows, int nCols);
+
 extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle);
 
 #endif
