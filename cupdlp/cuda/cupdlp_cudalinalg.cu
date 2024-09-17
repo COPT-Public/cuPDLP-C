@@ -135,34 +135,34 @@ extern "C" void cupdlp_edot_cuda(cupdlp_float *x, const cupdlp_float *y,
 extern "C" void cupdlp_haslb_cuda(cupdlp_float *haslb, const cupdlp_float *lb,
                                   const cupdlp_float bound,
                                   const cupdlp_int len) {
-  element_wise_initHaslb_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+  element_wise_initHaslb_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
       haslb, lb, bound, len);
 }
 
 extern "C" void cupdlp_hasub_cuda(cupdlp_float *hasub, const cupdlp_float *ub,
                                   const cupdlp_float bound,
                                   const cupdlp_int len) {
-  element_wise_initHasub_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+  element_wise_initHasub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
       hasub, ub, bound, len);
 }
 
 extern "C" void cupdlp_filterlb_cuda(cupdlp_float *x, const cupdlp_float *lb,
                                      const cupdlp_float bound,
                                      const cupdlp_int len) {
-  element_wise_filterlb_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+  element_wise_filterlb_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
       x, lb, bound, len);
 }
 
 extern "C" void cupdlp_filterub_cuda(cupdlp_float *x, const cupdlp_float *ub,
                                      const cupdlp_float bound,
                                      const cupdlp_int len) {
-  element_wise_filterub_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+  element_wise_filterub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
       x, ub, bound, len);
 }
 
 extern "C" void cupdlp_initvec_cuda(cupdlp_float *x, const cupdlp_float val,
                                     const cupdlp_int len) {
-  init_cuda_vec_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(x, val, len);
+  init_cuda_vec_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(x, val, len);
 }
 
 extern "C" void cupdlp_pgrad_cuda(cupdlp_float *xUpdate,
@@ -171,19 +171,19 @@ extern "C" void cupdlp_pgrad_cuda(cupdlp_float *xUpdate,
                                         const cupdlp_float *ATy,
                                         const cupdlp_float dPrimalStep,
                                         const cupdlp_int len) {
-    primal_grad_step_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+    primal_grad_step_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
         xUpdate, x, cost, ATy, dPrimalStep, len);
 }
 
 extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate, const cupdlp_float *y, const cupdlp_float *b,
     const cupdlp_float *Ax, const cupdlp_float *AxUpdate,
     const cupdlp_float dDualStep, const cupdlp_int len) {
-      dual_grad_step_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
+      dual_grad_step_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(
           yUpdate, y, b, Ax, AxUpdate, dDualStep, len);
 }
 
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                   const cupdlp_float *y, const cupdlp_int len)
 {
-   naive_sub_kernal<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(z, x, y, len);
+   naive_sub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(z, x, y, len);
 }
