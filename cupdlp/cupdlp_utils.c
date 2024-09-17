@@ -798,10 +798,18 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
                             cupdlp_int ncols, cupdlp_int nrows) {
   cupdlp_retcode retcode = RETCODE_OK;
 
+
+#if !(CUPDLP_CPU) && USE_KERNELS
+  resobj->primalResidual = NULL;
+  resobj->dualResidual = NULL;
+  resobj->primalResidualAverage = NULL;
+  resobj->dualResidualAverage = NULL;
+#else
   CUPDLP_INIT_ZERO_VEC(resobj->primalResidual, nrows);
   CUPDLP_INIT_ZERO_VEC(resobj->dualResidual, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->primalResidualAverage, nrows);
   CUPDLP_INIT_ZERO_VEC(resobj->dualResidualAverage, ncols);
+#endif
   CUPDLP_INIT_ZERO_VEC(resobj->dSlackPos, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dSlackNeg, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dSlackPosAverage, ncols);
@@ -809,13 +817,27 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   CUPDLP_INIT_ZERO_VEC(resobj->dLowerFiltered, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dUpperFiltered, ncols);
 
+#if !(CUPDLP_CPU) && USE_KERNELS
+  resobj->primalInfeasRay = NULL;
+  resobj->primalInfeasConstr = NULL;
+  resobj->primalInfeasBound = NULL;
+  resobj->dualInfeasRay = NULL;
+  resobj->dualInfeasLbRay = NULL;
+  resobj->dualInfeasUbRay = NULL;
+#else
   CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasRay, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasConstr, nrows);
   CUPDLP_INIT_ZERO_VEC(resobj->primalInfeasBound, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasRay, nrows);
   CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasLbRay, ncols);
   CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasUbRay, ncols);
+#endif
+
+#if !(CUPDLP_CPU) && USE_KERNELS
+  resobj->dualInfeasConstr = NULL;
+#else
   CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasConstr, ncols);
+#endif
   // CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasBound, nrows);
 
   cupdlp_filterlb(resobj->dLowerFiltered, problem->lower, -INFINITY, ncols);

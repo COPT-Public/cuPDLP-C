@@ -126,6 +126,52 @@ static inline cudaError_t check_cuda_last(const char *filename, int line)
   }
 
 
+__global__ void element_primal_feas_kernel(cupdlp_float *z,
+                                           const cupdlp_float *ax,
+                                           const cupdlp_float *rhs,
+                                           const cupdlp_float *rowScale,
+                                           int ifScaled,
+                                           int nEqs, int nRows);
+
+__global__ void element_dual_feas_kernel_1(cupdlp_float *z,
+                                           const cupdlp_float *aty,
+                                           const cupdlp_float *cost,
+                                           int nCols);
+
+__global__ void element_dual_feas_kernel_2(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasLower,
+                                           int nCols);
+
+__global__ void element_dual_feas_kernel_3(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasUpper,
+                                           int nCols);
+
+__global__ void element_primal_infeas_kernel(cupdlp_float *z, const cupdlp_float *aty,
+                                             const cupdlp_float *dSlackPos,
+                                             const cupdlp_float *dSlackNeg,
+                                             const cupdlp_float *colScale,
+                                             cupdlp_float alpha, int ifScaled, int nCols);
+
+__global__ void element_dual_infeas_kernel_lb(cupdlp_float *z,
+                                              const cupdlp_float *x,
+                                              const cupdlp_float *hasLower,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols);
+
+__global__ void element_dual_infeas_kernel_ub(cupdlp_float *z,
+                                              const cupdlp_float *x,
+                                              const cupdlp_float *hasUpper,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols);
+
+__global__ void element_dual_infeas_kernel_constr(cupdlp_float *z,
+                                                  const cupdlp_float *ax,
+                                                  const cupdlp_float *rowScale,
+                                                  cupdlp_float alpha, int ifScaled,
+                                                  int nEqs, int nRows);
+
 __global__ void element_wise_dot_kernel(cupdlp_float *x, const cupdlp_float *y, int n);
 
 __global__ void element_wise_div_kernel(cupdlp_float *x, const cupdlp_float *y, int n);

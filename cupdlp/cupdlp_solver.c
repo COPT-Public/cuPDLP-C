@@ -11,10 +11,10 @@
 #include "cupdlp_utils.h"
 #include "glbopts.h"
 
-void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
-                                     const double *ax, const double *x,
-                                     double *dPrimalFeasibility,
-                                     double *dPrimalObj) {
+void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, cupdlp_float *primalResidual,
+                                     const cupdlp_float *ax, const cupdlp_float *x,
+                                     cupdlp_float *dPrimalFeasibility,
+                                     cupdlp_float *dPrimalObj) {
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
   CUPDLPscaling *scaling = work->scaling;
@@ -26,6 +26,16 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   cupdlp_dot(work, lp->nCols, x, problem->cost, dPrimalObj);
   *dPrimalObj = *dPrimalObj * problem->sense_origin + problem->offset;
 
+#if !(CUPDLP_CPU) && USE_KERNELS
+  primalResidual = work->buffer2;
+
+  cupdlp_primal_feasibility_kernel_cuda(primalResidual, ax, problem->rhs,
+                                        work->rowScale, scaling->ifScaled,
+                                        problem->nEqs, lp->nRows);
+
+  cupdlp_twoNorm(work, lp->nRows, primalResidual, dPrimalFeasibility);
+
+#else
   // cupdlp_copy(primalResidual, ax, cupdlp_float, lp->nRows);
   CUPDLP_COPY_VEC(primalResidual, ax, cupdlp_float, lp->nRows);
 
@@ -53,13 +63,15 @@ void PDHG_Compute_Primal_Feasibility(CUPDLPwork *work, double *primalResidual,
   }
 
   cupdlp_twoNorm(work, lp->nRows, primalResidual, dPrimalFeasibility);
+
+#endif
 }
 
-void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
-                                   const double *aty, const double *x,
-                                   const double *y, double *dDualFeasibility,
-                                   double *dDualObj, double *dComplementarity,
-                                   double *dSlackPos, double *dSlackNeg) {
+void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, cupdlp_float *dualResidual,
+                                   const cupdlp_float *aty, const cupdlp_float *x,
+                                   const cupdlp_float *y, cupdlp_float *dDualFeasibility,
+                                   cupdlp_float *dDualObj, cupdlp_float *dComplementarity,
+                                   cupdlp_float *dSlackPos, cupdlp_float *dSlackNeg) {
   CUPDLPproblem *problem = work->problem;
   CUPDLPdata *lp = problem->data;
   CUPDLPresobj *resobj = work->resobj;
@@ -68,6 +80,39 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   //    *dDualObj = Dotprod_Neumaier(problem->rhs, y, lp->nRows);
   cupdlp_dot(work, lp->nRows, y, problem->rhs, dDualObj);
 
+#if !(CUPDLP_CPU) && USE_KERNELS
+  dualResidual = work->buffer2;
+
+  cupdlp_float alpha;
+  cupdlp_dual_feasibility_kernel_1_cuda(dualResidual, aty,
+                                        problem->cost, lp->nCols);
+
+  cupdlp_dual_feasibility_kernel_2_cuda(dSlackPos, dualResidual,
+                                        problem->hasLower, lp->nCols);
+
+  cupdlp_float temp = 0.0;
+  cupdlp_dot(work, lp->nCols, dSlackPos, resobj->dLowerFiltered, &temp);
+  *dDualObj += temp;
+
+  cupdlp_dual_feasibility_kernel_3_cuda(dSlackNeg, dualResidual,
+                                        problem->hasUpper, lp->nCols);
+
+  cupdlp_dot(work, lp->nCols, dSlackNeg, resobj->dUpperFiltered, &temp);
+  *dDualObj -= temp;
+
+  *dDualObj = *dDualObj * problem->sense_origin + problem->offset;
+
+  alpha = -1.0;
+  cupdlp_axpy(work, lp->nCols, &alpha, dSlackPos, dualResidual);
+  alpha = 1.0;
+  cupdlp_axpy(work, lp->nCols, &alpha, dSlackNeg, dualResidual);
+
+  if (scaling->ifScaled) {
+    cupdlp_edot(dualResidual, work->colScale, lp->nCols);
+  }
+  cupdlp_twoNorm(work, lp->nCols, dualResidual, dDualFeasibility);
+
+#else
   // *dComplementarity = 0.0;
 
   // @note:
@@ -155,6 +200,8 @@ void PDHG_Compute_Dual_Feasibility(CUPDLPwork *work, double *dualResidual,
   }
 
   cupdlp_twoNorm(work, lp->nCols, dualResidual, dDualFeasibility);
+
+#endif
 }
 
 void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
@@ -180,6 +227,35 @@ void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
   // cupdlp_float dBoundLbResSq = 0.0;
   // cupdlp_float dBoundUbResSq = 0.0;
 
+#if !(CUPDLP_CPU) && USE_KERNELS
+  cupdlp_twoNormSquared(work, problem->data->nRows, y, &yNrmSq);
+  cupdlp_twoNormSquared(work, problem->data->nCols, dSlackPos, &slackPosNrmSq);
+  cupdlp_twoNormSquared(work, problem->data->nCols, dSlackNeg, &slackNegSq);
+  dScale = sqrt(yNrmSq + slackPosNrmSq + slackNegSq);
+  // dScale /= sqrt(problem->data->nRows + 2 * problem->data->nCols);
+  if (dScale < 1e-8) {
+    dScale = 1.0;
+  }
+
+  // dual obj
+  *dPrimalInfeasObj =
+      (dualObj - problem->offset) / problem->sense_origin / dScale;
+
+  // dual constraints [ATy1 + GTy2 + lambda]
+
+  cupdlp_primal_infeasibility_kernel_cuda(work->buffer2, aty, dSlackPos,
+                                          dSlackNeg, work->colScale, 1.0 / dScale,
+                                          scaling->ifScaled, problem->data->nCols);
+
+  // cupdlp_twoNormSquared(work, problem->data->nCols, resobj->dualInfeasConstr,
+  //                       &dConstrResSq);
+  cupdlp_twoNorm(work, problem->data->nCols, work->buffer2,
+                 dPrimalInfeasRes);
+
+  // dual bound
+  // always satisfied, no need to check
+
+#else
   // y, ldb ray
   CUPDLP_COPY_VEC(resobj->dualInfeasRay, y, cupdlp_float, problem->data->nRows);
   CUPDLP_COPY_VEC(resobj->dualInfeasLbRay, dSlackPos, cupdlp_float,
@@ -229,6 +305,7 @@ void PDHG_Compute_Primal_Infeasibility(CUPDLPwork *work, const cupdlp_float *y,
 
   // dual bound
   // always satisfied, no need to check
+#endif
 }
 
 void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
@@ -244,6 +321,49 @@ void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
   cupdlp_float pBoundLbResSq = 0.0;
   cupdlp_float pBoundUbResSq = 0.0;
 
+#if !(CUPDLP_CPU) && USE_KERNELS
+  // x ray
+  cupdlp_twoNorm(work, problem->data->nCols, x, &pScale);
+  // pScale /= sqrt(problem->data->nCols);
+  if (pScale < 1e-8) {
+    pScale = 1.0;
+  }
+
+  // primal obj
+  *dDualInfeasObj =
+      (primalObj - problem->offset) / problem->sense_origin / pScale;
+
+  // primal constraints [Ax, min(Gx, 0)]
+  cupdlp_dual_infeasibility_kernel_constr_cuda(work->buffer2, ax,
+                                              work->rowScale, 1.0 / pScale,
+                                              scaling->ifScaled,
+                                              problem->nEqs,
+                                              problem->data->nRows);
+  cupdlp_twoNormSquared(work, problem->data->nRows, work->buffer2,
+                        &pConstrResSq);
+
+  // primal bound
+  // lb
+  cupdlp_dual_infeasibility_kernel_lb_cuda(work->buffer2, x,
+                                           problem->hasLower,
+                                           work->colScale,
+                                           1.0 / pScale, scaling->ifScaled,
+                                           problem->data->nCols);
+  cupdlp_twoNormSquared(work, problem->data->nCols, work->buffer2,
+                        &pBoundLbResSq);
+  // ub
+  cupdlp_dual_infeasibility_kernel_ub_cuda(work->buffer2, x,
+                                           problem->hasUpper,
+                                           work->colScale,
+                                           1.0 / pScale, scaling->ifScaled,
+                                           problem->data->nCols);
+  cupdlp_twoNormSquared(work, problem->data->nCols, work->buffer2,
+                        &pBoundUbResSq);
+
+  // sum up
+  *dDualInfeasRes = sqrt(pConstrResSq + pBoundLbResSq + pBoundUbResSq);
+
+#else
   // x ray
   CUPDLP_COPY_VEC(resobj->primalInfeasRay, x, cupdlp_float,
                   problem->data->nCols);
@@ -301,6 +421,8 @@ void PDHG_Compute_Dual_Infeasibility(CUPDLPwork *work, const cupdlp_float *x,
 
   // sum up
   *dDualInfeasRes = sqrt(pConstrResSq + pBoundLbResSq + pBoundUbResSq);
+
+#endif
 }
 
 // must be called after PDHG_Compute_Residuals(CUPDLPwork *work)

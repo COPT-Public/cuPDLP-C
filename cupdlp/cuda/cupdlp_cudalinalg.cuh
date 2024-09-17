@@ -44,6 +44,58 @@ cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                         cusparseDnVecDescr_t vecATy, void *dBuffer,
                         cupdlp_float alpha, cupdlp_float beta);
 */
+
+// z[i] = min(ax[i] - rhs[i], i >= nEqs ? 0.0 : ax[i] - rhs[i]) * (ifScaled ? rowScale[i] : 1.0)
+void cupdlp_primal_feasibility_kernel_cuda(cupdlp_float *z,
+                                           const cupdlp_float *ax,
+                                           const cupdlp_float *rhs,
+                                           const cupdlp_float *rowScale,
+                                           int ifScaled,
+                                           int nEqs, int nRows);
+
+// z[i] = cost[i] - aty[i]
+void cupdlp_dual_feasibility_kernel_1_cuda(cupdlp_float *z,
+                                           const cupdlp_float *aty,
+                                           const cupdlp_float *cost,
+                                           int nCols);
+
+// z[i] = max(dualResidual, 0) * hasLower[i]
+void cupdlp_dual_feasibility_kernel_2_cuda(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasLower,
+                                           int nCols);
+
+// z[i] = - min(dualResidual, 0) * hasUpper[i]
+void cupdlp_dual_feasibility_kernel_3_cuda(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasUpper,
+                                           int nCols);
+
+// z[i] = alpha * (aty[i] + dSlackPos[i] - dSlackNeg[i]) * (ifScaled ? colScale[i] : 1.0)
+void cupdlp_primal_infeasibility_kernel_cuda(cupdlp_float *z, const cupdlp_float *aty,
+                                             const cupdlp_float *dSlackPos,
+                                             const cupdlp_float *dSlackNeg,
+                                             const cupdlp_float *colScale,
+                                             cupdlp_float alpha, int ifScaled, int nCols);
+
+// z[i] = min(alpha * x[i], 0.0) * hasLower[i] / (ifScaled ? colScale[i] : 1.0)
+void cupdlp_dual_infeasibility_kernel_lb_cuda(cupdlp_float *z, const cupdlp_float *x,
+                                              const cupdlp_float *hasLower,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols);
+
+// z[i] = max(alpha * x[i], 0.0) * hasUpper[i] / (ifScaled ? colScale[i] : 1.0)
+void cupdlp_dual_infeasibility_kernel_ub_cuda(cupdlp_float *z, const cupdlp_float *x,
+                                              const cupdlp_float *hasUpper,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols);
+
+// z[i] = min(alpha * ax[i], i >= nEqs ? 0.0 : alpha * ax[i]) * (ifScaled ? rowScale[i] : 1.0)
+void cupdlp_dual_infeasibility_kernel_constr_cuda(cupdlp_float *z, const cupdlp_float *ax,
+                                                  const cupdlp_float *rowScale,
+                                                  cupdlp_float alpha, int ifScaled,
+                                                  int nEqs, int nRows);
+
 void cupdlp_projSameub_cuda(cupdlp_float *x, const cupdlp_float ub, int n);
 void cupdlp_projSamelb_cuda(cupdlp_float *x, const cupdlp_float lb, int n);
 

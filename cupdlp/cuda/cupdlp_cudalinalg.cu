@@ -110,6 +110,75 @@ cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
 }
 */
 
+void cupdlp_primal_feasibility_kernel_cuda(cupdlp_float *z,
+                                           const cupdlp_float *ax,
+                                           const cupdlp_float *rhs,
+                                           const cupdlp_float *rowScale,
+                                           int ifScaled,
+                                           int nEqs, int nRows) {
+  element_primal_feas_kernel<<<nBlocks256(nRows), 256>>>(z, ax, rhs, rowScale,
+                                                         ifScaled, nEqs, nRows);
+}
+
+void cupdlp_dual_feasibility_kernel_1_cuda(cupdlp_float *z,
+                                           const cupdlp_float *aty,
+                                           const cupdlp_float *cost,
+                                           int nCols) {
+  element_dual_feas_kernel_1<<<nBlocks256(nCols), 256>>>(z, aty, cost, nCols);
+}
+
+void cupdlp_dual_feasibility_kernel_2_cuda(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasLower,
+                                           int nCols) {
+  element_dual_feas_kernel_2<<<nBlocks256(nCols), 256>>>(z, dualResidual,
+                                                         hasLower, nCols);
+}
+
+void cupdlp_dual_feasibility_kernel_3_cuda(cupdlp_float *z,
+                                           const cupdlp_float *dualResidual,
+                                           const cupdlp_float *hasUpper,
+                                           int nCols) {
+  element_dual_feas_kernel_3<<<nBlocks256(nCols), 256>>>(z, dualResidual,
+                                                         hasUpper, nCols);
+}
+
+void cupdlp_primal_infeasibility_kernel_cuda(cupdlp_float *z, const cupdlp_float *aty,
+                                             const cupdlp_float *dSlackPos,
+                                             const cupdlp_float *dSlackNeg,
+                                             const cupdlp_float *colScale,
+                                             cupdlp_float alpha, int ifScaled, int nCols) {
+  element_primal_infeas_kernel<<<nBlocks256(nCols), 256>>>(z, aty, dSlackPos,
+                                                           dSlackNeg, colScale, alpha,
+                                                           ifScaled, nCols);
+}
+
+void cupdlp_dual_infeasibility_kernel_lb_cuda(cupdlp_float *z, const cupdlp_float *x,
+                                              const cupdlp_float *hasLower,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols) {
+  element_dual_infeas_kernel_lb<<<nBlocks256(nCols), 256>>>(z, x, hasLower,
+                                                            colScale, alpha,
+                                                            ifScaled, nCols);
+}
+
+void cupdlp_dual_infeasibility_kernel_ub_cuda(cupdlp_float *z, const cupdlp_float *x,
+                                              const cupdlp_float *hasUpper,
+                                              const cupdlp_float *colScale,
+                                              cupdlp_float alpha, int ifScaled, int nCols) {
+  element_dual_infeas_kernel_ub<<<nBlocks256(nCols), 256>>>(z, x, hasUpper,
+                                                            colScale, alpha,
+                                                            ifScaled, nCols);
+}
+
+void cupdlp_dual_infeasibility_kernel_constr_cuda(cupdlp_float *z, const cupdlp_float *ax,
+                                                  const cupdlp_float *rowScale,
+                                                  cupdlp_float alpha, int ifScaled,
+                                                  int nEqs, int nRows) {
+  element_dual_infeas_kernel_constr<<<nBlocks256(nRows), 256>>>(z, ax, rowScale,
+                                                                alpha, ifScaled, nEqs, nRows);
+}
+
 void cupdlp_projSameub_cuda(cupdlp_float *x, cupdlp_float ub, int n) {
   element_wise_projSameub_kernel<<<nBlocks256(n), 256>>>(x, ub, n);
 }
