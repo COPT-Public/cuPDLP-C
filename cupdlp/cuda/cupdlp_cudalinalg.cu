@@ -50,7 +50,7 @@ cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                        cusparseDnVecDescr_t vecX,
                        cusparseDnVecDescr_t vecAx, void *dBuffer,
                        cupdlp_float alpha, cupdlp_float beta) {
-  // hAx = alpha * Acsc * hX + beta * hAx
+  // Ax = alpha * Acsc * X + beta * Ax
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
 
@@ -67,7 +67,7 @@ cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
                        cusparseDnVecDescr_t vecX,
                        cusparseDnVecDescr_t vecAx, void *dBuffer,
                        cupdlp_float alpha, cupdlp_float beta) {
-  // hAx = alpha * Acsr * hX + beta * hAx
+  // Ax = alpha * Acsr * X + beta * Ax
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
 
@@ -83,7 +83,7 @@ cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
                         cusparseDnVecDescr_t vecY,
                         cusparseDnVecDescr_t vecATy, void *dBuffer,
                         cupdlp_float alpha, cupdlp_float beta) {
-  // hATy = alpha * Acsr^T * hY + beta * hATy
+  // ATy = alpha * Acsc^T * Y + beta * ATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csc, vecY, &beta, vecATy,
@@ -99,7 +99,7 @@ cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                         cusparseDnVecDescr_t vecY,
                         cusparseDnVecDescr_t vecATy, void *dBuffer,
                         cupdlp_float alpha, cupdlp_float beta) {
-  // hATy = alpha * Acsr^T * hY + beta * hATy
+  // ATy = alpha * Acsr^T * Y + beta * ATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csr, vecY, &beta, vecATy,
