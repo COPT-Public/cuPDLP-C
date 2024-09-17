@@ -31,12 +31,14 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
     cusparseDnVecDescr_t vecATy, void **dBuffer_csc_ATy, void **dBuffer_csr_Ax);
 
+/*
 extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csc,
                                   cusparseDnVecDescr_t vecX,
                                   cusparseDnVecDescr_t vecAx, void *dBuffer,
                                   const cupdlp_float alpha,
                                   const cupdlp_float beta);
+*/
 extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csr,
                                   cusparseDnVecDescr_t vecX,
@@ -49,13 +51,14 @@ extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
                                    cusparseDnVecDescr_t vecATy, void *dBuffer,
                                    const cupdlp_float alpha,
                                    const cupdlp_float beta);
+/*
 extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                                    cusparseSpMatDescr_t cuda_csr,
                                    cusparseDnVecDescr_t vecY,
                                    cusparseDnVecDescr_t vecATy, void *dBuffer,
                                    const cupdlp_float alpha,
                                    const cupdlp_float beta);
-
+*/
 extern "C" void cupdlp_projSameub_cuda(cupdlp_float *x, const cupdlp_float ub,
                                        const cupdlp_int len);
 extern "C" void cupdlp_projSamelb_cuda(cupdlp_float *x, const cupdlp_float lb,
@@ -97,8 +100,10 @@ extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
                                   const cupdlp_float *AxUpdate,
                                   cupdlp_float dDualStep, int nRows, int nEqs);
 
+/*
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                 const cupdlp_float *y, const cupdlp_int len);
+*/
 
 extern "C" void cupdlp_movement_interaction_cuda(
     cupdlp_float *dX2, cupdlp_float *dY2, cupdlp_float *dInter, cupdlp_float *buffer,

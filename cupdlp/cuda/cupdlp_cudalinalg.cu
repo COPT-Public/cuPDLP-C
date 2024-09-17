@@ -32,6 +32,7 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
   return EXIT_SUCCESS;
 }
 
+/*
 extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csc,
                                   cusparseDnVecDescr_t vecX,
@@ -48,6 +49,7 @@ extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
 
   return EXIT_SUCCESS;
 }
+*/
 
 extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csr,
@@ -82,6 +84,7 @@ extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
   return EXIT_SUCCESS;
 }
 
+/*
 extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                                    cusparseSpMatDescr_t cuda_csr,
                                    cusparseDnVecDescr_t vecY,
@@ -97,6 +100,7 @@ extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
 
   return EXIT_SUCCESS;
 }
+*/
 
 extern "C" void cupdlp_projSameub_cuda(cupdlp_float *x, const cupdlp_float ub,
                                        const cupdlp_int len) {
@@ -190,11 +194,13 @@ extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
   dual_grad_step_kernel<<<nBlocks, BLOCK_SIZE>>>(yUpdate, y, b, Ax, AxUpdate, dDualStep, nRows, nEqs);
 }
 
+/*
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                   const cupdlp_float *y, const cupdlp_int len)
 {
    naive_sub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(z, x, y, len);
 }
+*/
 
 
 extern "C" void cupdlp_movement_interaction_cuda(

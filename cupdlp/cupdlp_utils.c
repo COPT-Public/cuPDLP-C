@@ -818,14 +818,6 @@ cupdlp_retcode resobj_Alloc(CUPDLPresobj *resobj, CUPDLPproblem *problem,
   CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasConstr, ncols);
   // CUPDLP_INIT_ZERO_VEC(resobj->dualInfeasBound, nrows);
 
-  // need to translate to cuda type
-  // for (int i = 0; i < ncols; i++)
-  // {
-  //     resobj->dLowerFiltered[i] = problem->lower[i] > -INFINITY ?
-  //     problem->lower[i] : 0.0; resobj->dUpperFiltered[i] = problem->upper[i]
-  //     < +INFINITY ? problem->upper[i] : 0.0;
-  // }
-
   cupdlp_filterlb(resobj->dLowerFiltered, problem->lower, -INFINITY, ncols);
   cupdlp_filterub(resobj->dUpperFiltered, problem->upper, +INFINITY, ncols);
 

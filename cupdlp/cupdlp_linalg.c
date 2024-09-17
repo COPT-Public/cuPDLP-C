@@ -730,6 +730,7 @@ void cupdlp_initvec(cupdlp_float *x, const cupdlp_float val,
 #endif
 }
 
+/*
 void cupdlp_sub(cupdlp_float *xout, const cupdlp_float *x1,
                 const cupdlp_float *x2, const cupdlp_int len) {
 #if !(CUPDLP_CPU)
@@ -740,6 +741,7 @@ void cupdlp_sub(cupdlp_float *xout, const cupdlp_float *x1,
   cupdlp_axpy(NULL, len, &alpha, x2, xout);
 #endif
 }
+*/
 
 void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
                                              cupdlp_float *dMovement,
