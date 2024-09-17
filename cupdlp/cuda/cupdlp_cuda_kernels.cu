@@ -1,93 +1,81 @@
 #include "cupdlp_cuda_kernels.cuh"
 
-dim3 cuda_gridsize(cupdlp_int n) {
-  cupdlp_int k = (n - 1) / CUPDLP_BLOCK_SIZE + 1;
-  cupdlp_int x = k;
-  cupdlp_int y = 1;
-  if (x > 65535) {
-    x = ceil(sqrt(k));
-    y = (n - 1) / (x * CUPDLP_BLOCK_SIZE) + 1;
+__global__ void element_wise_dot_kernel(cupdlp_float *x, const cupdlp_float *y, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] *= y[i];
   }
-  dim3 d = {(unsigned int)x, (unsigned int)y, 1};
-  return d;
 }
 
-__global__ void element_wise_dot_kernel(cupdlp_float *x, const cupdlp_float *y,
-                                        const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] *= y[i];
-}
-
-__global__ void element_wise_div_kernel(cupdlp_float *x, const cupdlp_float *y,
-                                        const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] /= y[i];
+__global__ void element_wise_div_kernel(cupdlp_float *x, const cupdlp_float *y, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] /= y[i];
+  }
 }
 
 __global__ void element_wise_projlb_kernel(cupdlp_float *x,
-                                           const cupdlp_float *lb,
-                                           const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = x[i] < lb[i] ? lb[i] : x[i];
+                                           const cupdlp_float *lb, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = max(x[i], lb[i]);
+  }
 }
 
 __global__ void element_wise_projub_kernel(cupdlp_float *x,
-                                           const cupdlp_float *ub,
-                                           const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = x[i] > ub[i] ? ub[i] : x[i];
+                                           const cupdlp_float *ub, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = min(x[i], ub[i]);
+  }
 }
 
 __global__ void element_wise_projSamelb_kernel(cupdlp_float *x,
-                                               const cupdlp_float lb,
-                                               const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = x[i] <= lb ? lb : x[i];
+                                               cupdlp_float lb, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = max(x[i], lb);
+  }
 }
 
 __global__ void element_wise_projSameub_kernel(cupdlp_float *x,
-                                               const cupdlp_float ub,
-                                               const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = x[i] >= ub ? ub : x[i];
+                                               cupdlp_float ub, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = min(x[i], ub);
+  }
 }
 
 __global__ void element_wise_initHaslb_kernel(cupdlp_float *haslb,
                                               const cupdlp_float *lb,
-                                              const cupdlp_float bound,
-                                              const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) haslb[i] = lb[i] > bound ? 1.0 : 0.0;
+                                              cupdlp_float bound, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    haslb[i] = lb[i] > bound ? 1.0 : 0.0;
+  }
 }
 
 __global__ void element_wise_initHasub_kernel(cupdlp_float *hasub,
                                               const cupdlp_float *ub,
-                                              const cupdlp_float bound,
-                                              const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) hasub[i] = ub[i] < bound ? 1.0 : 0.0;
+                                              cupdlp_float bound, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    hasub[i] = ub[i] < bound ? 1.0 : 0.0;
+  }
 }
 
 __global__ void element_wise_filterlb_kernel(cupdlp_float *x,
                                              const cupdlp_float *lb,
-                                             const cupdlp_float bound,
-                                             const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = lb[i] > bound ? lb[i] : 0.0;
+                                             cupdlp_float bound, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = lb[i] > bound ? lb[i] : 0.0;
+  }
 }
 
 __global__ void element_wise_filterub_kernel(cupdlp_float *x,
                                              const cupdlp_float *ub,
-                                             const cupdlp_float bound,
-                                             const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = ub[i] < bound ? ub[i] : 0.0;
+                                             cupdlp_float bound, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = ub[i] < bound ? ub[i] : 0.0;
+  }
 }
 
-__global__ void init_cuda_vec_kernel(cupdlp_float *x, const cupdlp_float val,
-                                     const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) x[i] = val;
+__global__ void init_cuda_vec_kernel(cupdlp_float *x, cupdlp_float val, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    x[i] = val;
+  }
 }
 
 // xUpdate = proj(x - dPrimalStep * (cost - ATy))
@@ -116,12 +104,15 @@ __global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
   }
 }
 
+/*
 // z = x - y
 __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
-                                  const cupdlp_float *y, const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) z[i] = x[i] - y[i];
+                                 const cupdlp_float *y, int n) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += gridDim.x * blockDim.x) {
+    z[i] = x[i] - y[i];
+  }
 }
+*/
 
 
 #define QUARTER_WARP_REDUCE_2(val1, val2) { \

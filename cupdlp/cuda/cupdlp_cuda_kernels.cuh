@@ -125,52 +125,40 @@ static inline cudaError_t check_cuda_last(const char *filename, int line)
     if (status != cudaSuccess) goto exit_cleanup;                              \
   }
 
-dim3 cuda_gridsize(cupdlp_int n);
 
-__global__ void element_wise_dot_kernel(cupdlp_float *x, const cupdlp_float *y,
-                                        const cupdlp_int len);
+__global__ void element_wise_dot_kernel(cupdlp_float *x, const cupdlp_float *y, int n);
 
-__global__ void element_wise_div_kernel(cupdlp_float *x, const cupdlp_float *y,
-                                        const cupdlp_int len);
+__global__ void element_wise_div_kernel(cupdlp_float *x, const cupdlp_float *y, int n);
 
 __global__ void element_wise_projlb_kernel(cupdlp_float *x,
-                                           const cupdlp_float *lb,
-                                           const cupdlp_int len);
+                                           const cupdlp_float *lb, int n);
 
 __global__ void element_wise_projub_kernel(cupdlp_float *x,
-                                           const cupdlp_float *ub,
-                                           const cupdlp_int len);
+                                           const cupdlp_float *ub, int n);
 
 __global__ void element_wise_projSamelb_kernel(cupdlp_float *x,
-                                               const cupdlp_float lb,
-                                               const cupdlp_int len);
+                                               cupdlp_float lb, int n);
 
 __global__ void element_wise_projSameub_kernel(cupdlp_float *x,
-                                               const cupdlp_float ub,
-                                               const cupdlp_int len);
+                                               cupdlp_float ub, int n);
 
 __global__ void element_wise_initHaslb_kernel(cupdlp_float *haslb,
                                               const cupdlp_float *lb,
-                                              const cupdlp_float bound,
-                                              const cupdlp_int len);
+                                              cupdlp_float bound, int n);
 
 __global__ void element_wise_initHasub_kernel(cupdlp_float *hasub,
                                               const cupdlp_float *ub,
-                                              const cupdlp_float bound,
-                                              const cupdlp_int len);
+                                              cupdlp_float bound, int n);
 
 __global__ void element_wise_filterlb_kernel(cupdlp_float *x,
                                              const cupdlp_float *lb,
-                                             const cupdlp_float bound,
-                                             const cupdlp_int len);
+                                             cupdlp_float bound, int n);
 
 __global__ void element_wise_filterub_kernel(cupdlp_float *x,
                                              const cupdlp_float *ub,
-                                             const cupdlp_float bound,
-                                             const cupdlp_int len);
+                                             cupdlp_float bound, int n);
 
-__global__ void init_cuda_vec_kernel(cupdlp_float *x, const cupdlp_float val,
-                                     const cupdlp_int len);
+__global__ void init_cuda_vec_kernel(cupdlp_float *x, cupdlp_float val, int n);
 
 __global__ void primal_grad_step_kernel(cupdlp_float * __restrict__ xUpdate,
                                         const cupdlp_float * __restrict__ x,
@@ -187,8 +175,10 @@ __global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
                                       const cupdlp_float * __restrict__ AxUpdate,
                                       cupdlp_float dDualStep, int nRows, int nEqs);
 
+/*
 __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
-                                 const cupdlp_float *y, const cupdlp_int len);
+                                 const cupdlp_float *y, int n);
+*/
 
 
 __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_float * __restrict__ res_y,

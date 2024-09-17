@@ -36,55 +36,46 @@ extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csc,
                                   cusparseDnVecDescr_t vecX,
                                   cusparseDnVecDescr_t vecAx, void *dBuffer,
-                                  const cupdlp_float alpha,
-                                  const cupdlp_float beta);
+                                  cupdlp_float alpha, cupdlp_float beta);
 */
 extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csr,
                                   cusparseDnVecDescr_t vecX,
                                   cusparseDnVecDescr_t vecAx, void *dBuffer,
-                                  const cupdlp_float alpha,
-                                  const cupdlp_float beta);
+                                  cupdlp_float alpha, cupdlp_float beta);
 extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
                                    cusparseSpMatDescr_t cuda_csc,
                                    cusparseDnVecDescr_t vecY,
                                    cusparseDnVecDescr_t vecATy, void *dBuffer,
-                                   const cupdlp_float alpha,
-                                   const cupdlp_float beta);
+                                   cupdlp_float alpha, cupdlp_float beta);
 /*
 extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                                    cusparseSpMatDescr_t cuda_csr,
                                    cusparseDnVecDescr_t vecY,
                                    cusparseDnVecDescr_t vecATy, void *dBuffer,
-                                   const cupdlp_float alpha,
-                                   const cupdlp_float beta);
+                                   cupdlp_float alpha, cupdlp_float beta);
 */
-extern "C" void cupdlp_projSameub_cuda(cupdlp_float *x, const cupdlp_float ub,
-                                       const cupdlp_int len);
-extern "C" void cupdlp_projSamelb_cuda(cupdlp_float *x, const cupdlp_float lb,
-                                       const cupdlp_int len);
-extern "C" void cupdlp_projub_cuda(cupdlp_float *x, const cupdlp_float *ub,
-                                   const cupdlp_int len);
-extern "C" void cupdlp_projlb_cuda(cupdlp_float *x, const cupdlp_float *lb,
-                                   const cupdlp_int len);
-extern "C" void cupdlp_ediv_cuda(cupdlp_float *x, const cupdlp_float *y,
-                                 const cupdlp_int len);
-extern "C" void cupdlp_edot_cuda(cupdlp_float *x, const cupdlp_float *y,
-                                 const cupdlp_int len);
+extern "C" void cupdlp_projSameub_cuda(cupdlp_float *x, const cupdlp_float ub, int n);
+extern "C" void cupdlp_projSamelb_cuda(cupdlp_float *x, const cupdlp_float lb, int n);
+
+extern "C" void cupdlp_projub_cuda(cupdlp_float *x, const cupdlp_float *ub, int n);
+extern "C" void cupdlp_projlb_cuda(cupdlp_float *x, const cupdlp_float *lb, int n);
+
+extern "C" void cupdlp_ediv_cuda(cupdlp_float *x, const cupdlp_float *y, int n);
+
+extern "C" void cupdlp_edot_cuda(cupdlp_float *x, const cupdlp_float *y, int n);
+
 extern "C" void cupdlp_haslb_cuda(cupdlp_float *haslb, const cupdlp_float *lb,
-                                  const cupdlp_float bound,
-                                  const cupdlp_int len);
+                                  cupdlp_float bound, int n);
 extern "C" void cupdlp_hasub_cuda(cupdlp_float *hasub, const cupdlp_float *ub,
-                                  const cupdlp_float bound,
-                                  const cupdlp_int len);
+                                  cupdlp_float bound, int n);
+
 extern "C" void cupdlp_filterlb_cuda(cupdlp_float *x, const cupdlp_float *lb,
-                                     const cupdlp_float bound,
-                                     const cupdlp_int len);
+                                     cupdlp_float bound, int n);
 extern "C" void cupdlp_filterub_cuda(cupdlp_float *x, const cupdlp_float *ub,
-                                     const cupdlp_float bound,
-                                     const cupdlp_int len);
-extern "C" void cupdlp_initvec_cuda(cupdlp_float *x, const cupdlp_float val,
-                                    const cupdlp_int len);
+                                     cupdlp_float bound, int n);
+
+extern "C" void cupdlp_initvec_cuda(cupdlp_float *x, cupdlp_float val, int n);
 
 extern "C" void cupdlp_pgrad_cuda(cupdlp_float *xUpdate, const cupdlp_float *x,
                                   const cupdlp_float *cost,
