@@ -90,27 +90,32 @@ __global__ void init_cuda_vec_kernel(cupdlp_float *x, const cupdlp_float val,
   if (i < len) x[i] = val;
 }
 
-//xUpdate = x - dPrimalStep * (cost - ATy)
-__global__ void primal_grad_step_kernel(cupdlp_float *xUpdate,
-                                        const cupdlp_float *x,
-                                        const cupdlp_float *cost,
-                                        const cupdlp_float *ATy,
-                                        const cupdlp_float dPrimalStep,
-                                        const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < len) xUpdate[i] = x[i] - dPrimalStep * (cost[i] - ATy[i]);
+// xUpdate = proj(x - dPrimalStep * (cost - ATy))
+__global__ void primal_grad_step_kernel(cupdlp_float *__restrict__ xUpdate,
+                                        const cupdlp_float * __restrict__ x,
+                                        const cupdlp_float * __restrict__ cost,
+                                        const cupdlp_float * __restrict__ ATy,
+                                        const cupdlp_float * __restrict__ lb,
+                                        const cupdlp_float * __restrict__ ub,
+                                        cupdlp_float dPrimalStep, int nCols) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nCols; i += gridDim.x * blockDim.x) {
+    xUpdate[i] = min(max(x[i] - dPrimalStep * (cost[i] - ATy[i]),
+                         lb[i]),
+                     ub[i]);
+  }
 }
 
-//yUpdate = y + dDualStep * (b -2AxUpdate + Ax)
-__global__ void dual_grad_step_kernel(cupdlp_float *yUpdate,
-                                      const cupdlp_float *y,
-                                      const cupdlp_float *b,
-                                      const cupdlp_float *Ax,
-                                      const cupdlp_float *AxUpdate,
-                                      const cupdlp_float dDualStep,
-                                      const cupdlp_int len) {
-  cupdlp_int i = blockIdx.x * blockDim.x + threadIdx.x; 
-  if (i < len) yUpdate[i] = y[i] + dDualStep * (b[i] - 2 * AxUpdate[i] + Ax[i]);
+// yUpdate = proj(y + dDualStep * (b - 2 AxUpdate + Ax))
+__global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
+                                      const cupdlp_float * __restrict__ y,
+                                      const cupdlp_float * __restrict__ b,
+                                      const cupdlp_float * __restrict__ Ax,
+                                      const cupdlp_float * __restrict__ AxUpdate,
+                                      cupdlp_float dDualStep, int nRows, int nEqs) {
+  for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nRows; i += gridDim.x * blockDim.x) {
+    cupdlp_float upd = y[i] + dDualStep * (b[i] - 2 * AxUpdate[i] + Ax[i]);
+    yUpdate[i] = i >= nEqs && upd < 0.0 ? 0.0 : upd;
+  }
 }
 
 // z = x - y

@@ -165,17 +165,20 @@ __global__ void element_wise_filterub_kernel(cupdlp_float *x,
 __global__ void init_cuda_vec_kernel(cupdlp_float *x, const cupdlp_float val,
                                      const cupdlp_int len);
 
-__global__ void primal_grad_step_kernel(cupdlp_float *xUpdate,
-                                        const cupdlp_float *x,
-                                        const cupdlp_float *cost,
-                                        const cupdlp_float *ATy,
-                                        const cupdlp_float dPrimalStep,
-                                        const cupdlp_int len);
+__global__ void primal_grad_step_kernel(cupdlp_float * __restrict__ xUpdate,
+                                        const cupdlp_float * __restrict__ x,
+                                        const cupdlp_float * __restrict__ cost,
+                                        const cupdlp_float * __restrict__ ATy,
+                                        const cupdlp_float * __restrict__ lb,
+                                        const cupdlp_float * __restrict__ ub,
+                                        cupdlp_float dPrimalStep, int nCols);
 
-__global__ void dual_grad_step_kernel(
-    cupdlp_float *yUpdate, const cupdlp_float *y, const cupdlp_float *b,
-    const cupdlp_float *Ax, const cupdlp_float *AxUpdate,
-    const cupdlp_float dDualStep, const cupdlp_int len);
+__global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
+                                      const cupdlp_float * __restrict__ y,
+                                      const cupdlp_float * __restrict__ b,
+                                      const cupdlp_float * __restrict__ Ax,
+                                      const cupdlp_float * __restrict__ AxUpdate,
+                                      cupdlp_float dDualStep, int nRows, int nEqs);
 
 __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
                                  const cupdlp_float *y, const cupdlp_int len);

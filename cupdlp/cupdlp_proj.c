@@ -24,13 +24,13 @@ void PDHG_Project_Bounds(CUPDLPwork *work, cupdlp_float *r) {
   cupdlp_projlb(r, problem->lower, problem->nCols);
 }
 
-void PDHG_Project_Row_Duals(CUPDLPwork *work, cupdlp_float *r) {
-  CUPDLPproblem *problem = work->problem;
+// void PDHG_Project_Row_Duals(CUPDLPwork *work, cupdlp_float *r) {
+//   CUPDLPproblem *problem = work->problem;
 
-  // cupdlp_projPositive(r + problem->nEqs, r + problem->nEqs, problem->nRows -
-  // problem->nEqs);
-  cupdlp_projPos(r + problem->nEqs, problem->nRows - problem->nEqs);
-}
+//   // cupdlp_projPositive(r + problem->nEqs, r + problem->nEqs, problem->nRows -
+//   // problem->nEqs);
+//   cupdlp_projPos(r + problem->nEqs, problem->nRows - problem->nEqs);
+// }
 
 // void PDHG_Restart_Iterate(CUPDLPwork *pdhg)
 // {

@@ -83,14 +83,16 @@ extern "C" void cupdlp_initvec_cuda(cupdlp_float *x, const cupdlp_float val,
 extern "C" void cupdlp_pgrad_cuda(cupdlp_float *xUpdate, const cupdlp_float *x,
                                   const cupdlp_float *cost,
                                   const cupdlp_float *ATy,
-                                  const cupdlp_float dPrimalStep,
-                                  const cupdlp_int len);
+                                  const cupdlp_float *lb,
+                                  const cupdlp_float *ub,
+                                  cupdlp_float dPrimalStep, int nCols);
 
-extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate, const cupdlp_float *y,
-                                  const cupdlp_float *b, const cupdlp_float *Ax,
+extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
+                                  const cupdlp_float *y,
+                                  const cupdlp_float *b,
+                                  const cupdlp_float *Ax,
                                   const cupdlp_float *AxUpdate,
-                                  const cupdlp_float dDualStep,
-                                  const cupdlp_int len);
+                                  cupdlp_float dDualStep, int nRows, int nEqs);
 
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                 const cupdlp_float *y, const cupdlp_int len);
