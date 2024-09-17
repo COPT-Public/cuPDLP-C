@@ -195,3 +195,45 @@ extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
 {
    naive_sub_kernel<<<cuda_gridsize(len), CUPDLP_BLOCK_SIZE>>>(z, x, y, len);
 }
+
+extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle)
+{
+#if PRINT_CUDA_INFO
+
+  int v_cuda_runtime = 0;
+  int v_cuda_driver = 0;
+  int v_cusparse = 0;
+  CHECK_CUDA(cudaRuntimeGetVersion(&v_cuda_runtime))
+  CHECK_CUDA(cudaDriverGetVersion(&v_cuda_driver))
+  CHECK_CUSPARSE(cusparseGetVersion(handle, &v_cusparse))
+
+  printf("Cuda runtime %d\n", v_cuda_runtime);
+  printf("Cuda driver %d\n", v_cuda_driver);
+  printf("cuSparse %d\n", v_cusparse);
+
+  int n_devices = 0;
+  CHECK_CUDA(cudaGetDeviceCount(&n_devices))
+
+  for (int i = 0; i < n_devices; i++) {
+    cudaDeviceProp prop;
+    CHECK_CUDA(cudaGetDeviceProperties(&prop, i));
+
+    printf("Cuda device %d: %s\n", i, prop.name);
+#if PRINT_DETAILED_CUDA_INFO
+    printf("  Clock rate (KHz): %d\n", prop.clockRate);
+    printf("  Memory clock rate (KHz): %d\n", prop.memoryClockRate);
+    printf("  Memory bus width (bits): %d\n", prop.memoryBusWidth);
+    printf("  Peak memory bandwidth (GB/s): %f\n",
+            2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
+    printf("  Global memory available on device (GB): %f\n", prop.totalGlobalMem / 1.0e9);
+    printf("  Shared memory available per block (B): %zu\n", prop.sharedMemPerBlock);
+    printf("  Warp size in threads: %d\n", prop.warpSize);
+    printf("  Maximum number of threads per block: %d\n", prop.maxThreadsPerBlock);
+    printf("  Compute capability: %d.%d\n", prop.major, prop.minor);
+    printf("  Number of multiprocessors on device: %d\n", prop.multiProcessorCount);
+#endif
+  }
+#endif
+
+  return EXIT_SUCCESS;
+}

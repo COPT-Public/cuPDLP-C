@@ -1136,6 +1136,10 @@ cupdlp_retcode LP_SolvePDHG(
 
   PDHG_PrintHugeCUPDHG();
 
+#if !(CUPDLP_CPU)
+  print_cuda_info(pdhg->cusparsehandle);
+#endif
+
   CUPDLP_CALL(PDHG_SetUserParam(pdhg, ifChangeIntParam, intParam,
                                 ifChangeFloatParam, floatParam));
 

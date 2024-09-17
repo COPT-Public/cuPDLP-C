@@ -7,6 +7,9 @@
 
 #include "cupdlp_cuda_kernels.cuh"
 
+#define PRINT_CUDA_INFO (1)
+#define PRINT_DETAILED_CUDA_INFO (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,5 +99,8 @@ extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
 
 extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
                                 const cupdlp_float *y, const cupdlp_int len);
+
+extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle);
+
 #endif
 #endif
