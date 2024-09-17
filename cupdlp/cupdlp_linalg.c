@@ -751,13 +751,21 @@ void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
   cupdlp_float dX = 0.0;
   cupdlp_float dY = 0.0;
 
-  cupdlp_sub(w->buffer2, iterates->x->data, iterates->xUpdate->data, nCols);
+  cupdlp_int iter = w->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+  CUPDLPvec *xUpdate = iterates->x[(iter + 1) % 2];
+  CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
+  CUPDLPvec *atyUpdate = iterates->aty[(iter + 1) % 2];
+
+  cupdlp_sub(w->buffer2, x->data, xUpdate->data, nCols);
   cupdlp_twoNorm(w, nCols, w->buffer2, &dX);
-  cupdlp_sub(w->buffer3, iterates->y->data, iterates->yUpdate->data, nRows);
+  cupdlp_sub(w->buffer3, y->data, yUpdate->data, nRows);
   cupdlp_twoNorm(w, nRows, w->buffer3, &dY);
 
   *dMovement = pow(dX, 2.0) * 0.5 * beta + pow(dY, 2.0) / (2.0 * beta);
 
-  cupdlp_sub(w->buffer3, iterates->aty->data, iterates->atyUpdate->data, nCols);
+  cupdlp_sub(w->buffer3, aty->data, atyUpdate->data, nCols);
   cupdlp_dot(w, nCols, w->buffer2, w->buffer3, dInteraction);
 }

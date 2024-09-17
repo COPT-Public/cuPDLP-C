@@ -172,21 +172,21 @@ cupdlp_int vec_clear(CUPDLPvec *vec) {
 
 void iterates_clear(CUPDLPiterates *iterates) {
   if (iterates) {
-    if (iterates->x) {
-      // CUPDLP_FREE_VEC(iterates->x);
-      vec_clear(iterates->x);
+    if (iterates->x[0]) {
+      // CUPDLP_FREE_VEC(iterates->x[0]);
+      vec_clear(iterates->x[0]);
     }
-    if (iterates->y) {
-      // CUPDLP_FREE_VEC(iterates->y);
-      vec_clear(iterates->y);
+    if (iterates->x[1]) {
+      // CUPDLP_FREE_VEC(iterates->x[1]);
+      vec_clear(iterates->x[1]);
     }
-    if (iterates->xUpdate) {
-      // CUPDLP_FREE_VEC(iterates->xUpdate);
-      vec_clear(iterates->xUpdate);
+    if (iterates->y[0]) {
+      // CUPDLP_FREE_VEC(iterates->y[0]);
+      vec_clear(iterates->y[0]);
     }
-    if (iterates->yUpdate) {
-      // CUPDLP_FREE_VEC(iterates->yUpdate);
-      vec_clear(iterates->yUpdate);
+    if (iterates->y[1]) {
+      // CUPDLP_FREE_VEC(iterates->y[1]);
+      vec_clear(iterates->y[1]);
     }
     if (iterates->xSum) {
       CUPDLP_FREE_VEC(iterates->xSum);
@@ -208,25 +208,25 @@ void iterates_clear(CUPDLPiterates *iterates) {
     if (iterates->yLastRestart) {
       CUPDLP_FREE_VEC(iterates->yLastRestart);
     }
-    if (iterates->ax) {
-      // CUPDLP_FREE_VEC(iterates->ax);
-      vec_clear(iterates->ax);
+    if (iterates->ax[0]) {
+      // CUPDLP_FREE_VEC(iterates->ax[0]);
+      vec_clear(iterates->ax[0]);
     }
-    if (iterates->axUpdate) {
-      // CUPDLP_FREE_VEC(iterates->axUpdate);
-      vec_clear(iterates->axUpdate);
+    if (iterates->ax[1]) {
+      // CUPDLP_FREE_VEC(iterates->ax[1]);
+      vec_clear(iterates->ax[1]);
     }
     if (iterates->axAverage) {
       // CUPDLP_FREE_VEC(iterates->axAverage);
       vec_clear(iterates->axAverage);
     }
-    if (iterates->aty) {
-      // CUPDLP_FREE_VEC(iterates->aty);
-      vec_clear(iterates->aty);
+    if (iterates->aty[0]) {
+      // CUPDLP_FREE_VEC(iterates->aty[0]);
+      vec_clear(iterates->aty[0]);
     }
-    if (iterates->atyUpdate) {
-      // CUPDLP_FREE_VEC(iterates->atyUpdate);
-      vec_clear(iterates->atyUpdate);
+    if (iterates->aty[1]) {
+      // CUPDLP_FREE_VEC(iterates->aty[1]);
+      vec_clear(iterates->aty[1]);
     }
     if (iterates->atyAverage) {
       // CUPDLP_FREE_VEC(iterates->atyAverage);
@@ -887,30 +887,30 @@ cupdlp_retcode iterates_Alloc(CUPDLPiterates *iterates, cupdlp_int ncols,
   CUPDLP_INIT_ZERO_VEC(iterates->xLastRestart, ncols);
   CUPDLP_INIT_ZERO_VEC(iterates->yLastRestart, nrows);
 
-  CUPDLP_INIT(iterates->x, 1);
-  CUPDLP_INIT(iterates->xUpdate, 1);
+  CUPDLP_INIT(iterates->x[0], 1);
+  CUPDLP_INIT(iterates->x[1], 1);
   CUPDLP_INIT(iterates->xAverage, 1);
-  CUPDLP_INIT(iterates->y, 1);
-  CUPDLP_INIT(iterates->yUpdate, 1);
+  CUPDLP_INIT(iterates->y[0], 1);
+  CUPDLP_INIT(iterates->y[1], 1);
   CUPDLP_INIT(iterates->yAverage, 1);
-  CUPDLP_INIT(iterates->ax, 1);
-  CUPDLP_INIT(iterates->axUpdate, 1);
+  CUPDLP_INIT(iterates->ax[0], 1);
+  CUPDLP_INIT(iterates->ax[1], 1);
   CUPDLP_INIT(iterates->axAverage, 1);
-  CUPDLP_INIT(iterates->aty, 1);
-  CUPDLP_INIT(iterates->atyUpdate, 1);
+  CUPDLP_INIT(iterates->aty[0], 1);
+  CUPDLP_INIT(iterates->aty[1], 1);
   CUPDLP_INIT(iterates->atyAverage, 1);
 
-  CUPDLP_CALL(vec_Alloc(iterates->x, ncols));
-  CUPDLP_CALL(vec_Alloc(iterates->xUpdate, ncols));
+  CUPDLP_CALL(vec_Alloc(iterates->x[0], ncols));
+  CUPDLP_CALL(vec_Alloc(iterates->x[1], ncols));
   CUPDLP_CALL(vec_Alloc(iterates->xAverage, ncols));
-  CUPDLP_CALL(vec_Alloc(iterates->y, nrows));
-  CUPDLP_CALL(vec_Alloc(iterates->yUpdate, nrows));
+  CUPDLP_CALL(vec_Alloc(iterates->y[0], nrows));
+  CUPDLP_CALL(vec_Alloc(iterates->y[1], nrows));
   CUPDLP_CALL(vec_Alloc(iterates->yAverage, nrows));
-  CUPDLP_CALL(vec_Alloc(iterates->ax, nrows));
-  CUPDLP_CALL(vec_Alloc(iterates->axUpdate, nrows));
+  CUPDLP_CALL(vec_Alloc(iterates->ax[0], nrows));
+  CUPDLP_CALL(vec_Alloc(iterates->ax[1], nrows));
   CUPDLP_CALL(vec_Alloc(iterates->axAverage, nrows));
-  CUPDLP_CALL(vec_Alloc(iterates->aty, ncols));
-  CUPDLP_CALL(vec_Alloc(iterates->atyUpdate, ncols));
+  CUPDLP_CALL(vec_Alloc(iterates->aty[0], ncols));
+  CUPDLP_CALL(vec_Alloc(iterates->aty[1], ncols));
   CUPDLP_CALL(vec_Alloc(iterates->atyAverage, ncols));
 
   // initialization
@@ -1042,9 +1042,9 @@ cupdlp_retcode PDHG_Alloc(CUPDLPwork *w) {
   CUPDLP_CALL(cuda_alloc_MVbuffer(
       //   w->problem->data->matrix_format,
       w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-      w->iterates->x->cuda_vec, w->iterates->ax->cuda_vec,
-      w->problem->data->csr_matrix->cuda_csr, w->iterates->y->cuda_vec,
-      w->iterates->aty->cuda_vec, &w->dBuffer_csc_ATy, &w->dBuffer_csr_Ax))
+      w->iterates->x[0]->cuda_vec, w->iterates->ax[0]->cuda_vec,
+      w->problem->data->csr_matrix->cuda_csr, w->iterates->y[0]->cuda_vec,
+      w->iterates->aty[0]->cuda_vec, &w->dBuffer_csc_ATy, &w->dBuffer_csr_Ax))
   w->timers->AllocMem_CopyMatToDeviceTime += getTimeStamp() - begin;
 #endif
 
@@ -1474,12 +1474,17 @@ void PDHG_Dump_Stats(CUPDLPwork *w) {
   cupdlp_printf("------------------------------------------------\n");
   cupdlp_printf("Iteration % 3d\n", w->timers->nIter);
 #if CUPDLP_DUMP_ITERATES
-  vecPrint("x", iterates->x->data, nCols);
-  vecPrint("y", iterates->y->data, nRows);
+  cupdlp_int iter = w->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+
+  vecPrint("x", x->data, nCols);
+  vecPrint("y", y->data, nRows);
   vecPrint("xSum", iterates->xSum, nCols);
   vecPrint("ySum", iterates->ySum, nRows);
-  vecPrint("Ax ", iterates->ax->data, nRows);
-  vecPrint("A'y", iterates->aty->data, nCols);
+  vecPrint("Ax ", ax->data, nRows);
+  vecPrint("A'y", aty->data, nCols);
   vecPrint("xLastRestart", iterates->xLastRestart, nCols);
   vecPrint("yLastRestart", iterates->yLastRestart, nRows);
 #endif

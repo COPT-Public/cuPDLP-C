@@ -13,61 +13,54 @@
 #include "glbopts.h"
 
 // xUpdate = x^k - dPrimalStep * (c - A'y^k)
-void PDHG_primalGradientStep(CUPDLPwork *work, cupdlp_float dPrimalStepSize) {
-  CUPDLPiterates *iterates = work->iterates;
+void PDHG_primalGradientStep(CUPDLPwork *work, CUPDLPvec *xUpdate,
+                             const CUPDLPvec *x, const CUPDLPvec *ATy,
+                             cupdlp_float dPrimalStepSize) {
   CUPDLPproblem *problem = work->problem;
 
 #if !(CUPDLP_CPU) && USE_KERNELS
-  cupdlp_pgrad_cuda(iterates->xUpdate->data, iterates->x->data, problem->cost,
-                    iterates->aty->data, dPrimalStepSize, problem->nCols);
+  cupdlp_pgrad_cuda(xUpdate->data, x->data, problem->cost,
+                    ATy->data, dPrimalStepSize, problem->nCols);
 #else
 
-  // cupdlp_copy(iterates->xUpdate, iterates->x, cupdlp_float, problem->nCols);
-  CUPDLP_COPY_VEC(iterates->xUpdate->data, iterates->x->data, cupdlp_float,
-                  problem->nCols);
+  // cupdlp_copy(xUpdate, x, cupdlp_float, problem->nCols);
+  CUPDLP_COPY_VEC(xUpdate->data, x->data, cupdlp_float, problem->nCols);
 
-  // AddToVector(iterates->xUpdate, -dPrimalStepSize, problem->cost,
-  // problem->nCols); AddToVector(iterates->xUpdate, dPrimalStepSize,
-  // iterates->aty, problem->nCols);
+  // AddToVector(xUpdate, -dPrimalStepSize, problem->cost, problem->nCols);
+  // AddToVector(xUpdate, dPrimalStepSize, ATy, problem->nCols);
 
   cupdlp_float alpha = -dPrimalStepSize;
-  cupdlp_axpy(work, problem->nCols, &alpha, problem->cost,
-              iterates->xUpdate->data);
+  cupdlp_axpy(work, problem->nCols, &alpha, problem->cost, xUpdate->data);
   alpha = dPrimalStepSize;
-  cupdlp_axpy(work, problem->nCols, &alpha, iterates->aty->data,
-              iterates->xUpdate->data);
+  cupdlp_axpy(work, problem->nCols, &alpha, ATy->data, xUpdate->data);
 #endif
 }
 
 // yUpdate = y^k + dDualStep * (b - A * (2x^{k+1} - x^{k})
-void PDHG_dualGradientStep(CUPDLPwork *work, cupdlp_float dDualStepSize) {
-  CUPDLPiterates *iterates = work->iterates;
+void PDHG_dualGradientStep(CUPDLPwork *work, CUPDLPvec *yUpdate,
+                           const CUPDLPvec *y, const CUPDLPvec *Ax,
+                           const CUPDLPvec *AxUpdate, cupdlp_float dDualStepSize) {
   CUPDLPproblem *problem = work->problem;
 
 #if !(CUPDLP_CPU) && USE_KERNELS
-  cupdlp_dgrad_cuda(iterates->yUpdate->data, iterates->y->data, problem->rhs,
-                    iterates->ax->data, iterates->axUpdate->data, dDualStepSize,
+  cupdlp_dgrad_cuda(yUpdate->data, y->data, problem->rhs,
+                    Ax->data, AxUpdate->data, dDualStepSize,
                     problem->nRows);
 #else
 
-  // cupdlp_copy(iterates->yUpdate, iterates->y, cupdlp_float, problem->nRows);
-  CUPDLP_COPY_VEC(iterates->yUpdate->data, iterates->y->data, cupdlp_float,
-                  problem->nRows);
+  // cupdlp_copy(yUpdate, y, cupdlp_float, problem->nRows);
+  CUPDLP_COPY_VEC(yUpdate->data, y->data, cupdlp_float, problem->nRows);
 
-  // AddToVector(iterates->yUpdate, dDualStepSize, problem->rhs,
-  // problem->nRows); AddToVector(iterates->yUpdate, -2.0 * dDualStepSize,
-  // iterates->axUpdate, problem->nRows); AddToVector(iterates->yUpdate,
-  // dDualStepSize, iterates->ax, problem->nRows);
+  // AddToVector(yUpdate, dDualStepSize, problem->rhs, problem->nRows);
+  // AddToVector(yUpdate, -2.0 * dDualStepSize, AxUpdate, problem->nRows);
+  // AddToVector(yUpdate, dDualStepSize, Ax, problem->nRows);
 
   cupdlp_float alpha = dDualStepSize;
-  cupdlp_axpy(work, problem->nRows, &alpha, problem->rhs,
-              iterates->yUpdate->data);
+  cupdlp_axpy(work, problem->nRows, &alpha, problem->rhs, yUpdate->data);
   alpha = -2.0 * dDualStepSize;
-  cupdlp_axpy(work, problem->nRows, &alpha, iterates->axUpdate->data,
-              iterates->yUpdate->data);
+  cupdlp_axpy(work, problem->nRows, &alpha, AxUpdate->data, yUpdate->data);
   alpha = dDualStepSize;
-  cupdlp_axpy(work, problem->nRows, &alpha, iterates->ax->data,
-              iterates->yUpdate->data);
+  cupdlp_axpy(work, problem->nRows, &alpha, Ax->data, yUpdate->data);
 #endif
 }
 
@@ -83,26 +76,30 @@ cupdlp_retcode PDHG_Power_Method(CUPDLPwork *work, cupdlp_float *lambda) {
 
   cupdlp_initvec(q, 1.0, lp->nRows);
 
+  cupdlp_int iter = work->timers->nIter;
+  CUPDLPvec *ax = iterates->ax[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+
   double res = 0.0;
   for (cupdlp_int iter = 0; iter < 20; ++iter) {
     // z = A*A'*q
-    ATy(work, iterates->aty, work->buffer);
-    Ax(work, iterates->ax, iterates->aty);
+    ATy(work, aty, work->buffer);
+    Ax(work, ax, aty);
 
     // q = z / norm(z)
-    CUPDLP_COPY_VEC(q, iterates->ax->data, cupdlp_float, lp->nRows);
+    CUPDLP_COPY_VEC(q, ax->data, cupdlp_float, lp->nRows);
     cupdlp_float qNorm = 0.0;
     cupdlp_twoNorm(work, lp->nRows, q, &qNorm);
     cupdlp_scaleVector(work, 1.0 / qNorm, q, lp->nRows);
 
-    ATy(work, iterates->aty, work->buffer);
+    ATy(work, aty, work->buffer);
 
-    cupdlp_twoNormSquared(work, lp->nCols, iterates->aty->data, lambda);
+    cupdlp_twoNormSquared(work, lp->nCols, aty->data, lambda);
 
     cupdlp_float alpha = -(*lambda);
-    cupdlp_axpy(work, lp->nRows, &alpha, q, iterates->ax->data);
+    cupdlp_axpy(work, lp->nRows, &alpha, q, ax->data);
 
-    cupdlp_twoNormSquared(work, lp->nCols, iterates->ax->data, &res);
+    cupdlp_twoNormSquared(work, lp->nCols, ax->data, &res);
 
     cupdlp_printf("% d  %e  %.3f\n", iter, *lambda, res);
   }
@@ -118,16 +115,17 @@ void PDHG_Compute_Step_Size_Ratio(CUPDLPwork *pdhg) {
   cupdlp_float dMeanStepSize =
       sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
 
-  // cupdlp_float dDiffPrimal = cupdlp_diffTwoNorm(iterates->x,
-  // iterates->xLastRestart, problem->nCols); cupdlp_float dDiffDual =
-  // cupdlp_diffTwoNorm(iterates->y, iterates->yLastRestart, problem->nRows);
+  cupdlp_int iter = pdhg->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+
+  // cupdlp_float dDiffPrimal = cupdlp_diffTwoNorm(x, iterates->xLastRestart, problem->nCols);
+  // cupdlp_float dDiffDual = cupdlp_diffTwoNorm(y, iterates->yLastRestart, problem->nRows);
 
   cupdlp_float dDiffPrimal = 0.0;
-  cupdlp_diffTwoNorm(pdhg, iterates->x->data, iterates->xLastRestart,
-                     problem->nCols, &dDiffPrimal);
+  cupdlp_diffTwoNorm(pdhg, x->data, iterates->xLastRestart, problem->nCols, &dDiffPrimal);
   cupdlp_float dDiffDual = 0.0;
-  cupdlp_diffTwoNorm(pdhg, iterates->y->data, iterates->yLastRestart,
-                     problem->nRows, &dDiffDual);
+  cupdlp_diffTwoNorm(pdhg, y->data, iterates->yLastRestart, problem->nRows, &dDiffDual);
 
   if (fmin(dDiffPrimal, dDiffDual) > 1e-10) {
     cupdlp_float dBetaUpdate = dDiffDual / dDiffPrimal;
@@ -147,24 +145,31 @@ void PDHG_Update_Iterate_Constant_Step_Size(CUPDLPwork *pdhg) {
   CUPDLPiterates *iterates = pdhg->iterates;
   CUPDLPstepsize *stepsize = pdhg->stepsize;
 
-  // Ax(pdhg, iterates->ax, iterates->x);
-  // ATyCPU(pdhg, iterates->aty, iterates->y);
-  Ax(pdhg, iterates->ax, iterates->x);
-  ATy(pdhg, iterates->aty, iterates->y);
+  cupdlp_int iter = pdhg->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+  CUPDLPvec *ax = iterates->ax[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+  CUPDLPvec *xUpdate = iterates->x[(iter + 1) % 2];
+  CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
+  CUPDLPvec *axUpdate = iterates->ax[(iter + 1) % 2];
+  CUPDLPvec *atyUpdate = iterates->aty[(iter + 1) % 2];
+
+  Ax(pdhg, ax, x);
+  ATy(pdhg, aty, y);
 
   // x^{k+1} = proj_{X}(x^k - dPrimalStep * (c - A'y^k))
-  PDHG_primalGradientStep(pdhg, stepsize->dPrimalStep);
+  PDHG_primalGradientStep(pdhg, xUpdate, x, aty, stepsize->dPrimalStep);
 
-  PDHG_Project_Bounds(pdhg, iterates->xUpdate->data);
-  // Ax(pdhg, iterates->axUpdate, iterates->xUpdate);
-  Ax(pdhg, iterates->axUpdate, iterates->xUpdate);
+  PDHG_Project_Bounds(pdhg, xUpdate->data);
+
+  Ax(pdhg, axUpdate, xUpdate);
 
   // y^{k+1} = y^k + dDualStep * (b - A * (2x^{k+1} - x^{k})
-  PDHG_dualGradientStep(pdhg, stepsize->dDualStep);
+  PDHG_dualGradientStep(pdhg, yUpdate, y, ax, axUpdate, stepsize->dDualStep);
 
-  PDHG_Project_Row_Duals(pdhg, iterates->yUpdate->data);
-  // ATyCPU(pdhg, iterates->atyUpdate, iterates->yUpdate);
-  ATy(pdhg, iterates->atyUpdate, iterates->yUpdate);
+  PDHG_Project_Row_Duals(pdhg, yUpdate->data);
+  ATy(pdhg, atyUpdate, yUpdate);
 }
 
 void PDHG_Update_Iterate_Malitsky_Pock(CUPDLPwork *pdhg) {
@@ -180,6 +185,16 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
   CUPDLPiterates *iterates = pdhg->iterates;
   CUPDLPstepsize *stepsize = pdhg->stepsize;
 
+  cupdlp_int iter = pdhg->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+  CUPDLPvec *ax = iterates->ax[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+  CUPDLPvec *xUpdate = iterates->x[(iter + 1) % 2];
+  CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
+  CUPDLPvec *axUpdate = iterates->ax[(iter + 1) % 2];
+  CUPDLPvec *atyUpdate = iterates->aty[(iter + 1) % 2];
+
   cupdlp_float dStepSizeUpdate =
       sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
 
@@ -194,16 +209,16 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
     cupdlp_float dDualStepUpdate = dStepSizeUpdate * sqrt(stepsize->dBeta);
 
     // x^{k+1} = proj_{X}(x^k - dPrimalStep * (cupdlp - A'y^k))
-    PDHG_primalGradientStep(pdhg, dPrimalStepUpdate);
+    PDHG_primalGradientStep(pdhg, xUpdate, x, aty, dPrimalStepUpdate);
 
-    PDHG_Project_Bounds(pdhg, iterates->xUpdate->data);
-    Ax(pdhg, iterates->axUpdate, iterates->xUpdate);
+    PDHG_Project_Bounds(pdhg, xUpdate->data);
+    Ax(pdhg, axUpdate, xUpdate);
 
     // y^{k+1} = proj_{Y}(y^k + dDualStep * (b - A * (2 * x^{k+1} - x^{k})))
-    PDHG_dualGradientStep(pdhg, dDualStepUpdate);
+    PDHG_dualGradientStep(pdhg, yUpdate, y, ax, axUpdate, dDualStepUpdate);
 
-    PDHG_Project_Row_Duals(pdhg, iterates->yUpdate->data);
-    ATy(pdhg, iterates->atyUpdate, iterates->yUpdate);
+    PDHG_Project_Row_Duals(pdhg, yUpdate->data);
+    ATy(pdhg, atyUpdate, yUpdate);
 
     cupdlp_float dMovement = 0.0;
     cupdlp_float dInteraction = 0.0;
@@ -212,27 +227,23 @@ cupdlp_retcode PDHG_Update_Iterate_Adaptive_Step_Size(CUPDLPwork *pdhg) {
     cupdlp_compute_interaction_and_movement(pdhg, &dMovement, &dInteraction);
 #else
     cupdlp_float dX = 0.0;
-    cupdlp_diffTwoNormSquared(pdhg, iterates->x->data, iterates->xUpdate->data,
-                              problem->nCols, &dX);
+    cupdlp_diffTwoNormSquared(pdhg, x->data, xUpdate->data, problem->nCols, &dX);
     dX *= 0.5 * sqrt(stepsize->dBeta);
 
     cupdlp_float dY = 0.0;
-    cupdlp_diffTwoNormSquared(pdhg, iterates->y->data, iterates->yUpdate->data,
-                              problem->nRows, &dY);
+    cupdlp_diffTwoNormSquared(pdhg, y->data, yUpdate->data, problem->nRows, &dY);
     dY /= 2.0 * sqrt(stepsize->dBeta);
     dMovement = dX + dY;
 
     //      Δx' (AΔy)
-    cupdlp_diffDotDiff(pdhg, iterates->x->data, iterates->xUpdate->data,
-                       iterates->aty->data, iterates->atyUpdate->data,
+    cupdlp_diffDotDiff(pdhg, x->data, xUpdate->data, aty->data, atyUpdate->data,
                        problem->nCols, &dInteraction);
 #endif
 
 #if CUPDLP_DUMP_LINESEARCH_STATS && CUPDLP_DEBUG
     cupdlp_float dInteractiony = 0.0;
     //      Δy' (AΔx)
-    cupdlp_diffDotDiff(pdhg, iterates->y->data, iterates->yUpdate->data,
-                       iterates->ax->data, iterates->axUpdate->data,
+    cupdlp_diffDotDiff(pdhg, y->data, yUpdate->data, ax->data, axUpdate->data,
                        problem->nRows, &dInteractiony);
 #endif
 
@@ -377,16 +388,17 @@ void PDHG_Update_Average(CUPDLPwork *work) {
   CUPDLPstepsize *stepsize = work->stepsize;
   CUPDLPiterates *iterates = work->iterates;
 
+  cupdlp_int iter = work->timers->nIter;
+  CUPDLPvec *xUpdate = iterates->x[(iter + 1) % 2];
+  CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
+
   // PDLP weighs average iterates in this way
   cupdlp_float dMeanStepSize =
       sqrt(stepsize->dPrimalStep * stepsize->dDualStep);
-  // AddToVector(iterates->xSum, dMeanStepSize, iterates->xUpdate,
-  // lp->nCols); AddToVector(iterates->ySum, dMeanStepSize,
-  // iterates->yUpdate, lp->nRows);
-  cupdlp_axpy(work, lp->nCols, &dMeanStepSize, iterates->xUpdate->data,
-              iterates->xSum);
-  cupdlp_axpy(work, lp->nRows, &dMeanStepSize, iterates->yUpdate->data,
-              iterates->ySum);
+  // AddToVector(iterates->xSum, dMeanStepSize, xUpdate, lp->nCols);
+  // AddToVector(iterates->ySum, dMeanStepSize, yUpdate, lp->nRows);
+  cupdlp_axpy(work, lp->nCols, &dMeanStepSize, xUpdate->data, iterates->xSum);
+  cupdlp_axpy(work, lp->nRows, &dMeanStepSize, yUpdate->data, iterates->ySum);
 
   stepsize->dSumPrimalStep += dMeanStepSize;
   stepsize->dSumDualStep += dMeanStepSize;
@@ -419,14 +431,6 @@ cupdlp_retcode PDHG_Update_Iterate(CUPDLPwork *pdhg) {
 
   PDHG_Update_Average(pdhg);
 
-  CUPDLP_COPY_VEC(iterates->x->data, iterates->xUpdate->data, cupdlp_float,
-                  problem->nCols);
-  CUPDLP_COPY_VEC(iterates->y->data, iterates->yUpdate->data, cupdlp_float,
-                  problem->nRows);
-  CUPDLP_COPY_VEC(iterates->ax->data, iterates->axUpdate->data, cupdlp_float,
-                  problem->nRows);
-  CUPDLP_COPY_VEC(iterates->aty->data, iterates->atyUpdate->data, cupdlp_float,
-                  problem->nCols);
 
 #if PDHG_USE_TIMERS
   timers->dUpdateIterateTime += getTimeStamp() - dStartTime;

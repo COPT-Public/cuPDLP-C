@@ -290,10 +290,8 @@ struct CUPDLP_ITERATES {
   cupdlp_int nRows;
   cupdlp_int nCols;
   //  todo, CPU VERSION, check
-  //        cupdlp_float *x;
-  //        cupdlp_float *y;
-  //        cupdlp_float *xUpdate;
-  //        cupdlp_float *yUpdate;
+  //        cupdlp_float *x[2];
+  //        cupdlp_float *y[2];
   //
   //        cupdlp_int iLastRestartIter;
   //        cupdlp_float dLastRestartDualityGap;
@@ -305,11 +303,9 @@ struct CUPDLP_ITERATES {
   //        cupdlp_float *xLastRestart;
   //        cupdlp_float *yLastRestart;
   //
-  //        cupdlp_float *ax;
-  //        cupdlp_float *axUpdate;
+  //        cupdlp_float *ax[2];
   //        cupdlp_float *axAverage;
-  //        cupdlp_float *aty;
-  //        cupdlp_float *atyUpdate;
+  //        cupdlp_float *aty[2];
   //        cupdlp_float *atyAverage;
 
   cupdlp_int iLastRestartIter;
@@ -321,8 +317,11 @@ struct CUPDLP_ITERATES {
   cupdlp_float *xLastRestart;
   cupdlp_float *yLastRestart;
 
-  CUPDLPvec *x, *xUpdate, *xAverage, *y, *yUpdate, *yAverage, *ax, *axUpdate,
-      *axAverage, *aty, *atyUpdate, *atyAverage;
+  CUPDLPvec *x[2]; // in iteration k, x^k stored in x[k % 2], x^{k+1} created in x[k + 1 % 2]
+  CUPDLPvec *y[2];
+  CUPDLPvec *ax[2];
+  CUPDLPvec *aty[2];
+  CUPDLPvec *xAverage, *yAverage, *axAverage, *atyAverage;
 };
 
 struct CUPDLP_STEPSIZE {
