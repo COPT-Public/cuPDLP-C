@@ -8,7 +8,7 @@
 #include "cupdlp_mps.h"
 #include "cupdlp_proj.h"
 #include "cupdlp_restart.h"
-#include "cupdlp_scaling_cuda.h"
+#include "cupdlp_scaling.h"
 #include "cupdlp_solver.h"
 #include "cupdlp_step.h"
 #include "cupdlp_utils.h"

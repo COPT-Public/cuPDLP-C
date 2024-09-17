@@ -3,7 +3,7 @@
 // Same as the JULIA CPU version
 //
 
-#include "cupdlp_scaling_cuda.h"
+#include "cupdlp_scaling.h"
 
 #include "cupdlp_linalg.h"
 // #include "cupdlp_scaling.h"
