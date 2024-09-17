@@ -1022,8 +1022,12 @@ cupdlp_retcode PDHG_Alloc(CUPDLPwork *w) {
   CUPDLP_CALL(vec_Alloc(w->buffer, w->problem->data->nRows));
   CUPDLP_INIT_ZERO_VEC(w->buffer2,
                        MAX(2048, MAX(w->problem->data->nCols, w->problem->data->nRows)));
+#if CUPDLP_CPU || !(USE_KERNELS) || (CUPDLP_DUMP_LINESEARCH_STATS && CUPDLP_DEBUG)
   CUPDLP_INIT_ZERO_VEC(w->buffer3,
                        MAX(2048, MAX(w->problem->data->nCols, w->problem->data->nRows)));
+#else
+  w->buffer3 = NULL;
+#endif
 
   // for scaling
   CUPDLP_INIT_ZERO_VEC(w->colScale, w->problem->data->nCols);
