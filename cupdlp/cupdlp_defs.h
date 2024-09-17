@@ -406,7 +406,8 @@ struct CUPDLP_WORK {
 #if !(CUPDLP_CPU)
   // CUDAmv *MV;
   cusparseHandle_t cusparsehandle;
-  void *dBuffer;
+  void *dBuffer_csc_ATy;
+  void *dBuffer_csr_Ax;
   // cusparseDnVecDescr_t vecbuffer;
   cublasHandle_t cublashandle;
 #endif

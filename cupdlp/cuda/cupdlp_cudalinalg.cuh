@@ -26,7 +26,7 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
     cusparseHandle_t handle, cusparseSpMatDescr_t cuda_csc,
     cusparseDnVecDescr_t vecX, cusparseDnVecDescr_t vecAx,
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
-    cusparseDnVecDescr_t vecATy, void **dBuffer);
+    cusparseDnVecDescr_t vecATy, void **dBuffer_csc_ATy, void **dBuffer_csr_Ax);
 
 extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
                                   cusparseSpMatDescr_t cuda_csc,

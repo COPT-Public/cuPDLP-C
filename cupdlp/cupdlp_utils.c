@@ -321,7 +321,6 @@ cupdlp_int PDHG_Clear(CUPDLPwork *w) {
 
   cupdlp_float begin = getTimeStamp();
 #if !(CUPDLP_CPU)
-
   // CUDAmv *MV = w->MV;
   // if (MV)
   // {
@@ -331,7 +330,8 @@ cupdlp_int PDHG_Clear(CUPDLPwork *w) {
   // }
   CHECK_CUBLAS(cublasDestroy(w->cublashandle))
   CHECK_CUSPARSE(cusparseDestroy(w->cusparsehandle))
-  CHECK_CUDA(cudaFree(w->dBuffer))
+  CHECK_CUDA(cudaFree(w->dBuffer_csc_ATy))
+  CHECK_CUDA(cudaFree(w->dBuffer_csr_Ax))
   if (w->buffer2) CUPDLP_FREE_VEC(w->buffer2);
   if (w->buffer3) CUPDLP_FREE_VEC(w->buffer3);
 #endif
@@ -1031,7 +1031,7 @@ cupdlp_retcode PDHG_Alloc(CUPDLPwork *w) {
       w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
       w->iterates->x->cuda_vec, w->iterates->ax->cuda_vec,
       w->problem->data->csr_matrix->cuda_csr, w->iterates->y->cuda_vec,
-      w->iterates->aty->cuda_vec, &w->dBuffer);
+      w->iterates->aty->cuda_vec, &w->dBuffer_csc_ATy, &w->dBuffer_csr_Ax);
   w->timers->AllocMem_CopyMatToDeviceTime += getTimeStamp() - begin;
 #endif
 
