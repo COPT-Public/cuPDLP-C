@@ -984,8 +984,7 @@ cupdlp_retcode vec_Alloc(CUPDLPvec *vec, cupdlp_int n) {
   CUPDLP_INIT_ZERO_VEC(vec->data, n);
   vec->len = n;
 #if !(CUPDLP_CPU)
-  CHECK_CUSPARSE(
-      cusparseCreateDnVec(&vec->cuda_vec, n, vec->data, CudaComputeType));
+  CHECK_CUSPARSE(cusparseCreateDnVec(&vec->cuda_vec, n, vec->data, CudaComputeType))
 #endif
 
 exit_cleanup:
@@ -1026,12 +1025,12 @@ cupdlp_retcode PDHG_Alloc(CUPDLPwork *w) {
 #if !(CUPDLP_CPU)
   //   CHECK_CUSPARSE(cusparseCreate(&w->cusparsehandle));
   //   CHECK_CUBLAS(cublasCreate(&w->cublashandle));
-  cuda_alloc_MVbuffer(
+  CUPDLP_CALL(cuda_alloc_MVbuffer(
       //   w->problem->data->matrix_format,
       w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
       w->iterates->x->cuda_vec, w->iterates->ax->cuda_vec,
       w->problem->data->csr_matrix->cuda_csr, w->iterates->y->cuda_vec,
-      w->iterates->aty->cuda_vec, &w->dBuffer_csc_ATy, &w->dBuffer_csr_Ax);
+      w->iterates->aty->cuda_vec, &w->dBuffer_csc_ATy, &w->dBuffer_csr_Ax))
   w->timers->AllocMem_CopyMatToDeviceTime += getTimeStamp() - begin;
 #endif
 
@@ -1056,7 +1055,7 @@ void PDHG_Destroy(CUPDLPwork **w) {
   if (w && *w) {
     PDHG_Clear(*w);
 #if !(CUPDLP_CPU)
-    cudaDeviceReset();
+    CHECK_CUDA_IGNORE(cudaDeviceReset())
 #endif
   }
 }

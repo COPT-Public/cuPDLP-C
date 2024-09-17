@@ -1,7 +1,11 @@
 #ifndef CUPDLP_CUDA_KERNALS_H
 #define CUPDLP_CUDA_KERNALS_H
 
-#include "cuda_runtime.h"
+#include <stdio.h>
+#include <cublas_v2.h>
+#include <cusparse.h>
+#include <cuda_runtime.h>
+
 #define CUPDLP_BLOCK_SIZE 512
 
 #ifndef SFLOAT
@@ -16,73 +20,103 @@ typedef double cupdlp_float;
 #define CudaComputeType CUDA_R_32F
 #endif
 
-#define CHECK_CUDA(func)                                               \
-  {                                                                    \
-    cudaError_t status = (func);                                       \
-    if (status != cudaSuccess) {                                       \
-      printf("CUDA API failed at line %d of %s with error: %s (%d)\n", \
-             __LINE__, __FILE__, cudaGetErrorString(status), status);  \
-      return EXIT_FAILURE;                                             \
-    }                                                                  \
+static inline cudaError_t check_cuda_call(cudaError_t status,
+                                          const char *filename, int line)
+{
+  if (status != cudaSuccess) {
+    printf("CUDA API failed at line %d of %s with error: %s (%d)\n",
+      line, filename, cudaGetErrorString(status), status);
   }
+  return status;
+}
 
-#define CHECK_CUSPARSE(func)                                               \
-  {                                                                        \
-    cusparseStatus_t status = (func);                                      \
-    if (status != CUSPARSE_STATUS_SUCCESS) {                               \
-      printf("CUSPARSE API failed at line %d of %s with error: %s (%d)\n", \
-             __LINE__, __FILE__, cusparseGetErrorString(status), status);  \
-      return EXIT_FAILURE;                                                 \
-    }                                                                      \
+static inline cusparseStatus_t check_cusparse_call(cusparseStatus_t status,
+                                                   const char *filename, int line)
+{
+  if (status != CUSPARSE_STATUS_SUCCESS) {
+    printf("CUSPARSE API failed at line %d of %s with error: %s (%d)\n",
+      line, filename, cusparseGetErrorString(status), status);
   }
+  return status;
+}
 
-#define CHECK_CUBLAS(func)                                               \
-  {                                                                      \
-    cublasStatus_t status = (func);                                      \
-    if (status != CUBLAS_STATUS_SUCCESS) {                               \
-      printf("CUBLAS API failed at line %d of %s with error: %s (%d)\n", \
-             __LINE__, __FILE__, cublasGetStatusString(status), status); \
-      return EXIT_FAILURE;                                               \
-    }                                                                    \
+static inline cublasStatus_t check_cublas_call(cublasStatus_t status,
+                                               const char *filename, int line)
+{
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    printf("CUBLAS API failed at line %d of %s with error: %s (%d)\n",
+      line, filename, cublasGetStatusString(status), status);
   }
+  return status;
+}
+
+static inline cudaError_t check_cuda_last(const char *filename, int line)
+{
+  cudaError_t status = cudaGetLastError();
+  if (status != cudaSuccess) {
+    printf("CUDA API failed at line %d of %s with error: %s (%d)\n",
+      line, filename, cudaGetErrorString(status), status);
+  }
+  return status;
+}
+
+#define CHECK_CUDA(res) \
+  { if (check_cuda_call(res, __FILE__, __LINE__) != cudaSuccess) \
+      return EXIT_FAILURE; }
+#define CHECK_CUDA_STRICT(res) \
+  { if (check_cuda_call(res, __FILE__, __LINE__) != cudaSuccess) \
+      exit(EXIT_FAILURE); }
+#define CHECK_CUDA_IGNORE(res) \
+  { check_cuda_call(res, __FILE__, __LINE__); }
+
+#define CHECK_CUSPARSE(res) \
+  { if (check_cusparse_call(res, __FILE__, __LINE__) != CUSPARSE_STATUS_SUCCESS) \
+      return EXIT_FAILURE; }
+#define CHECK_CUSPARSE_STRICT(res) \
+  { if (check_cusparse_call(res, __FILE__, __LINE__) != CUSPARSE_STATUS_SUCCESS) \
+      exit(EXIT_FAILURE); }
+#define CHECK_CUSPARSE_IGNORE(res) \
+  { check_cusparse_call(res, __FILE__, __LINE__); }
+
+#define CHECK_CUBLAS(res) \
+  { if (check_cublas_call(res, __FILE__, __LINE__) != CUBLAS_STATUS_SUCCESS) \
+      return EXIT_FAILURE; }
+#define CHECK_CUBLAS_STRICT(res) \
+  { if (check_cublas_call(res, __FILE__, __LINE__) != CUBLAS_STATUS_SUCCESS) \
+      exit(EXIT_FAILURE); }
+#define CHECK_CUBLAS_IGNORE(res) \
+  { check_cublas_call(res, __FILE__, __LINE__); }
+
+#define CHECK_CUDA_LAST() check_cuda_last(__FILE__, __LINE__)
+
 
 #define CUPDLP_FREE_VEC(x) \
-  {                        \
-    cudaFree(x);           \
-    x = cupdlp_NULL;       \
-  }
+  { check_cuda_call(cudaFree(x), __FILE__, __LINE__); x = cupdlp_NULL; }
 
 #define CUPDLP_COPY_VEC(dst, src, type, size) \
-  cudaMemcpy(dst, src, sizeof(type) * (size), cudaMemcpyDefault)
+  check_cuda_call( \
+    cudaMemcpy(dst, src, sizeof(type) * (size), cudaMemcpyDefault), \
+    __FILE__, __LINE__)
+
+#define CUPDLP_ZERO_VEC(var, type, size) \
+  check_cuda_call( \
+    cudaMemset(var, 0, sizeof(type) * (size)), __FILE__, __LINE__)
 
 #define CUPDLP_INIT_VEC(var, size)                                             \
   {                                                                            \
-    cudaError_t status =                                                       \
-        cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var)));          \
-    if (status != cudaSuccess) {                                               \
-      printf("CUDA API failed at line %d with error: %s (%d)\n",               \
-             __LINE__, cudaGetErrorString(status), status);                    \
-      goto exit_cleanup;                                                       \
-    }                                                                          \
+    cudaError_t status = cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var))); \
+    check_cuda_call(status, __FILE__, __LINE__);                               \
+    if (status != cudaSuccess) goto exit_cleanup;                              \
   }
-#define CUPDLP_INIT_ZERO_VEC(var, size)                                        \
+
+#define CUPDLP_INIT_ZERO_VEC(var, size)                                         \
   {                                                                            \
-    cudaError_t status =                                                       \
-        cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var)));          \
-    if (status != cudaSuccess) {                                               \
-      printf("CUDA API failed at line %d with error: %s (%d)\n",               \
-             __LINE__, cudaGetErrorString(status), status);                    \
-      goto exit_cleanup;                                                       \
-    }                                                                          \
+    cudaError_t status = cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var))); \
+    check_cuda_call(status, __FILE__, __LINE__);                               \
+    if (status != cudaSuccess) goto exit_cleanup;                              \
     status = cudaMemset(var, 0, (size) * sizeof(__typeof__(*var)));            \
-    if (status != cudaSuccess) {                                               \
-      printf("CUDA API failed at line %d with error: %s (%d)\n",               \
-             __LINE__, cudaGetErrorString(status), status);                    \
-      goto exit_cleanup;                                                       \
-    }                                                                          \
+    if (status != cudaSuccess) goto exit_cleanup;                              \
   }
-#define CUPDLP_ZERO_VEC(var, type, size) \
-  cudaMemset(var, 0, sizeof(type) * (size))
 
 dim3 cuda_gridsize(cupdlp_int n);
 

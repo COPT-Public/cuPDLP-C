@@ -20,13 +20,13 @@ int use_cublas(cublasHandle_t cublashandle) {
   // alloc and init device vec memory
   cupdlp_float *d_vec1;
   cupdlp_float *d_vec2;
-  cudaMalloc((void **)&d_vec1, len * sizeof(cupdlp_float));
-  // cudaMemcpy(d_vec1, h_vec1, len * sizeof(cupdlp_float),
-  //            cudaMemcpyHostToDevice);
+  CHECK_CUDA(cudaMalloc((void **)&d_vec1, len * sizeof(cupdlp_float)))
+  // CHECK_CUDA(cudaMemcpy(d_vec1, h_vec1, len * sizeof(cupdlp_float),
+  //                       cudaMemcpyHostToDevice))
 
-  cudaMalloc((void **)&d_vec2, len * sizeof(cupdlp_float));
-  cudaMemcpy(d_vec2, h_vec2, len * sizeof(cupdlp_float),
-             cudaMemcpyHostToDevice);
+  CHECK_CUDA(cudaMalloc((void **)&d_vec2, len * sizeof(cupdlp_float)))
+  CHECK_CUDA(cudaMemcpy(d_vec2, h_vec2, len * sizeof(cupdlp_float),
+                        cudaMemcpyHostToDevice))
 
   // init cublas handle
   // cublasHandle_t cublashandle;
@@ -63,8 +63,8 @@ int use_cublas(cublasHandle_t cublashandle) {
   // free memory
   free(h_vec1);
   free(h_vec2);
-  cudaFree(d_vec1);
-  cudaFree(d_vec2);
+  CHECK_CUDA(cudaFree(d_vec1))
+  CHECK_CUDA(cudaFree(d_vec2))
 
   return 0;
 }

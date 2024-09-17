@@ -196,9 +196,9 @@ cupdlp_retcode main(int argc, char **argv) {
   csc_cpu->nRows = nRows_pdlp;
   csc_cpu->nCols = nCols_pdlp;
   csc_cpu->nMatElem = nnz_pdlp;
-  csc_cpu->colMatBeg = (int *)malloc((1 + nCols_pdlp) * sizeof(int));
-  csc_cpu->colMatIdx = (int *)malloc(nnz_pdlp * sizeof(int));
-  csc_cpu->colMatElem = (double *)malloc(nnz_pdlp * sizeof(double));
+  CUPDLP_INIT(csc_cpu->colMatBeg, 1 + nCols_pdlp)
+  CUPDLP_INIT(csc_cpu->colMatIdx, nnz_pdlp)
+  CUPDLP_INIT(csc_cpu->colMatElem, nnz_pdlp)
   memcpy(csc_cpu->colMatBeg, csc_beg, (nCols_pdlp + 1) * sizeof(int));
   memcpy(csc_cpu->colMatIdx, csc_idx, nnz_pdlp * sizeof(int));
   memcpy(csc_cpu->colMatElem, csc_val, nnz_pdlp * sizeof(double));
