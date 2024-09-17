@@ -99,9 +99,7 @@ __global__ void primal_grad_step_kernel(cupdlp_float *__restrict__ xUpdate,
                                         const cupdlp_float * __restrict__ ub,
                                         cupdlp_float dPrimalStep, int nCols) {
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nCols; i += gridDim.x * blockDim.x) {
-    xUpdate[i] = min(max(x[i] - dPrimalStep * (cost[i] - ATy[i]),
-                         lb[i]),
-                     ub[i]);
+    xUpdate[i] = min(max(cupdlp_fma_rn(dPrimalStep, ATy[i] - cost[i], x[i]), lb[i]), ub[i]);
   }
 }
 
@@ -113,8 +111,8 @@ __global__ void dual_grad_step_kernel(cupdlp_float * __restrict__ yUpdate,
                                       const cupdlp_float * __restrict__ AxUpdate,
                                       cupdlp_float dDualStep, int nRows, int nEqs) {
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nRows; i += gridDim.x * blockDim.x) {
-    cupdlp_float upd = y[i] + dDualStep * (b[i] - 2 * AxUpdate[i] + Ax[i]);
-    yUpdate[i] = i >= nEqs && upd < 0.0 ? 0.0 : upd;
+    cupdlp_float upd = cupdlp_fma_rn(dDualStep, b[i] - 2 * AxUpdate[i] + Ax[i], y[i]);
+    yUpdate[i] = i >= nEqs ? max(upd, 0.0) : upd;
   }
 }
 
@@ -161,8 +159,8 @@ __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_floa
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nCols; i += blockDim.x * gridDim.x) {
       cupdlp_float dx = xUpdate[i] - x[i];
       cupdlp_float day = atyUpdate[i] - aty[i];
-      val_x += dx*dx;
-      val_y += day*dx;
+      val_x = cupdlp_fma_rn(dx, dx, val_x);
+      val_y = cupdlp_fma_rn(day, dx, val_y);
   }
 
   int lane = threadIdx.x % 32;
@@ -216,7 +214,7 @@ __global__ void movement_2_kernel(cupdlp_float * __restrict__ res,
   cupdlp_float val = 0.0;
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nRows; i += blockDim.x * gridDim.x) {
       cupdlp_float d = yUpdate[i] - y[i];
-      val += d*d;
+      val = cupdlp_fma_rn(d, d, val);
   }
 
   int lane = threadIdx.x % 32;

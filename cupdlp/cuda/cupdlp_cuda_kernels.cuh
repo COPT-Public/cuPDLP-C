@@ -9,6 +9,7 @@
 #define CUPDLP_BLOCK_SIZE 512
 
 #ifndef SFLOAT
+
 #ifdef DLONG
 typedef long long cupdlp_int;
 #else
@@ -16,8 +17,14 @@ typedef int cupdlp_int;
 #endif
 typedef double cupdlp_float;
 #define CudaComputeType CUDA_R_64F
+#define cupdlp_fma_rn __fma_rn
+
 #else
+
+typedef float cupdlp_float;
 #define CudaComputeType CUDA_R_32F
+#define cupdlp_fma_rn __fmaf_rn
+
 #endif
 
 static inline cudaError_t check_cuda_call(cudaError_t status,
