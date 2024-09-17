@@ -6,7 +6,7 @@
 #include <cusparse.h>
 #include <cuda_runtime.h>
 
-#define CUPDLP_BLOCK_SIZE 512
+//#define CUPDLP_BLOCK_SIZE 512
 
 #ifndef SFLOAT
 

@@ -1,6 +1,18 @@
+#include <stdio.h>   // printf
+#include <stdlib.h>  // EXIT_FAILURE
+
 #include "cupdlp_cudalinalg.cuh"
 
-extern "C" cupdlp_int cuda_alloc_MVbuffer(
+inline int nBlocks256(int n) {
+  constexpr int BLOCKS_PER_SM = 32;
+  int numSMs;
+  CHECK_CUDA_IGNORE(cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, 0))
+  return min((n + 256 - 1) / 256, BLOCKS_PER_SM * numSMs);
+}
+
+extern "C" {
+
+cupdlp_int cuda_alloc_MVbuffer(
     cusparseHandle_t handle, cusparseSpMatDescr_t cuda_csc,
     cusparseDnVecDescr_t vecX, cusparseDnVecDescr_t vecAx,
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
@@ -33,11 +45,11 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
 }
 
 /*
-extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
-                                  cusparseSpMatDescr_t cuda_csc,
-                                  cusparseDnVecDescr_t vecX,
-                                  cusparseDnVecDescr_t vecAx, void *dBuffer,
-                                  cupdlp_float alpha, cupdlp_float beta) {
+cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
+                       cusparseSpMatDescr_t cuda_csc,
+                       cusparseDnVecDescr_t vecX,
+                       cusparseDnVecDescr_t vecAx, void *dBuffer,
+                       cupdlp_float alpha, cupdlp_float beta) {
   // hAx = alpha * Acsc * hX + beta * hAx
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
@@ -50,11 +62,11 @@ extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
 }
 */
 
-extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
-                                  cusparseSpMatDescr_t cuda_csr,
-                                  cusparseDnVecDescr_t vecX,
-                                  cusparseDnVecDescr_t vecAx, void *dBuffer,
-                                  cupdlp_float alpha, cupdlp_float beta) {
+cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
+                       cusparseSpMatDescr_t cuda_csr,
+                       cusparseDnVecDescr_t vecX,
+                       cusparseDnVecDescr_t vecAx, void *dBuffer,
+                       cupdlp_float alpha, cupdlp_float beta) {
   // hAx = alpha * Acsr * hX + beta * hAx
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
@@ -66,11 +78,11 @@ extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
   return EXIT_SUCCESS;
 }
 
-extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
-                                   cusparseSpMatDescr_t cuda_csc,
-                                   cusparseDnVecDescr_t vecY,
-                                   cusparseDnVecDescr_t vecATy, void *dBuffer,
-                                   cupdlp_float alpha, cupdlp_float beta) {
+cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
+                        cusparseSpMatDescr_t cuda_csc,
+                        cusparseDnVecDescr_t vecY,
+                        cusparseDnVecDescr_t vecATy, void *dBuffer,
+                        cupdlp_float alpha, cupdlp_float beta) {
   // hATy = alpha * Acsr^T * hY + beta * hATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
 
@@ -82,11 +94,11 @@ extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
 }
 
 /*
-extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
-                                   cusparseSpMatDescr_t cuda_csr,
-                                   cusparseDnVecDescr_t vecY,
-                                   cusparseDnVecDescr_t vecATy, void *dBuffer,
-                                   cupdlp_float alpha, cupdlp_float beta) {
+cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
+                        cusparseSpMatDescr_t cuda_csr,
+                        cusparseDnVecDescr_t vecY,
+                        cusparseDnVecDescr_t vecATy, void *dBuffer,
+                        cupdlp_float alpha, cupdlp_float beta) {
   // hATy = alpha * Acsr^T * hY + beta * hATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
 
@@ -98,90 +110,78 @@ extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
 }
 */
 
-inline int nBlocks256(int n) {
-  constexpr int BLOCKS_PER_SM = 32;
-  int numSMs;
-  CHECK_CUDA_IGNORE(cudaDeviceGetAttribute(&numSMs, cudaDevAttrMultiProcessorCount, 0))
-  return min((n + 256 - 1) / 256, BLOCKS_PER_SM * numSMs);
-}
-
-extern "C" void cupdlp_projSameub_cuda(cupdlp_float *x, cupdlp_float ub, int n) {
+void cupdlp_projSameub_cuda(cupdlp_float *x, cupdlp_float ub, int n) {
   element_wise_projSameub_kernel<<<nBlocks256(n), 256>>>(x, ub, n);
 }
 
-extern "C" void cupdlp_projSamelb_cuda(cupdlp_float *x, cupdlp_float lb, int n) {
+void cupdlp_projSamelb_cuda(cupdlp_float *x, cupdlp_float lb, int n) {
   element_wise_projSamelb_kernel<<<nBlocks256(n), 256>>>(x, lb, n);
 }
 
-extern "C" void cupdlp_projub_cuda(cupdlp_float *x, const cupdlp_float *ub, int n) {
+void cupdlp_projub_cuda(cupdlp_float *x, const cupdlp_float *ub, int n) {
   element_wise_projub_kernel<<<nBlocks256(n), 256>>>(x, ub, n);
 }
 
-extern "C" void cupdlp_projlb_cuda(cupdlp_float *x, const cupdlp_float *lb, int n) {
+void cupdlp_projlb_cuda(cupdlp_float *x, const cupdlp_float *lb, int n) {
   element_wise_projlb_kernel<<<nBlocks256(n), 256>>>(x, lb, n);
 }
 
-extern "C" void cupdlp_ediv_cuda(cupdlp_float *x, const cupdlp_float *y, int n) {
+void cupdlp_ediv_cuda(cupdlp_float *x, const cupdlp_float *y, int n) {
   element_wise_div_kernel<<<nBlocks256(n), 256>>>(x, y, n);
 }
 
-extern "C" void cupdlp_edot_cuda(cupdlp_float *x, const cupdlp_float *y, int n) {
+void cupdlp_edot_cuda(cupdlp_float *x, const cupdlp_float *y, int n) {
   element_wise_dot_kernel<<<nBlocks256(n), 256>>>(x, y, n);
 }
 
-extern "C" void cupdlp_haslb_cuda(cupdlp_float *haslb, const cupdlp_float *lb,
-                                  cupdlp_float bound, int n) {
+void cupdlp_haslb_cuda(cupdlp_float *haslb, const cupdlp_float *lb,
+                       cupdlp_float bound, int n) {
   element_wise_initHaslb_kernel<<<nBlocks256(n), 256>>>(haslb, lb, bound, n);
 }
 
-extern "C" void cupdlp_hasub_cuda(cupdlp_float *hasub, const cupdlp_float *ub,
-                                  cupdlp_float bound, int n) {
+void cupdlp_hasub_cuda(cupdlp_float *hasub, const cupdlp_float *ub,
+                       cupdlp_float bound, int n) {
   element_wise_initHasub_kernel<<<nBlocks256(n), 256>>>(hasub, ub, bound, n);
 }
 
-extern "C" void cupdlp_filterlb_cuda(cupdlp_float *x, const cupdlp_float *lb,
-                                     cupdlp_float bound, int n) {
+void cupdlp_filterlb_cuda(cupdlp_float *x, const cupdlp_float *lb,
+                          cupdlp_float bound, int n) {
   element_wise_filterlb_kernel<<<nBlocks256(n), 256>>>(x, lb, bound, n);
 }
 
-extern "C" void cupdlp_filterub_cuda(cupdlp_float *x, const cupdlp_float *ub,
-                                     cupdlp_float bound, int n) {
+void cupdlp_filterub_cuda(cupdlp_float *x, const cupdlp_float *ub,
+                          cupdlp_float bound, int n) {
   element_wise_filterub_kernel<<<nBlocks256(n), 256>>>(x, ub, bound, n);
 }
 
-extern "C" void cupdlp_initvec_cuda(cupdlp_float *x, cupdlp_float val, int n) {
+void cupdlp_initvec_cuda(cupdlp_float *x, cupdlp_float val, int n) {
   init_cuda_vec_kernel<<<nBlocks256(n), 256>>>(x, val, n);
 }
 
-extern "C" void cupdlp_pgrad_cuda(cupdlp_float *xUpdate,
-                                  const cupdlp_float *x,
-                                  const cupdlp_float *cost,
-                                  const cupdlp_float *ATy,
-                                  const cupdlp_float *lb,
-                                  const cupdlp_float *ub,
-                                  cupdlp_float dPrimalStep, int nCols) {
+void cupdlp_pgrad_cuda(cupdlp_float *xUpdate, const cupdlp_float *x,
+                       const cupdlp_float *cost, const cupdlp_float *ATy,
+                       const cupdlp_float *lb, const cupdlp_float *ub,
+                       cupdlp_float dPrimalStep, int nCols) {
   primal_grad_step_kernel<<<nBlocks256(nCols), 256>>>(xUpdate, x, cost, ATy, lb, ub, dPrimalStep, nCols);
 }
 
-extern "C" void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
-                                  const cupdlp_float *y,
-                                  const cupdlp_float *b,
-                                  const cupdlp_float *Ax,
-                                  const cupdlp_float *AxUpdate,
-                                  cupdlp_float dDualStep, int nRows, int nEqs) {
+void cupdlp_dgrad_cuda(cupdlp_float *yUpdate,
+                       const cupdlp_float *y, const cupdlp_float *b,
+                       const cupdlp_float *Ax, const cupdlp_float *AxUpdate,
+                       cupdlp_float dDualStep, int nRows, int nEqs) {
   dual_grad_step_kernel<<<nBlocks256(nRows), 256>>>(yUpdate, y, b, Ax, AxUpdate, dDualStep, nRows, nEqs);
 }
 
 /*
-extern "C" void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
-                                const cupdlp_float *y, int n)
+void cupdlp_sub_cuda(cupdlp_float *z, const cupdlp_float *x,
+                     const cupdlp_float *y, int n)
 {
   naive_sub_kernel<<<nBlocks256(n), 256>>>(z, x, y, n);
 }
 */
 
 
-extern "C" void cupdlp_movement_interaction_cuda(
+void cupdlp_movement_interaction_cuda(
     cupdlp_float *dX2, cupdlp_float *dY2, cupdlp_float *dInter, cupdlp_float *buffer,
     const cupdlp_float *xUpdate, const cupdlp_float *x,
     const cupdlp_float *yUpdate, const cupdlp_float *y,
@@ -272,7 +272,7 @@ extern "C" void cupdlp_movement_interaction_cuda(
   *dInter = res[1];
 }
 
-extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle)
+cupdlp_int print_cuda_info(cusparseHandle_t handle)
 {
 #if PRINT_CUDA_INFO
 
@@ -312,4 +312,6 @@ extern "C" cupdlp_int print_cuda_info(cusparseHandle_t handle)
 #endif
 
   return EXIT_SUCCESS;
+}
+
 }
