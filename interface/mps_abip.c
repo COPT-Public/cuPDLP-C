@@ -205,8 +205,7 @@ cupdlp_retcode main(int argc, char **argv) {
   csc_cpu->cuda_csc = NULL;
 #endif
 
-  CUPDLP_CALL(PDHG_Scale_Data_cuda(csc_cpu, ifScaling, scaling, cost, lower,
-                                   upper, rhs));
+  CUPDLP_CALL(PDHG_Scale_Data(csc_cpu, ifScaling, scaling, cost, lower, upper, rhs));
 
   cupdlp_float alloc_matrix_time = 0.0;
   cupdlp_float copy_vec_time = 0.0;

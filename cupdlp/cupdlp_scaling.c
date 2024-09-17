@@ -10,12 +10,13 @@
 #include "cupdlp_utils.h"
 
 // This version disable dScalingTarget, which is the target of scaled matrix
-// elements cupdlp_retcode scale_problem(CUPDLPwork *w, cupdlp_float
-// *col_scaling, cupdlp_float *row_scaling)
-cupdlp_retcode scale_problem_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
-                                  cupdlp_float *lower, cupdlp_float *upper,
-                                  cupdlp_float *rhs, cupdlp_float *col_scaling,
-                                  cupdlp_float *row_scaling) {
+// elements
+// cupdlp_retcode scale_problem(CUPDLPwork *w, cupdlp_float *col_scaling,
+// cupdlp_float *row_scaling)
+cupdlp_retcode scale_problem(CUPDLPcsc *csc, cupdlp_float *cost,
+                             cupdlp_float *lower, cupdlp_float *upper,
+                             cupdlp_float *rhs, cupdlp_float *col_scaling,
+                             cupdlp_float *row_scaling) {
   cupdlp_retcode retcode = RETCODE_OK;
   cupdlp_int nRows = csc->nRows;
   cupdlp_int nCols = csc->nCols;
@@ -42,10 +43,10 @@ exit_cleanup:
   return retcode;
 }
 
-cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
-                                        cupdlp_float *lower,
-                                        cupdlp_float *upper, cupdlp_float *rhs,
-                                        CUPDLPscaling *scaling)
+cupdlp_retcode cupdlp_ruiz_scaling(CUPDLPcsc *csc, cupdlp_float *cost,
+                                   cupdlp_float *lower,
+                                   cupdlp_float *upper, cupdlp_float *rhs,
+                                   CUPDLPscaling *scaling)
 // cupdlp_retcode cupdlp_ruiz_scaling(CUPDLPwork *work, cupdlp_int max_iter,
 // cupdlp_float norm)
 {
@@ -104,8 +105,8 @@ cupdlp_retcode cupdlp_ruiz_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
 
     // apply scaling
     // scale_problem(work, current_col_scaling, current_row_scaling);
-    scale_problem_cuda(csc, cost, lower, upper, rhs, current_col_scaling,
-                       current_row_scaling);
+    scale_problem(csc, cost, lower, upper, rhs, current_col_scaling,
+                  current_row_scaling);
 
     // update scaling
     cupdlp_cdot(scaling->colScale, current_col_scaling, nCols);
@@ -117,11 +118,11 @@ exit_cleanup:
   return retcode;
 }
 
-cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
-                                          cupdlp_float *lower,
-                                          cupdlp_float *upper,
-                                          cupdlp_float *rhs,
-                                          CUPDLPscaling *scaling)
+cupdlp_retcode cupdlp_l2norm_scaling(CUPDLPcsc *csc, cupdlp_float *cost,
+                                     cupdlp_float *lower,
+                                     cupdlp_float *upper,
+                                     cupdlp_float *rhs,
+                                     CUPDLPscaling *scaling)
 // cupdlp_retcode cupdlp_l2norm_scaling(CUPDLPwork *work)
 {
   cupdlp_retcode retcode = RETCODE_OK;
@@ -156,8 +157,8 @@ cupdlp_retcode cupdlp_l2norm_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
   }
   // apply scaling
   // scale_problem(work, current_col_scaling, current_row_scaling);
-  scale_problem_cuda(csc, cost, lower, upper, rhs, current_col_scaling,
-                     current_row_scaling);
+  scale_problem(csc, cost, lower, upper, rhs, current_col_scaling,
+                current_row_scaling);
 
   // update scaling
   cupdlp_cdot(scaling->colScale, current_col_scaling, nCols);
@@ -169,9 +170,9 @@ exit_cleanup:
   return retcode;
 }
 
-cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
-                                      cupdlp_float *lower, cupdlp_float *upper,
-                                      cupdlp_float *rhs, CUPDLPscaling *scaling)
+cupdlp_retcode cupdlp_pc_scaling(CUPDLPcsc *csc, cupdlp_float *cost,
+                                 cupdlp_float *lower, cupdlp_float *upper,
+                                 cupdlp_float *rhs, CUPDLPscaling *scaling)
 // cupdlp_retcode cupdlp_pc_scaling(CUPDLPwork *work, cupdlp_float alpha)
 {
   cupdlp_retcode retcode = RETCODE_OK;
@@ -215,8 +216,8 @@ cupdlp_retcode cupdlp_pc_scaling_cuda(CUPDLPcsc *csc, cupdlp_float *cost,
 
   // apply scaling
   // scale_problem(work, current_col_scaling, current_row_scaling);
-  scale_problem_cuda(csc, cost, lower, upper, rhs, current_col_scaling,
-                     current_row_scaling);
+  scale_problem(csc, cost, lower, upper, rhs, current_col_scaling,
+                current_row_scaling);
 
   // update scaling
   cupdlp_cdot(scaling->colScale, current_col_scaling, nCols);
@@ -228,10 +229,10 @@ exit_cleanup:
   return retcode;
 }
 
-cupdlp_retcode PDHG_Scale_Data_cuda(CUPDLPcsc *csc, cupdlp_int ifScaling,
-                                    CUPDLPscaling *scaling, cupdlp_float *cost,
-                                    cupdlp_float *lower, cupdlp_float *upper,
-                                    cupdlp_float *rhs) {
+cupdlp_retcode PDHG_Scale_Data(CUPDLPcsc *csc, cupdlp_int ifScaling,
+                               CUPDLPscaling *scaling, cupdlp_float *cost,
+                               cupdlp_float *lower, cupdlp_float *upper,
+                               cupdlp_float *rhs) {
   cupdlp_retcode retcode = RETCODE_OK;
   // scaling->dObjScale = 1.0;
 
@@ -303,20 +304,17 @@ cupdlp_retcode PDHG_Scale_Data_cuda(CUPDLPcsc *csc, cupdlp_int ifScaling,
 
     if (scaling->ifRuizScaling) {
       cupdlp_printf("- use Ruiz scaling\n");
-      CUPDLP_CALL(
-          cupdlp_ruiz_scaling_cuda(csc, cost, lower, upper, rhs, scaling));
+      CUPDLP_CALL(cupdlp_ruiz_scaling(csc, cost, lower, upper, rhs, scaling))
       scaling->ifScaled = 1;
     }
     if (scaling->ifL2Scaling) {
       cupdlp_printf("- use L2 scaling\n");
-      CUPDLP_CALL(
-          cupdlp_l2norm_scaling_cuda(csc, cost, lower, upper, rhs, scaling));
+      CUPDLP_CALL(cupdlp_l2norm_scaling(csc, cost, lower, upper, rhs, scaling))
       scaling->ifScaled = 1;
     }
     if (scaling->ifPcScaling) {
       cupdlp_printf("- use PC scaling\n");
-      CUPDLP_CALL(
-          cupdlp_pc_scaling_cuda(csc, cost, lower, upper, rhs, scaling));
+      CUPDLP_CALL(cupdlp_pc_scaling(csc, cost, lower, upper, rhs, scaling))
       scaling->ifScaled = 1;
     }
 

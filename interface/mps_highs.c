@@ -207,8 +207,7 @@ cupdlp_retcode main(int argc, char **argv) {
 #endif
 
   cupdlp_float scaling_time = getTimeStamp();
-  CUPDLP_CALL(PDHG_Scale_Data_cuda(csc_cpu, ifScaling, scaling, cost, lower,
-                                   upper, rhs));
+  CUPDLP_CALL(PDHG_Scale_Data(csc_cpu, ifScaling, scaling, cost, lower, upper, rhs));
   scaling_time = getTimeStamp() - scaling_time;
 
   cupdlp_float alloc_matrix_time = 0.0;

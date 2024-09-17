@@ -115,8 +115,7 @@ int main(int argc, char *argv[]) {
 
   cupdlp_float scaling_time = getTimeStamp();
   Init_Scaling(scaling, nCols, nRows, pi.data(), b.data());
-  PDHG_Scale_Data_cuda(csc_cpu, 1, scaling, pi.data(), lower.data(),
-                       upper.data(), b.data());
+  PDHG_Scale_Data(csc_cpu, 1, scaling, pi.data(), lower.data(), upper.data(), b.data());
   scaling_time = getTimeStamp() - scaling_time;
 
   cupdlp_float alloc_matrix_time = 0.0;
