@@ -22,6 +22,9 @@ export HIGHS_HOME=/path-to-highs
 export CUDA_HOME=/path-to-cuda
 ```
 
+For example, if HiGHS 1.6.0 has been installed with its default configuration so that the binaries are available as `/usr/local/lib/libhighs.so.1.6.0` with headers in `/usr/local/include/highs`, then `HIGHS_HOME` should be set to `/usr/local`.
+Similarly, if the CUDA toolkit is installed in `/usr/local/cuda-12.3`, then `CUDA_HOME` should be `/usr/local/cuda-12.3`.
+
 By setting `-DBUILD_CUDA=ON` (by default OFF, i.e., the CPU version), you have the GPU version of cuPDLP-C.
 
 Examples
