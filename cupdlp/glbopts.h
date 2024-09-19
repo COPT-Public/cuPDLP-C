@@ -76,7 +76,7 @@ extern "C" {
 // #define CUPDLP_INIT_VEC(var, size)                                             \
 //   {                                                                            \
 //     cusparseStatus_t status =                                                  \
-//         cudaMalloc((void **)&var, (size) * sizeof(typeof(*var)));              \
+//         cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var)));          \
 //     if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
 //       printf("CUSPARSE API failed at line %d with error: %s (%d)\n", __LINE__, \
 //              cusparseGetErrorString(status), status);                          \
@@ -86,13 +86,13 @@ extern "C" {
 // #define CUPDLP_INIT_ZERO_VEC(var, size)                                        \
 //   {                                                                            \
 //     cusparseStatus_t status =                                                  \
-//         cudaMalloc((void **)&var, (size) * sizeof(typeof(*var)));              \
+//         cudaMalloc((void **)&var, (size) * sizeof(__typeof__(*var)));          \
 //     if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
 //       printf("CUSPARSE API failed at line %d with error: %s (%d)\n", __LINE__, \
 //              cusparseGetErrorString(status), status);                          \
 //       goto exit_cleanup;                                                       \
 //     }                                                                          \
-//     status = cudaMemset(var, 0, (size) * sizeof(typeof(*var)));                \
+//     status = cudaMemset(var, 0, (size) * sizeof(__typeof__(*var)));            \
 //     if (status != CUSPARSE_STATUS_SUCCESS) {                                   \
 //       printf("CUSPARSE API failed at line %d with error: %s (%d)\n", __LINE__, \
 //              cusparseGetErrorString(status), status);                          \
@@ -105,21 +105,21 @@ extern "C" {
 #else
 #define CUPDLP_COPY_VEC(dst, src, type, size) \
   memcpy(dst, src, sizeof(type) * (size))
-#define CUPDLP_INIT_VEC(var, size)                              \
-  {                                                             \
-    (var) = (typeof(var))malloc((size) * sizeof(typeof(*var))); \
-    if ((var) == cupdlp_NULL) {                                 \
-      retcode = RETCODE_FAILED;                                 \
-      goto exit_cleanup;                                        \
-    }                                                           \
+#define CUPDLP_INIT_VEC(var, size)                                      \
+  {                                                                     \
+    (var) = (__typeof__(var))malloc((size) * sizeof(__typeof__(*var))); \
+    if ((var) == cupdlp_NULL) {                                         \
+      retcode = RETCODE_FAILED;                                         \
+      goto exit_cleanup;                                                \
+    }                                                                   \
   }
-#define CUPDLP_INIT_ZERO_VEC(var, size)                      \
-  {                                                          \
-    (var) = (typeof(var))calloc(size, sizeof(typeof(*var))); \
-    if ((var) == cupdlp_NULL) {                              \
-      retcode = RETCODE_FAILED;                              \
-      goto exit_cleanup;                                     \
-    }                                                        \
+#define CUPDLP_INIT_ZERO_VEC(var, size)                              \
+  {                                                                  \
+    (var) = (__typeof__(var))calloc(size, sizeof(__typeof__(*var))); \
+    if ((var) == cupdlp_NULL) {                                      \
+      retcode = RETCODE_FAILED;                                      \
+      goto exit_cleanup;                                             \
+    }                                                                \
   }
 #define CUPDLP_FREE_VEC(x) \
   {                        \
@@ -141,21 +141,21 @@ extern "C" {
 #define cupdlp_zero(var, type, size) memset(var, 0, sizeof(type) * (size))
 #define cupdlp_copy(dst, src, type, size) \
   memcpy(dst, src, sizeof(type) * (size))
-#define CUPDLP_INIT(var, size)                                  \
-  {                                                             \
-    (var) = (typeof(var))malloc((size) * sizeof(typeof(*var))); \
-    if ((var) == cupdlp_NULL) {                                 \
-      retcode = RETCODE_FAILED;                                 \
-      goto exit_cleanup;                                        \
-    }                                                           \
+#define CUPDLP_INIT(var, size)                                          \
+  {                                                                     \
+    (var) = (__typeof__(var))malloc((size) * sizeof(__typeof__(*var))); \
+    if ((var) == cupdlp_NULL) {                                         \
+      retcode = RETCODE_FAILED;                                         \
+      goto exit_cleanup;                                                \
+    }                                                                   \
   }
-#define CUPDLP_INIT_ZERO(var, size)                          \
-  {                                                          \
-    (var) = (typeof(var))calloc(size, sizeof(typeof(*var))); \
-    if ((var) == cupdlp_NULL) {                              \
-      retcode = RETCODE_FAILED;                              \
-      goto exit_cleanup;                                     \
-    }                                                        \
+#define CUPDLP_INIT_ZERO(var, size)                                  \
+  {                                                                  \
+    (var) = (__typeof__(var))calloc(size, sizeof(__typeof__(*var))); \
+    if ((var) == cupdlp_NULL) {                                      \
+      retcode = RETCODE_FAILED;                                      \
+      goto exit_cleanup;                                             \
+    }                                                                \
   }
 #define CUPDLP_FREE(var) cupdlp_free(var)
 #define CUPDLP_CALL(func)       \

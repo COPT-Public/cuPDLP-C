@@ -118,7 +118,7 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   // }
   // cupdlp_printf("------------------------------------------------\n");
 
-  CUPDLP_INIT(is_eq, nRows_clp);
+  CUPDLP_CPP_INIT(is_eq, bool, nRows_clp);
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_clp; i++) {
@@ -136,13 +136,13 @@ extern "C" int formulateLP(void *model, double **cost, int *nCols, int *nRows,
   }
 
   // allocate memory
-  CUPDLP_INIT(*cost, *nCols);
-  CUPDLP_INIT(*lower, *nCols);
-  CUPDLP_INIT(*upper, *nCols);
-  CUPDLP_INIT(*csc_beg, *nCols + 1);
-  CUPDLP_INIT(*csc_idx, *nnz);
-  CUPDLP_INIT(*csc_val, *nnz);
-  CUPDLP_INIT(*rhs, *nRows);
+  CUPDLP_CPP_INIT(*cost, double, *nCols);
+  CUPDLP_CPP_INIT(*lower, double, *nCols);
+  CUPDLP_CPP_INIT(*upper, double, *nCols);
+  CUPDLP_CPP_INIT(*csc_beg, int, *nCols + 1);
+  CUPDLP_CPP_INIT(*csc_idx, int, *nnz);
+  CUPDLP_CPP_INIT(*csc_val, double, *nnz);
+  CUPDLP_CPP_INIT(*rhs, double, *nRows);
 
   // formulate LP matrix
   for (int i = 0; i < nCols_clp + 1; i++) (*csc_beg)[i] = A_csc_beg[i];
@@ -267,8 +267,8 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   const double *A_csc_val = ((const ClpModel *)model)->matrix()->getElements();
   int has_lower, has_upper;
 
-  CUPDLP_INIT(constraint_type_clp, nRows_clp);
-  CUPDLP_INIT(*constraint_new_idx, *nRows);
+  CUPDLP_CPP_INIT(constraint_type_clp, constraint_type, nRows_clp);
+  CUPDLP_CPP_INIT(*constraint_new_idx, int, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_clp; i++) {
@@ -302,13 +302,13 @@ extern "C" int formulateLP_new(void *model, double **cost, int *nCols,
   }
 
   // allocate memory
-  CUPDLP_INIT(*cost, *nCols);
-  CUPDLP_INIT(*lower, *nCols);
-  CUPDLP_INIT(*upper, *nCols);
-  CUPDLP_INIT(*csc_beg, *nCols + 1);
-  CUPDLP_INIT(*csc_idx, *nnz);
-  CUPDLP_INIT(*csc_val, *nnz);
-  CUPDLP_INIT(*rhs, *nRows);
+  CUPDLP_CPP_INIT(*cost, double, *nCols);
+  CUPDLP_CPP_INIT(*lower, double, *nCols);
+  CUPDLP_CPP_INIT(*upper, double, *nCols);
+  CUPDLP_CPP_INIT(*csc_beg, int, *nCols + 1);
+  CUPDLP_CPP_INIT(*csc_idx, int, *nnz);
+  CUPDLP_CPP_INIT(*csc_val, double, *nnz);
+  CUPDLP_CPP_INIT(*rhs, double, *nRows);
 
   // cost, lower, upper
   for (int i = 0; i < nCols_clp; i++) {
