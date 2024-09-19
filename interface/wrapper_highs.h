@@ -9,13 +9,13 @@
 extern "C" {
 #endif
 
-#define CUPDLP_INIT(var, size)                                  \
-  {                                                             \
-    (var) = (typeof(var))malloc((size) * sizeof(typeof(*var))); \
-    if ((var) == NULL) {                                        \
-      retcode = 1;                                              \
-      goto exit_cleanup;                                        \
-    }                                                           \
+#define CUPDLP_CPP_INIT(var, type, size)                                \
+  {                                                                     \
+    (var) = (type *)malloc((size) * sizeof(type));                      \
+    if ((var) == NULL) {                                                \
+      retcode = 1;                                                      \
+      goto exit_cleanup;                                                \
+    }                                                                   \
   }
 
 typedef enum CONSTRAINT_TYPE { EQ = 0, LEQ, GEQ, BOUND } ConstraintType;

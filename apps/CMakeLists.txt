@@ -23,7 +23,7 @@ if (${CUDA_LIBRARY-NOTFOUND})
 else ()
     target_compile_definitions(wrapper_clp
             PUBLIC
-            -DCUPDLP_CPU
+            -DCUPDLP_CPU=1
     )
     target_link_libraries(onlinelp PUBLIC cupdlp ${CUDA_LIBRARY} m)
 endif ()

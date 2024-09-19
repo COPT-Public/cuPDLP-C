@@ -196,10 +196,10 @@ cupdlp_retcode main(int argc, char **argv) {
   csc_cpu->nRows = nRows_pdlp;
   csc_cpu->nCols = nCols_pdlp;
   csc_cpu->nMatElem = nnz_pdlp;
-  csc_cpu->colMatBeg = (int *)malloc((1 + nCols_pdlp) * sizeof(int));
-  csc_cpu->colMatIdx = (int *)malloc(nnz_pdlp * sizeof(int));
-  csc_cpu->colMatElem = (double *)malloc(nnz_pdlp * sizeof(double));
-  memcpy(csc_cpu->colMatBeg, csc_beg, (nCols_pdlp + 1) * sizeof(int));
+  CUPDLP_INIT(csc_cpu->colMatBeg, 1 + nCols_pdlp)
+  CUPDLP_INIT(csc_cpu->colMatIdx, nnz_pdlp)
+  CUPDLP_INIT(csc_cpu->colMatElem, nnz_pdlp)
+  memcpy(csc_cpu->colMatBeg, csc_beg, ((size_t)nCols_pdlp + 1) * sizeof(int));
   memcpy(csc_cpu->colMatIdx, csc_idx, nnz_pdlp * sizeof(int));
   memcpy(csc_cpu->colMatElem, csc_val, nnz_pdlp * sizeof(double));
 #if !(CUPDLP_CPU)
@@ -207,8 +207,7 @@ cupdlp_retcode main(int argc, char **argv) {
 #endif
 
   cupdlp_float scaling_time = getTimeStamp();
-  CUPDLP_CALL(PDHG_Scale_Data_cuda(csc_cpu, ifScaling, scaling, cost, lower,
-                                   upper, rhs));
+  CUPDLP_CALL(PDHG_Scale_Data(csc_cpu, ifScaling, scaling, cost, lower, upper, rhs));
   scaling_time = getTimeStamp() - scaling_time;
 
   cupdlp_float alloc_matrix_time = 0.0;
@@ -304,8 +303,8 @@ exit_cleanup:
     deleteModel_highs(presolvedmodel);
     if (col_value_pre != NULL) cupdlp_free(col_value_pre);
     if (col_dual_pre != NULL) cupdlp_free(col_dual_pre);
-    if (row_value_pre != NULL) cupdlp_free(row_value);
-    if (row_dual_pre != NULL) cupdlp_free(row_dual);
+    if (row_value_pre != NULL) cupdlp_free(row_value_pre);
+    if (row_dual_pre != NULL) cupdlp_free(row_dual_pre);
   }
   if (col_value_org != NULL) cupdlp_free(col_value_org);
   if (col_dual_org != NULL) cupdlp_free(col_dual_org);
@@ -332,8 +331,11 @@ exit_cleanup:
   if (constraint_type != NULL) cupdlp_free(constraint_type);
 
   // free memory
-  csc_clear(csc_cpu);
+  csc_clear_host(csc_cpu);
   problem_clear(prob);
+  #if !(CUPDLP_CPU)
+    CHECK_CUDA(cudaDeviceReset())
+  #endif
 
   return retcode;
 }
