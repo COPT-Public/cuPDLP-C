@@ -1,6 +1,8 @@
 #ifndef CUPDLP_H_GUARD
 #define CUPDLP_H_GUARD
 
+#define CUPDLP_TIMER (1)
+
 #if !(CUPDLP_CPU)
 #include "cuda/cupdlp_cuda_kernels.cuh"
 #include "cuda/cupdlp_cudalinalg.cuh"
@@ -96,10 +98,13 @@ typedef enum {
   IF_RUIZ_SCALING,
   IF_L2_SCALING,
   IF_PC_SCALING,
+  N_LOG_LEVEL,
   N_LOG_INTERVAL,
   IF_PRESOLVE,
+  I_INF_NORM_ABS_LOCAL_TERMINATION,
+  N_INT_USER_PARAM
 } CUPDLP_INT_USER_PARAM_INDEX;
-#define N_INT_USER_PARAM 10
+  //#define N_INT_USER_PARAM 12
 typedef enum {
   D_SCALING_LIMIT = 0,
   D_PRIMAL_TOL,
@@ -107,8 +112,9 @@ typedef enum {
   D_GAP_TOL,
   D_FEAS_TOL,
   D_TIME_LIM,
+  N_FLOAT_USER_PARAM
 } CUPDLP_FLOAT_USER_PARAM_INDEX;
-#define N_FLOAT_USER_PARAM 6
+  //#define N_FLOAT_USER_PARAM 6
 
 // used in sparse matrix-dense vector multiplication
 struct CUPDLP_CUDA_DENSE_VEC {
@@ -174,10 +180,14 @@ struct CUPDLP_SETTINGS {
   cupdlp_float dPrimalTol;
   cupdlp_float dDualTol;
   cupdlp_float dGapTol;
+  cupdlp_int iInfNormAbsLocalTermination;
 
   // max iter and time
   cupdlp_int nIterLim;
   cupdlp_float dTimeLim;
+
+  // Logging
+  cupdlp_int nLogLevel;
   cupdlp_int nLogInterval;
 
   // restart
