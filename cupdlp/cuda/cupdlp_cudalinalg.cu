@@ -4,7 +4,7 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
     cusparseHandle_t handle, cusparseSpMatDescr_t cuda_csc,
     cusparseDnVecDescr_t vecX, cusparseDnVecDescr_t vecAx,
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
-    cusparseDnVecDescr_t vecATy, void **dBuffer) {
+    cusparseDnVecDescr_t vecATy, void **dBuffer_csc_ATy, void **dBuffer_csr_Ax) {
   cudaDataType computeType = CUDA_R_32F;
 #ifndef SFLOAT
   computeType = CUDA_R_64F;
@@ -22,16 +22,16 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
       handle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, cuda_csr, vecX, &beta,
       vecAx, computeType, alg, &AxBufferSize))
 
+  // allocate an external buffer if needed
+  CHECK_CUDA(cudaMalloc(dBuffer_csr_Ax, AxBufferSize))
+
   // get the buffer size needed by csc ATy
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
       handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, cuda_csc, vecY, &beta,
       vecATy, computeType, alg, &ATyBufferSize))
 
-  size_t bufferSize =
-      (AxBufferSize > ATyBufferSize) ? AxBufferSize : ATyBufferSize;
-
   // allocate an external buffer if needed
-  CHECK_CUDA(cudaMalloc(dBuffer, bufferSize))
+  CHECK_CUDA(cudaMalloc(dBuffer_csc_ATy, ATyBufferSize))
 
   return EXIT_SUCCESS;
 }
