@@ -5,10 +5,6 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
     cusparseDnVecDescr_t vecX, cusparseDnVecDescr_t vecAx,
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
     cusparseDnVecDescr_t vecATy, void **dBuffer) {
-  cudaDataType computeType = CUDA_R_32F;
-#ifndef SFLOAT
-  computeType = CUDA_R_64F;
-#endif
 
   size_t AxBufferSize = 0;
   size_t ATyBufferSize = 0;
@@ -20,12 +16,12 @@ extern "C" cupdlp_int cuda_alloc_MVbuffer(
   // get the buffer size needed by csr Ax
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
       handle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, cuda_csr, vecX, &beta,
-      vecAx, computeType, alg, &AxBufferSize))
+      vecAx, CudaComputeType, alg, &AxBufferSize))
 
   // get the buffer size needed by csc ATy
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
       handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, cuda_csc, vecY, &beta,
-      vecATy, computeType, alg, &ATyBufferSize))
+      vecATy, CudaComputeType, alg, &ATyBufferSize))
 
   size_t bufferSize =
       (AxBufferSize > ATyBufferSize) ? AxBufferSize : ATyBufferSize;
@@ -45,14 +41,10 @@ extern "C" cupdlp_int cuda_csc_Ax(cusparseHandle_t handle,
   // hAx = alpha * Acsc * hX + beta * hAx
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
-  cudaDataType computeType = CUDA_R_32F;
-#ifndef SFLOAT
-  computeType = CUDA_R_64F;
-#endif
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csc, vecX, &beta, vecAx,
-                              // computeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
-                              computeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
+                              // CudaComputeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
+                              CudaComputeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
 
   return EXIT_SUCCESS;
 }
@@ -66,14 +58,10 @@ extern "C" cupdlp_int cuda_csr_Ax(cusparseHandle_t handle,
   // hAx = alpha * Acsc * hX + beta * hAx
 
   cusparseOperation_t op = CUSPARSE_OPERATION_NON_TRANSPOSE;
-  cudaDataType computeType = CUDA_R_32F;
-#ifndef SFLOAT
-  computeType = CUDA_R_64F;
-#endif
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csr, vecX, &beta, vecAx,
-                              // computeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
-                              computeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
+                              // CudaComputeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
+                              CudaComputeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
 
   return EXIT_SUCCESS;
 }
@@ -86,14 +74,10 @@ extern "C" cupdlp_int cuda_csc_ATy(cusparseHandle_t handle,
                                    const cupdlp_float beta) {
   // hATy = alpha * Acsr^T * hY + beta * hATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
-  cudaDataType computeType = CUDA_R_32F;
-#ifndef SFLOAT
-  computeType = CUDA_R_64F;
-#endif
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csc, vecY, &beta, vecATy,
-                              // computeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
-                              computeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
+                              // CudaComputeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
+                              CudaComputeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
 
   return EXIT_SUCCESS;
 }
@@ -106,14 +90,10 @@ extern "C" cupdlp_int cuda_csr_ATy(cusparseHandle_t handle,
                                    const cupdlp_float beta) {
   // hATy = alpha * Acsr^T * hY + beta * hATy
   cusparseOperation_t op = CUSPARSE_OPERATION_TRANSPOSE;
-  cudaDataType computeType = CUDA_R_32F;
-#ifndef SFLOAT
-  computeType = CUDA_R_64F;
-#endif
 
   CHECK_CUSPARSE(cusparseSpMV(handle, op, &alpha, cuda_csr, vecY, &beta, vecATy,
-                              // computeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
-                              computeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
+                              // CudaComputeType, CUSPARSE_SPMV_ALG_DEFAULT, dBuffer))
+                              CudaComputeType, CUSPARSE_SPMV_CSR_ALG2, dBuffer))
 
   return EXIT_SUCCESS;
 }
