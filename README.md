@@ -9,7 +9,7 @@ This is the C implementation of the Julia version [cuPDLP.jl](https://github.com
 ## Compile
 <!-- We use CMAKE to build CUPDLP. The current version is built on the [Coin-OR CLP project](https://github.com/coin-or/Clp). Please install the dependencies therein. -->
 
-We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev) (previously, [Coin-OR CLP](https://github.com/coin-or/Clp)).
+We use CMAKE to build CUPDLP. The current version switches to [HiGHS project](https://highs.dev).
 
 Please compile with HiGHS 1.6.0 and CUDA 12.3.
 
