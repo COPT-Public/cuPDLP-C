@@ -2,6 +2,7 @@
 #define CUPDLP_CUDA_KERNALS_H
 
 #include <stdio.h>
+#include <stdlib.h>  /* EXIT_FAILURE */
 #include <cublas_v2.h>
 #include <cusparse.h>
 #include <cuda_runtime.h>
