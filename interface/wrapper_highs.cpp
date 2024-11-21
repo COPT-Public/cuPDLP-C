@@ -336,15 +336,14 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   const int *A_csc_beg = lp.a_matrix_.start_.data();
   const int *A_csc_idx = lp.a_matrix_.index_.data();
   const double *A_csc_val = lp.a_matrix_.value_.data();
-  int has_lower, has_upper;
 
-  CUPDLP_INIT(*constraint_type, nRows_highs);
-  CUPDLP_INIT(*constraint_new_idx, *nRows);
+  CUPDLP_CPP_INIT(*constraint_type, int, nRows_highs);
+  CUPDLP_CPP_INIT(*constraint_new_idx, int, *nRows);
 
   // recalculate nRows and nnz for Ax - z = 0
   for (int i = 0; i < nRows_highs; i++) {
-    has_lower = lhs_highs[i] > -1e20;
-    has_upper = rhs_highs[i] < 1e20;
+    int has_lower = lhs_highs[i] > -1e20;
+    int has_upper = rhs_highs[i] < 1e20;
 
     // count number of equations and rows
     if (has_lower && has_upper && lhs_highs[i] == rhs_highs[i]) {
@@ -374,13 +373,13 @@ extern "C" int formulateLP_highs(void *model, double **cost, int *nCols,
   }
 
   // allocate memory
-  CUPDLP_INIT(*cost, *nCols);
-  CUPDLP_INIT(*lower, *nCols);
-  CUPDLP_INIT(*upper, *nCols);
-  CUPDLP_INIT(*csc_beg, *nCols + 1);
-  CUPDLP_INIT(*csc_idx, *nnz);
-  CUPDLP_INIT(*csc_val, *nnz);
-  CUPDLP_INIT(*rhs, *nRows);
+  CUPDLP_CPP_INIT(*cost, double, *nCols);
+  CUPDLP_CPP_INIT(*lower, double, *nCols);
+  CUPDLP_CPP_INIT(*upper, double, *nCols);
+  CUPDLP_CPP_INIT(*csc_beg, int, *nCols + 1);
+  CUPDLP_CPP_INIT(*csc_idx, int, *nnz);
+  CUPDLP_CPP_INIT(*csc_val, double, *nnz);
+  CUPDLP_CPP_INIT(*rhs, double, *nRows);
 
   // cost, lower, upper
   for (int i = 0; i < nCols_highs; i++) {

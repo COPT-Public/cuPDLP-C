@@ -357,8 +357,7 @@ class cupdlp_interface {
 #endif
 
     scaling_time = getTimeStamp();
-    CUPDLP_CALL(PDHG_Scale_Data_cuda(csc_cpu, ifScaling, scaling, cost, lower,
-                                     upper, rhs));
+    CUPDLP_CALL(PDHG_Scale_Data(csc_cpu, ifScaling, scaling, cost, lower, upper, rhs));
     scaling_time = getTimeStamp() - scaling_time;
 
     alloc_matrix_time = 0.0;

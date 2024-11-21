@@ -12,7 +12,7 @@ if (${CUDA_LIBRARY-NOTFOUND})
     message(NOTICE "- CPU version PDLP")
     target_compile_definitions(wrapper_lp
             PUBLIC
-            -DCUPDLP_CPU
+            -DCUPDLP_CPU=1
     )
 endif()
 
@@ -39,7 +39,7 @@ if (${CUDA_LIBRARY-NOTFOUND})
     message(NOTICE "- CPU version PDLP")
     target_compile_definitions(wrapper_highs
             PUBLIC
-            -DCUPDLP_CPU
+            -DCUPDLP_CPU=1
     )
 endif()
 

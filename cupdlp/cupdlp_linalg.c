@@ -290,7 +290,7 @@ cupdlp_float diffDotDiff(cupdlp_float *x1, cupdlp_float *x2, cupdlp_float *y1,
 
 /*------------------------ new added --------------------*/
 
-double dot(cupdlp_int n, cupdlp_float *x, cupdlp_int incx, cupdlp_float *y,
+double dot(cupdlp_int n, const cupdlp_float *x, cupdlp_int incx, const cupdlp_float *y,
            cupdlp_int incy) {
 #ifdef USE_MY_BLAS
   assert(incx == 1 && incy == 1);
@@ -387,19 +387,16 @@ void Ax_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecX,
 
   switch (w->problem->data->matrix_format) {
     case CSR_CSC:
-      // cuda_csc_Ax(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-      //             vecX, vecAx, w->dBuffer, alpha, beta);
-
       cuda_csr_Ax(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
-                  vecX, vecAx, w->dBuffer, alpha, beta);
+                  vecX, vecAx, w->dBuffer_csr_Ax, alpha, beta);
       break;
     case CSC:
-      cuda_csc_Ax(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-                  vecX, vecAx, w->dBuffer, alpha, beta);
+      cupdlp_printf("Error: Ax_single_gpu requires CSR matrix\n");
+      exit(1);
       break;
     case CSR:
       cuda_csr_Ax(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
-                  vecX, vecAx, w->dBuffer, alpha, beta);
+                  vecX, vecAx, w->dBuffer_csr_Ax, alpha, beta);
       break;
     default:
       cupdlp_printf("Error: Unknown matrix format in Ax_single_gpu\n");
@@ -422,18 +419,16 @@ void ATy_single_gpu(CUPDLPwork *w, cusparseDnVecDescr_t vecY,
 
   switch (w->problem->data->matrix_format) {
     case CSR_CSC:
-      // cuda_csr_ATy(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
-      //              vecY, vecATy, w->dBuffer, alpha, beta);
       cuda_csc_ATy(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-                   vecY, vecATy, w->dBuffer, alpha, beta);
+                   vecY, vecATy, w->dBuffer_csc_ATy, alpha, beta);
       break;
     case CSC:
       cuda_csc_ATy(w->cusparsehandle, w->problem->data->csc_matrix->cuda_csc,
-                   vecY, vecATy, w->dBuffer, alpha, beta);
+                   vecY, vecATy, w->dBuffer_csc_ATy, alpha, beta);
       break;
     case CSR:
-      cuda_csr_ATy(w->cusparsehandle, w->problem->data->csr_matrix->cuda_csr,
-                   vecY, vecATy, w->dBuffer, alpha, beta);
+      cupdlp_printf("Error: ATy_single_gpu requires CSC matrix\n");
+      exit(1);
       break;
     default:
       printf("Error: Unknown matrix format in Ax_single_gpu\n");
@@ -469,7 +464,7 @@ void Ax(CUPDLPwork *w, CUPDLPvec *ax, const CUPDLPvec *x) {
       break;
     case MULTI_GPU:
 #if !(CUPDLP_CPU)
-      Ax_multi_gpu(d, ax, x);
+      Ax_multi_gpu(d, ax->data, x->data);
 #else
       printf("GPU not supported in CPU build\n");
       exit(1);
@@ -735,6 +730,7 @@ void cupdlp_initvec(cupdlp_float *x, const cupdlp_float val,
 #endif
 }
 
+/*
 void cupdlp_sub(cupdlp_float *xout, const cupdlp_float *x1,
                 const cupdlp_float *x2, const cupdlp_int len) {
 #if !(CUPDLP_CPU)
@@ -745,6 +741,7 @@ void cupdlp_sub(cupdlp_float *xout, const cupdlp_float *x1,
   cupdlp_axpy(NULL, len, &alpha, x2, xout);
 #endif
 }
+*/
 
 void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
                                              cupdlp_float *dMovement,
@@ -756,13 +753,21 @@ void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
   cupdlp_float dX = 0.0;
   cupdlp_float dY = 0.0;
 
-  cupdlp_sub(w->buffer2, iterates->x->data, iterates->xUpdate->data, nCols);
-  cupdlp_twoNorm(w, nCols, w->buffer2, &dX);
-  cupdlp_sub(w->buffer3, iterates->y->data, iterates->yUpdate->data, nRows);
-  cupdlp_twoNorm(w, nRows, w->buffer3, &dY);
+  cupdlp_int iter = w->timers->nIter;
+  CUPDLPvec *x = iterates->x[iter % 2];
+  CUPDLPvec *y = iterates->y[iter % 2];
+  CUPDLPvec *aty = iterates->aty[iter % 2];
+  CUPDLPvec *xUpdate = iterates->x[(iter + 1) % 2];
+  CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
+  CUPDLPvec *atyUpdate = iterates->aty[(iter + 1) % 2];
 
-  *dMovement = pow(dX, 2.0) * 0.5 * beta + pow(dY, 2.0) / (2.0 * beta);
+  cupdlp_float dX2 = 0.0;
+  cupdlp_float dY2 = 0.0;
+  cupdlp_float dInter = 0.0;
 
-  cupdlp_sub(w->buffer3, iterates->aty->data, iterates->atyUpdate->data, nCols);
-  cupdlp_dot(w, nCols, w->buffer2, w->buffer3, dInteraction);
+  cupdlp_movement_interaction_cuda(&dX2, &dY2, &dInter, w->buffer2,
+      xUpdate->data, x->data, yUpdate->data, y->data, atyUpdate->data, aty->data, nRows, nCols);
+
+  *dMovement = dX2 * 0.5 * beta + dY2 / (2.0 * beta);
+  *dInteraction = dInter;
 }
