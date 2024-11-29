@@ -522,12 +522,11 @@ void PDHG_PrintUserParamHelper() {
   cupdlp_printf("                range:   true or false\n");
   cupdlp_printf("\n");
 
-  // cupdlp_printf(
-  //     "    -ifPre: whether to use HiGHS presolver (and thus postsolver)\n");
-  // cupdlp_printf("                type:    bool\n");
-  // cupdlp_printf("                default: true\n");
-  // cupdlp_printf("                range:   true or false\n");
-  // cupdlp_printf("\n");
+  cupdlp_printf("    -ifPre: whether to use HiGHS presolver (and thus postsolver)\n");
+  cupdlp_printf("                type:    bool\n");
+  cupdlp_printf("                default: true\n");
+  cupdlp_printf("                range:   true or false\n");
+  cupdlp_printf("\n");
 }
 
 cupdlp_retcode getUserParam(int argc, char **argv,
