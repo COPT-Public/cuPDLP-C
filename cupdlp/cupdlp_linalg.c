@@ -761,13 +761,15 @@ void cupdlp_compute_interaction_and_movement(CUPDLPwork *w,
   CUPDLPvec *yUpdate = iterates->y[(iter + 1) % 2];
   CUPDLPvec *atyUpdate = iterates->aty[(iter + 1) % 2];
 
-  cupdlp_float dX2 = 0.0;
-  cupdlp_float dY2 = 0.0;
-  cupdlp_float dInter = 0.0;
-
-  cupdlp_movement_interaction_cuda(&dX2, &dY2, &dInter, w->buffer2,
+#if !(CUPDLP_CPU) && USE_KERNELS
+  cupdlp_movement_interaction_cuda(&dX, &dY, dInteraction, w->buffer2,
       xUpdate->data, x->data, yUpdate->data, y->data, atyUpdate->data, aty->data, nRows, nCols);
-
-  *dMovement = dX2 * 0.5 * beta + dY2 / (2.0 * beta);
-  *dInteraction = dInter;
+#else
+    cupdlp_diffTwoNormSquared(w, x->data, xUpdate->data, nCols, &dX);
+    cupdlp_diffTwoNormSquared(w, y->data, yUpdate->data, nRows, &dY);
+    //      Δx' (AΔy)
+    cupdlp_diffDotDiff(w, x->data, xUpdate->data, aty->data, atyUpdate->data,
+                       nCols, dInteraction);
+#endif
+  *dMovement = dX * 0.5 * beta + dY / (2.0 * beta);
 }
