@@ -15,10 +15,8 @@ void print_script_usage() {
   printf(
       "  -savesol <bool> : whether to write solution to .json solution file\n");
   printf("\n");
-  // printf(
-  //     "  -ifPre <bool>   : whether to use presolver (and thus
-  //     postsolver)\n");
-  // printf("\n");
+  printf("  -ifPre <bool>   : whether to use presolver (and thus postsolver)\n");
+  printf("\n");
 }
 
 void freealldata(int *Aeqp, int *Aeqi, double *Aeqx, int *Aineqp, int *Aineqi,
