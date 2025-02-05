@@ -55,8 +55,23 @@ If you wish to use the Python interface, use the following steps:
 ```
 git submodule update --init --recursive
 ```
+If the submodule fails to initiate, then:
+```
+cd pycupdlp \
+rm -rf pybind11 \
+git clone https://github.com/pybind/pybind11.git
+cd ..
+```
 then build the target `pycupdlp`
 ```
+mkdir build
+cd build
+cmake -DBUILD_CUDA=ON \
+-DBUILD_PYTHON=ON \
+-DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" \
+-DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" \
+-DCMAKE_CUDA_FLAGS_RELEASE="-O2 -DNDEBUG" ..
+
 cmake --build . --target pycupdlp 
 ```
 
