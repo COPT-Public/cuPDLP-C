@@ -18,12 +18,21 @@ cupdlp_int cuda_alloc_MVbuffer(
     cusparseSpMatDescr_t cuda_csr, cusparseDnVecDescr_t vecY,
     cusparseDnVecDescr_t vecATy, void **dBuffer_csc_ATy, void **dBuffer_csr_Ax) {
 
+  int cusparseVersion = 0;
+  int hasPreprocess = 0;
   size_t AxBufferSize = 0;
   size_t ATyBufferSize = 0;
   cupdlp_float alpha = 1.0;
   cupdlp_float beta = 0.0;
   // cusparseSpSVAlg_t alg = CUSPARSE_SPSV_ALG_DEFAULT;
   cusparseSpMVAlg_t alg = CUSPARSE_SPMV_CSR_ALG2; //deterministic
+
+  CHECK_CUSPARSE(cusparseGetVersion(handle, &cusparseVersion))
+  // Cusparse introduced preprocess function in version 12.4, when cusparse version was 12.3.0.142
+  if (cusparseVersion >= 12301)
+  {
+    hasPreprocess = 1;
+  }
 
   // get the buffer size needed by csr Ax
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
@@ -33,6 +42,14 @@ cupdlp_int cuda_alloc_MVbuffer(
   // allocate an external buffer if needed
   CHECK_CUDA(cudaMalloc(dBuffer_csr_Ax, AxBufferSize))
 
+  // preprocess Ax
+  if (hasPreprocess)
+  {
+    CHECK_CUSPARSE(cusparseSpMV_preprocess(
+        handle, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, cuda_csr, vecX, &beta,
+        vecAx, CudaComputeType, alg, *dBuffer_csr_Ax))
+  }
+
   // get the buffer size needed by csc ATy
   CHECK_CUSPARSE(cusparseSpMV_bufferSize(
       handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, cuda_csc, vecY, &beta,
@@ -40,6 +57,14 @@ cupdlp_int cuda_alloc_MVbuffer(
 
   // allocate an external buffer if needed
   CHECK_CUDA(cudaMalloc(dBuffer_csc_ATy, ATyBufferSize))
+
+  // preprocess ATy
+  if (hasPreprocess)
+  {
+    CHECK_CUSPARSE(cusparseSpMV_preprocess(
+        handle, CUSPARSE_OPERATION_TRANSPOSE, &alpha, cuda_csc, vecY, &beta,
+        vecATy, CudaComputeType, alg, *dBuffer_csc_ATy))
+  }
 
   return EXIT_SUCCESS;
 }
