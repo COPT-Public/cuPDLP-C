@@ -1,6 +1,7 @@
 #include <stdio.h>   // printf
 #include <stdlib.h>  // EXIT_FAILURE
 
+#include "cuda_to_hip.h"
 #include "cupdlp_cudalinalg.cuh"
 
 inline int nBlocks256(int n) {
@@ -257,12 +258,7 @@ void cupdlp_movement_interaction_cuda(
     const cupdlp_float *atyUpdate, const cupdlp_float *aty,
     int nRows, int nCols)
 {
-  int warpSize;
-  CHECK_CUDA_IGNORE(cudaDeviceGetAttribute(&warpSize, cudaDevAttrWarpSize, 0))
-  if (warpSize != 32) {
-    printf("warpSize\n");
-    exit(1);
-  }
+  // Warp size query removed: reduction kernels now support both wave32 and wave64
 
   constexpr int RED_BLOCK_SIZE = 256;
   constexpr int RED_ELS_PER_THREAD = 4;

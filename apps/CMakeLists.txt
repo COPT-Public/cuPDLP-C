@@ -20,10 +20,11 @@ set_target_properties(onlinelp
 )
 if (${CUDA_LIBRARY-NOTFOUND})
     target_link_libraries(onlinelp PUBLIC cupdlp m)
+    target_compile_definitions(onlinelp PUBLIC -DCUPDLP_CPU=1)
+elseif (${USE_HIP} STREQUAL "ON")
+    target_link_libraries(onlinelp PUBLIC cupdlp ${HIP_LIBRARY} m)
+    target_compile_definitions(onlinelp PUBLIC USE_HIP)
+    target_include_directories(onlinelp PUBLIC ${HIP_INCLUDE_DIRS})
 else ()
-    target_compile_definitions(wrapper_clp
-            PUBLIC
-            -DCUPDLP_CPU=1
-    )
     target_link_libraries(onlinelp PUBLIC cupdlp ${CUDA_LIBRARY} m)
 endif ()

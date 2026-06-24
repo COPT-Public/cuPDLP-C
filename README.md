@@ -49,6 +49,20 @@ cmake -DBUILD_CUDA=ON \
 -DCMAKE_CUDA_FLAGS_RELEASE="-O2 -DNDEBUG" ..
 ```  
 
+### Building for AMD GPUs (ROCm/HIP)
+
+The GPU solver also runs on AMD GPUs through ROCm. Install ROCm (which provides hipBLAS, hipSPARSE, rocBLAS, and rocSPARSE) and HiGHS as above, then configure with `-DUSE_HIP=ON` in place of `-DBUILD_CUDA=ON` and select the target GPU architecture with `-DCMAKE_HIP_ARCHITECTURES`:
+
+```shell
+export HIGHS_HOME=/path-to-highs
+mkdir build
+cd build
+cmake -DUSE_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx90a -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --target plc
+```
+
+Set `CMAKE_HIP_ARCHITECTURES` to match your GPU, for example `gfx90a` (MI200 series), `gfx1100` (RDNA3), or `gfx1201` (RDNA4). `ROCM_PATH` defaults to `/opt/rocm`; set it if ROCm is installed elsewhere. The same source builds for NVIDIA (`-DBUILD_CUDA=ON`) and AMD (`-DUSE_HIP=ON`) GPUs.
+
 ## Alternative Interfaces
 ### The Python Interface
 If you wish to use the Python interface, use the following steps:

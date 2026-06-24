@@ -5,6 +5,7 @@ enable_language(CXX)
 add_library(wrapper_lp SHARED
         mps_lp.h mps_lp.c
 )
+set_target_properties(wrapper_lp PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_link_libraries(
         wrapper_lp PUBLIC cupdlp
 )
@@ -14,6 +15,10 @@ if (${CUDA_LIBRARY-NOTFOUND})
             PUBLIC
             -DCUPDLP_CPU=1
     )
+elseif (${USE_HIP} STREQUAL "ON")
+    target_compile_definitions(wrapper_lp PUBLIC USE_HIP)
+    target_include_directories(wrapper_lp PUBLIC ${HIP_INCLUDE_DIRS})
+    target_link_libraries(wrapper_lp PRIVATE ${HIP_LIBRARY})
 endif()
 
 #############################################
@@ -26,6 +31,7 @@ add_library(wrapper_highs SHARED
         mps_lp.h mps_lp.c
         wrapper_highs.cpp ${HiGHS_HEADER_FILES}
         wrapper_highs.h)
+set_target_properties(wrapper_highs PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 target_include_directories(
         wrapper_highs PUBLIC
@@ -41,6 +47,10 @@ if (${CUDA_LIBRARY-NOTFOUND})
             PUBLIC
             -DCUPDLP_CPU=1
     )
+elseif (${USE_HIP} STREQUAL "ON")
+    target_compile_definitions(wrapper_highs PUBLIC USE_HIP)
+    target_include_directories(wrapper_highs PUBLIC ${HIP_INCLUDE_DIRS})
+    target_link_libraries(wrapper_highs PRIVATE ${HIP_LIBRARY})
 endif()
 
 
@@ -63,9 +73,11 @@ target_link_libraries(
 
 
 if (${CUDA_LIBRARY-NOTFOUND})
-    target_link_libraries(plc PRIVATE cupdlp m)
+    target_link_libraries(plc PRIVATE cupdlp $<$<NOT:$<PLATFORM_ID:Windows>>:m>)
+elseif (${USE_HIP} STREQUAL "ON")
+    target_link_libraries(plc PRIVATE cupdlp ${HIP_LIBRARY} $<$<NOT:$<PLATFORM_ID:Windows>>:m>)
 else ()
-    target_link_libraries(plc PRIVATE cupdlp ${CUDA_LIBRARY} m)
+    target_link_libraries(plc PRIVATE cupdlp ${CUDA_LIBRARY} $<$<NOT:$<PLATFORM_ID:Windows>>:m>)
 endif ()
 if (${CUDA_LIBRARY-NOTFOUND})
     add_custom_target(

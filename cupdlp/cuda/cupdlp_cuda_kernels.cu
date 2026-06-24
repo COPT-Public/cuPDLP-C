@@ -1,4 +1,11 @@
+/*
+ * Copyright (c) 2026 Advanced Micro Devices, Inc. All rights reserved.
+ * Author: Jeff Daily <jeff.daily@amd.com>
+ *
+ * AMD GPU (HIP/ROCm) support for the cuPDLP-C CUDA kernels.
+ */
 #include "cupdlp_cuda_kernels.cuh"
+#include "cuda_to_hip.h"
 
 
 
@@ -199,15 +206,127 @@ __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
 */
 
 
-#define QUARTER_WARP_REDUCE_2(val1, val2) { \
-  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 4); \
-  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 4); \
-  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 2); \
-  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 2); \
-  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 1); \
-  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 1); \
+// Warp size constant for device code
+// CDNA (gfx90a, gfx94x): 64-lane wavefront
+// RDNA (gfx10xx, gfx11xx): 32-lane wavefront
+// CUDA: always 32
+#if defined(__HIP_PLATFORM_AMD__)
+  #if defined(__GFX9__)
+    #define CUPDLP_WARP_SIZE 64
+  #else
+    #define CUPDLP_WARP_SIZE 32
+  #endif
+#else
+  #define CUPDLP_WARP_SIZE 32
+#endif
+
+// Warp reduction macros: arch-unified for wave32 (CUDA/RDNA) and wave64 (CDNA)
+// HIP uses __shfl_down (no sync needed, wavefronts execute in lockstep)
+// CUDA uses __shfl_down_sync with a 32-bit mask
+
+#if defined(__HIP_PLATFORM_AMD__)
+// HIP: All AMD GPUs use __shfl_down (no sync needed)
+// Wave64 (gfx9): reduce over 64 lanes
+// Wave32 (RDNA): reduce over 32 lanes (offset>32 is no-op)
+
+#if defined(__GFX9__)
+// Wave64: CDNA (gfx90a, gfx94x)
+#define FULL_WARP_REDUCE_2(val1, val2) { \
+  val1 += __shfl_down(val1, 32); \
+  val2 += __shfl_down(val2, 32); \
+  val1 += __shfl_down(val1, 16); \
+  val2 += __shfl_down(val2, 16); \
+  val1 += __shfl_down(val1, 8); \
+  val2 += __shfl_down(val2, 8); \
+  val1 += __shfl_down(val1, 4); \
+  val2 += __shfl_down(val2, 4); \
+  val1 += __shfl_down(val1, 2); \
+  val2 += __shfl_down(val2, 2); \
+  val1 += __shfl_down(val1, 1); \
+  val2 += __shfl_down(val2, 1); \
 }
 
+#define FULL_WARP_REDUCE(val) { \
+  val += __shfl_down(val, 32); \
+  val += __shfl_down(val, 16); \
+  val += __shfl_down(val, 8); \
+  val += __shfl_down(val, 4); \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+
+// 256 threads / 64 lanes = 4 warps; final reduction of 4 elements
+#define FINAL_REDUCE_2_256(val1, val2) { \
+  val1 += __shfl_down(val1, 2); \
+  val2 += __shfl_down(val2, 2); \
+  val1 += __shfl_down(val1, 1); \
+  val2 += __shfl_down(val2, 1); \
+}
+
+// 512 threads / 64 lanes = 8 warps; final reduction of 8 elements
+#define FINAL_REDUCE_512(val) { \
+  val += __shfl_down(val, 4); \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+
+#define FINAL_REDUCE_256(val) { \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+
+#else  // HIP RDNA (wave32)
+
+#define FULL_WARP_REDUCE_2(val1, val2) { \
+  val1 += __shfl_down(val1, 16); \
+  val2 += __shfl_down(val2, 16); \
+  val1 += __shfl_down(val1, 8); \
+  val2 += __shfl_down(val2, 8); \
+  val1 += __shfl_down(val1, 4); \
+  val2 += __shfl_down(val2, 4); \
+  val1 += __shfl_down(val1, 2); \
+  val2 += __shfl_down(val2, 2); \
+  val1 += __shfl_down(val1, 1); \
+  val2 += __shfl_down(val2, 1); \
+}
+
+#define FULL_WARP_REDUCE(val) { \
+  val += __shfl_down(val, 16); \
+  val += __shfl_down(val, 8); \
+  val += __shfl_down(val, 4); \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+
+// 256 threads / 32 lanes = 8 warps; final reduction of 8 elements
+#define FINAL_REDUCE_2_256(val1, val2) { \
+  val1 += __shfl_down(val1, 4); \
+  val2 += __shfl_down(val2, 4); \
+  val1 += __shfl_down(val1, 2); \
+  val2 += __shfl_down(val2, 2); \
+  val1 += __shfl_down(val1, 1); \
+  val2 += __shfl_down(val2, 1); \
+}
+
+// 512 threads / 32 lanes = 16 warps; final reduction of 16 elements
+#define FINAL_REDUCE_512(val) { \
+  val += __shfl_down(val, 8); \
+  val += __shfl_down(val, 4); \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+
+// 256 threads / 32 lanes = 8 warps; final reduction of 8 elements
+#define FINAL_REDUCE_256(val) { \
+  val += __shfl_down(val, 4); \
+  val += __shfl_down(val, 2); \
+  val += __shfl_down(val, 1); \
+}
+#endif  // __GFX9__
+
+#else  // CUDA
+
+// CUDA: Wave32, use __shfl_down_sync with 32-bit mask
 #define FULL_WARP_REDUCE_2(val1, val2) { \
   val1 += __shfl_down_sync(0xFFFFFFFF, val1, 16); \
   val2 += __shfl_down_sync(0xFFFFFFFF, val2, 16); \
@@ -221,14 +340,52 @@ __global__ void naive_sub_kernel(cupdlp_float *z, const cupdlp_float *x,
   val2 += __shfl_down_sync(0xFFFFFFFF, val2, 1); \
 }
 
-// assumes block size = 256, warp size = 32
+#define FULL_WARP_REDUCE(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 16); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+
+// 256 threads / 32 lanes = 8 warps; final reduction of 8 elements
+#define FINAL_REDUCE_2_256(val1, val2) { \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 4); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 4); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 2); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 2); \
+  val1 += __shfl_down_sync(0xFFFFFFFF, val1, 1); \
+  val2 += __shfl_down_sync(0xFFFFFFFF, val2, 1); \
+}
+
+// 512 threads / 32 lanes = 16 warps; final reduction of 16 elements
+#define FINAL_REDUCE_512(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+
+// 256 threads / 32 lanes = 8 warps; final reduction of 8 elements
+#define FINAL_REDUCE_256(val) { \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
+  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
+}
+#endif  // __HIP_PLATFORM_AMD__
+
+// Max warps per block: 256/32=8 (wave32) or 512/32=16 (wave32), 256/64=4 or 512/64=8 (wave64)
+// Upper bound is 16, use that for static shared memory sizing.
+static constexpr int kMaxWarpsPerBlock = 16;
+
+// assumes block size = 256, warp size = 32 or 64
 __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_float * __restrict__ res_y,
                                   const cupdlp_float * __restrict__ xUpdate, const cupdlp_float * __restrict__ x,
                                   const cupdlp_float * __restrict__ atyUpdate, const cupdlp_float * __restrict__ aty,
                                   int nCols) {
 
-  __shared__ cupdlp_float shared_x[32];
-  __shared__ cupdlp_float shared_y[32];
+  __shared__ cupdlp_float shared_x[kMaxWarpsPerBlock];
+  __shared__ cupdlp_float shared_y[kMaxWarpsPerBlock];
   cupdlp_float val_x = 0.0;
   cupdlp_float val_y = 0.0;
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nCols; i += blockDim.x * gridDim.x) {
@@ -238,8 +395,9 @@ __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_floa
       val_y = cupdlp_fma_rn(day, dx, val_y);
   }
 
-  int lane = threadIdx.x % 32;
-  int wid = threadIdx.x / 32;
+  int lane = threadIdx.x % CUPDLP_WARP_SIZE;
+  int wid = threadIdx.x / CUPDLP_WARP_SIZE;
+  int nWarps = blockDim.x / CUPDLP_WARP_SIZE;
 
   FULL_WARP_REDUCE_2(val_x, val_y)
   if (lane == 0) {
@@ -249,9 +407,9 @@ __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_floa
   __syncthreads();
 
   if (wid == 0) {
-    val_x = (threadIdx.x < blockDim.x / 32) ? shared_x[lane] : 0.0;
-    val_y = (threadIdx.x < blockDim.x / 32) ? shared_y[lane] : 0.0;
-    QUARTER_WARP_REDUCE_2(val_x, val_y)
+    val_x = (lane < nWarps) ? shared_x[lane] : 0.0;
+    val_y = (lane < nWarps) ? shared_y[lane] : 0.0;
+    FINAL_REDUCE_2_256(val_x, val_y)
     if (threadIdx.x == 0) {
       res_x[blockIdx.x] = val_x;
       res_y[blockIdx.x] = val_y;
@@ -259,41 +417,21 @@ __global__ void movement_1_kernel(cupdlp_float * __restrict__ res_x, cupdlp_floa
   }
 }
 
-#define QUARTER_WARP_REDUCE(val) { \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
-}
-
-#define HALF_WARP_REDUCE(val) { \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
-}
-
-#define FULL_WARP_REDUCE(val) { \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 16); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 8); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 4); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 2); \
-  val += __shfl_down_sync(0xFFFFFFFF, val, 1); \
-}
-
-// assumes: block size = 256, warp size = 32
+// assumes: block size = 256, warp size = 32 or 64
 __global__ void movement_2_kernel(cupdlp_float * __restrict__ res,
                                   const cupdlp_float * __restrict__ yUpdate, const cupdlp_float * __restrict__ y,
                                   int nRows) {
 
-  __shared__ cupdlp_float shared[32];
+  __shared__ cupdlp_float shared[kMaxWarpsPerBlock];
   cupdlp_float val = 0.0;
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < nRows; i += blockDim.x * gridDim.x) {
       cupdlp_float d = yUpdate[i] - y[i];
       val = cupdlp_fma_rn(d, d, val);
   }
 
-  int lane = threadIdx.x % 32;
-  int wid = threadIdx.x / 32;
+  int lane = threadIdx.x % CUPDLP_WARP_SIZE;
+  int wid = threadIdx.x / CUPDLP_WARP_SIZE;
+  int nWarps = blockDim.x / CUPDLP_WARP_SIZE;
 
   FULL_WARP_REDUCE(val)
   if (lane == 0) {
@@ -302,25 +440,26 @@ __global__ void movement_2_kernel(cupdlp_float * __restrict__ res,
   __syncthreads();
 
   if (wid == 0) {
-    val = (threadIdx.x < blockDim.x / 32) ? shared[lane] : 0.0;
-    QUARTER_WARP_REDUCE(val)
+    val = (lane < nWarps) ? shared[lane] : 0.0;
+    FINAL_REDUCE_256(val)
     if (threadIdx.x == 0) {
       res[blockIdx.x] = val;
     }
   }
 }
 
-// assumes: block size = 512, warp size = 32
+// assumes: block size = 512, warp size = 32 or 64
 __global__ void sum_kernel(cupdlp_float * __restrict__ res, const cupdlp_float * __restrict__ x, int n) {
 
-  __shared__ cupdlp_float shared[32];
+  __shared__ cupdlp_float shared[kMaxWarpsPerBlock];
   cupdlp_float val = 0.0;
   for (int i = blockDim.x * blockIdx.x + threadIdx.x; i < n; i += blockDim.x * gridDim.x) {
       val += x[i];
   }
 
-  int lane = threadIdx.x % 32;
-  int wid = threadIdx.x / 32;
+  int lane = threadIdx.x % CUPDLP_WARP_SIZE;
+  int wid = threadIdx.x / CUPDLP_WARP_SIZE;
+  int nWarps = blockDim.x / CUPDLP_WARP_SIZE;
 
   FULL_WARP_REDUCE(val)
   if (lane == 0) {
@@ -329,8 +468,8 @@ __global__ void sum_kernel(cupdlp_float * __restrict__ res, const cupdlp_float *
   __syncthreads();
 
   if (wid == 0) {
-    val = (threadIdx.x < blockDim.x / 32) ? shared[lane] : 0.0;
-    HALF_WARP_REDUCE(val)
+    val = (lane < nWarps) ? shared[lane] : 0.0;
+    FINAL_REDUCE_512(val)
     if (threadIdx.x == 0) {
       res[blockIdx.x] = val;
     }

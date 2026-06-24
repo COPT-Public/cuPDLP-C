@@ -3,9 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>  /* EXIT_FAILURE */
+#include "cuda_to_hip.h"
+
+#if !defined(USE_HIP) && !defined(__HIP_PLATFORM_AMD__)
 #include <cublas_v2.h>
 #include <cusparse.h>
 #include <cuda_runtime.h>
+#endif
 
 //#define CUPDLP_BLOCK_SIZE 512
 

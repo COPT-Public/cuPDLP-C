@@ -1,11 +1,13 @@
 #ifndef CUPDLP_CUDA_LINALG_H
 #define CUPDLP_CUDA_LINALG_H
 
+#include "cupdlp_cuda_kernels.cuh"
+
+#if !defined(USE_HIP) && !defined(__HIP_PLATFORM_AMD__)
 #include <cublas_v2.h>         // cublas
 #include <cuda_runtime_api.h>  // cudaMalloc, cudaMemcpy, etc.
 #include <cusparse.h>          // cusparseSpMV
-
-#include "cupdlp_cuda_kernels.cuh"
+#endif
 
 #define PRINT_CUDA_INFO (1)
 #define PRINT_DETAILED_CUDA_INFO (0)
