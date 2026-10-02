@@ -1,0 +1,9 @@
+{
+  "x": [
+    1,
+    2
+  ],
+  "objective": 8,
+  "solution_tolerance": 0.0001,
+  "residual_tolerance": 1e-05
+}

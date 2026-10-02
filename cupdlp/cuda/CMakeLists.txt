@@ -7,7 +7,7 @@ add_library(cudalin SHARED
        ${CUPDLP_INCLUDE_DIR}/cuda/cupdlp_cudalinalg.cu
 )
 set_target_properties(cudalin PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(cudalin PUBLIC "/usr/local/cuda/include")
+target_include_directories(cudalin PUBLIC "${CMAKE_CUDA_PATH}/include")
 target_compile_definitions(cudalin
         PUBLIC
         # If the debug configuration pass the DEBUG define to the compiler

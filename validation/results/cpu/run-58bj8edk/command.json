@@ -1,0 +1,23 @@
+[
+  "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/.coinor-deps/cupdlp-cpu-install/bin/plc",
+  "-fname",
+  "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/examples/tiny_lp.mps",
+  "-ifPre",
+  "0",
+  "-savesol",
+  "1",
+  "-out",
+  "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/cpu/run-58bj8edk/summary.json",
+  "-outSol",
+  "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/cpu/run-58bj8edk/solution.json",
+  "-dPrimalTol",
+  "1e-6",
+  "-dDualTol",
+  "1e-8",
+  "-dGapTol",
+  "1e-8",
+  "-nIterLim",
+  "10000",
+  "-dTimeLim",
+  "60"
+]

@@ -1,0 +1,30 @@
+2026-09-30T17:46:21Z
+PRETTY_NAME="Ubuntu 22.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+VERSION="22.04.5 LTS (Jammy Jellyfish)"
+VERSION_CODENAME=jammy
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=jammy
+gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+Python 3.10.12
+cmake version 3.30.5
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2025 NVIDIA Corporation
+Built on Fri_Feb_21_20:23:50_PST_2025
+Cuda compilation tools, release 12.8, V12.8.93
+Build cuda_12.8.r12.8/compiler.35583870_0
+index, name, driver_version, memory.total [MiB]
+0, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+1, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+2, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+3, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+4, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+5, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+6, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB
+7, NVIDIA GeForce RTX 4090, 580.82.07, 24564 MiB

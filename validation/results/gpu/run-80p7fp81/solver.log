@@ -1,0 +1,97 @@
+--------------------------------------------------
+reading file...
+	/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/examples/tiny_lp.mps
+--------------------------------------------------
+Running HiGHS 1.6.0: Copyright (c) 2023 HiGHS under MIT licence terms
+Minimize
+No obj offset
+--------------------------------------------------
+running scaling
+- use Ruiz scaling
+- use PC scaling
+--------------------------------------------------
+--------------------------------------------------
+enter main solve loop
+--------------------------------------------------
+
+  ____ _   _ ____  ____  _     ____
+ / ___| | | |  _ \|  _ \| |   |  _ \
+| |   | | | | |_) | | | | |   | |_) |
+| |___| |_| |  __/| |_| | |___|  __/
+ \____|\___/|_|   |____/|_____|_|
+
+Cuda runtime 12080
+Cuda driver 13000
+cuSparse 12508
+Cuda device 0: NVIDIA GeForce RTX 4090
+
+
+--------------------------------------------------
+CUPDHG Parameters:
+--------------------------------------------------
+
+    nIterLim:          10000
+    dTimeLim (sec):    60.00
+    ifScaling:         1
+    ifRuizScaling:     1
+    ifL2Scaling:       0
+    ifPcScaling:       1
+    eLineSearchMethod: 2
+    dPrimalTol:        1.0000e-06
+    dDualTol:          1.0000e-08
+    dGapTol:           1.0000e-08
+    dFeasTol:          1.0000e-08
+    eRestartMethod:    1
+
+--------------------------------------------------
+
+     Iter       Primal.Obj         Dual.Obj        Gap  Primal.Inf  Dual.Inf    Time
+        0  +0.00000000e+00  +0.00000000e+00  +0.00e+00    6.40e+00  0.00e+00   0.00s [L]
+        0  +0.00000000e+00  +0.00000000e+00  +0.00e+00    6.40e+00  0.00e+00   0.00s [A]
+Termination check: 6.403124e+00|7.403124e-06  0.000000e+00|4.605551e-08  0.000000e+00|1.000000e-08
+Termination check: 6.403124e+00|7.403124e-06  0.000000e+00|4.605551e-08  0.000000e+00|1.000000e-08
+Last restart was iter 0: average
+Last restart was iter 1: average
+Last restart was iter 2: current
+Last restart was iter 4: average
+Last restart was iter 6: current
+Last restart was iter 40: current
+Last restart was iter 80: current
+Last restart was iter 120: average
+Last restart was iter 160: current
+     Iter       Primal.Obj         Dual.Obj        Gap  Primal.Inf  Dual.Inf    Time
+      240  +7.99999999e+00  +8.00000000e+00  -1.05e-08    1.08e-08  4.99e-10   0.03s [L]
+      240  +8.00000004e+00  +7.99999999e+00  +4.45e-08    2.56e-08  9.12e-09   0.03s [A]
+
+Solving information:        Optimal current solution.
+          Primal objective: +7.99999999e+00
+            Dual objective: +8.00000000e+00
+   Primal infeas (abs/rel): 1.08e-08 / 1.46e-09
+     Dual infeas (abs/rel): 4.99e-10 / 1.08e-10
+     Duality gap (abs/rel): 1.05e-08 / 6.18e-10
+      Number of iterations: 240
+
+Timing information:
+    Total solver time 2.979302e-02 in 240 iterations
+           Solve time 2.977705e-02 in 240 iterations
+        Iters per sec 8.059898e+03 
+         Scaling time 1.597404e-05
+        Presolve time 0.000000e+00
+                   Ax 5.881548e-03 in 258 calls
+                  Aty 1.762390e-03 in 258 calls
+     ComputeResiduals 0.000000e+00 in 0 calls
+       UpdateIterates 1.097298e-02 in 240 calls
+
+GPU Timing information:
+          CudaPrepare 2.745712e-01
+Alloc&CopyMatToDevice 1.214027e-03
+      CopyVecToDevice 1.382828e-05
+     DeviceMatVecProd 7.608414e-03
+        CopyVecToHost 0.000000e+00
+--------------------------------
+--- saving to /home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/gpu/run-80p7fp81/summary.json
+--------------------------------
+  Free Device memory 2.081394e-04
+--------------------------------
+--- saving sol to /home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/gpu/run-80p7fp81/solution.json
+--------------------------------

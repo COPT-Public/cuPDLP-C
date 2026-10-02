@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use cuPDLP-C, please cite the associated paper."
+title: "cuPDLP-C"
+type: software
+repository-code: "https://github.com/COPT-Public/cuPDLP-C"
+license: MIT
+authors:
+  - family-names: Lu
+    given-names: Haihao
+  - family-names: Yang
+    given-names: Jinwen
+  - family-names: Hu
+    given-names: Haodong
+  - family-names: Huangfu
+    given-names: Qi
+  - family-names: Liu
+    given-names: Jinsong
+  - family-names: Liu
+    given-names: Tianhao
+  - family-names: Ye
+    given-names: Yinyu
+  - family-names: Zhang
+    given-names: Chuwen
+  - family-names: Ge
+    given-names: Dongdong
+preferred-citation:
+  type: article
+  title: "cuPDLP-C: A Strengthened Implementation of cuPDLP for Linear Programming by C language"
+  year: 2024
+  doi: "10.48550/arXiv.2312.14832"
+  url: "https://arxiv.org/abs/2312.14832v2"
+  authors:
+    - family-names: Lu
+      given-names: Haihao
+    - family-names: Yang
+      given-names: Jinwen
+    - family-names: Hu
+      given-names: Haodong
+    - family-names: Huangfu
+      given-names: Qi
+    - family-names: Liu
+      given-names: Jinsong
+    - family-names: Liu
+      given-names: Tianhao
+    - family-names: Ye
+      given-names: Yinyu
+    - family-names: Zhang
+      given-names: Chuwen
+    - family-names: Ge
+      given-names: Dongdong

@@ -1,0 +1,18 @@
+{
+  "project": "cuPDLP-C",
+  "timestamp_utc": "2026-09-30T17:49:03.021941+00:00",
+  "host": "gpu4090",
+  "primal_feasibility_tolerance": 1e-06,
+  "pass": true,
+  "mode": "gpu",
+  "solver_exit": 0,
+  "x": [
+    1.00000001069912,
+    1.99999998924491
+  ],
+  "objective": 7.99999998913297,
+  "primal_residual": 1.0811059603099693e-08,
+  "dual_residual": 4.987401602818409e-10,
+  "absolute_gap": 1.0513749870710853e-08,
+  "run_directory": "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/gpu/run-80p7fp81"
+}

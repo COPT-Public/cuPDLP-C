@@ -1,0 +1,20 @@
+{
+  "bounded": {
+    "mps": "bounded.mps", "cost": [-3, -2], "objective": -10,
+    "bounds": [[0, 2], [0, 3]],
+    "rows": [{"coefficients": [1, 1], "sense": "L", "rhs": 4}]
+  },
+  "equality": {
+    "mps": "equality.mps", "cost": [1, 2], "objective": 3,
+    "bounds": [[0, null], [0, null]],
+    "rows": [{"coefficients": [1, 1], "sense": "E", "rhs": 3}]
+  },
+  "mixed_bounds": {
+    "mps": "mixed_bounds.mps", "cost": [1, 1], "objective": -1,
+    "bounds": [[-2, 4], [-1, 3]],
+    "rows": [
+      {"coefficients": [1, -1], "sense": "G", "rhs": 1},
+      {"coefficients": [1, 1], "sense": "L", "rhs": 5}
+    ]
+  }
+}
