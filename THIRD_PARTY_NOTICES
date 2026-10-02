@@ -1,0 +1,21 @@
+cuPDLP-C: third-party and inherited-code notices
+
+Project-owned license: MIT. See OWNERSHIP.txt for the declared owner.
+Existing component notices and license terms take precedence for their files.
+
+Bundled components:
+- cupdlp/cupdlp_cs.c/.h: adapted SuiteSparse CSparse utilities, Timothy A. Davis,
+  LGPL-2.1-or-later. See LICENSES/SPARSE_PROVENANCE.txt and full notice/license.
+- ThirdParty/HiGHS: HiGHS 1.6.0, commit
+  21da9b90e0dceeb22ef9e35e5ff2c3ab17dc5232, MIT; LICENSE and bundled notices retained.
+- pycupdlp/pybind11: commit 8b03ffa7c06cd9c8a38297b1c8923695d1ff1b07,
+  BSD 3-Clause; LICENSE and bundled notices retained. Optional, not built.
+External: zlib for compressed MPS input; NVIDIA CUDA runtime, cuBLAS and
+cuSPARSE for GPU builds (NVIDIA terms). CUDA/driver binaries are not bundled.
+Optional CLP/Eigen/Python application integrations are retained but untested.
+HiGHS presolve is disabled in correctness tests so the cuPDLP solver executes.
+Historical benchmark files under example/ are omitted from this source package;
+the documented examples and tests use newly constructed analytic models.
+
+Test tooling: external Python 3 and NumPy 1.26.4; neither is bundled.
+Build tools and proprietary external runtimes are installed separately.

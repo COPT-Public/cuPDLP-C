@@ -1,0 +1,44 @@
+cuPDLP-C — Linux build, installation and verification
+==================================================
+
+Validated configuration: Ubuntu 22.04.5 x86_64, GCC/G++ 11.4.0,
+CMake 3.30.5, Python 3.10.12, NumPy 1.26.4.
+C/C++ compiler, CMake >=3.24, zlib development headers, Python 3 and NumPy. Bundled HiGHS 1.6.0 is built automatically. CUDA Toolkit and an NVIDIA GPU are needed only for GPU mode.
+
+1. Install compiler/build tools and the listed system development dependencies.
+   On Ubuntu the common packages are build-essential and python3-pip.
+   For this project also install zlib1g-dev.
+   No sudo command is executed by this package's build.sh.
+
+2. From the package root, install private test/build tooling if needed:
+   python3 -m pip install --target "$PWD/.coinor-deps/python" numpy==1.26.4 cmake==3.30.5
+   export PYTHONPATH="$PWD/.coinor-deps/python${PYTHONPATH:+:$PYTHONPATH}"
+   export CMAKE="$PWD/.coinor-deps/python/cmake/data/bin/cmake"
+
+3. For GPU execution, install NVIDIA drivers and a Linux CUDA Toolkit.
+   Tested: RTX 4090, driver 580.82.07, Toolkit 12.8.93.
+   export CUDA_HOME=/usr/local/cuda-12.8
+   export CUDACXX="$CUDA_HOME/bin/nvcc"
+   export PATH="$CUDA_HOME/bin:$PATH"
+   export CUDA_VISIBLE_DEVICES=0
+   export GPU_ARCH=89
+   GPU_ARCH defaults to native; use 89 for RTX 4090 or 90 for H100.
+
+4. Choose:
+   MODE=cpu bash build.sh     # no CUDA required (also the default)
+   MODE=gpu bash build.sh
+   MODE=all bash build.sh
+   Bundled HiGHS is built/installed automatically unless HIGHS_HOME is supplied.
+   Installed executables: .coinor-deps/cupdlp-cpu-install/bin/plc and/or
+   .coinor-deps/cupdlp-gpu-install/bin/plc. Shared libraries are beside them in lib/.
+   Each mode runs four CTest cases, the same installed test suite, and the
+   independent tiny LP checker. A checker-failure regression then runs.
+   Keep the external HiGHS and CUDA libraries at their configured locations.
+
+All build/test commands return nonzero on failure. Numerical reports under
+tests/logs/ contain pass=true on success, with per-invocation raw output folders.
+The negative checker regression deliberately induces failures and succeeds only
+when those failures are detected. Do not count its induced solver failures as
+successful solves. See tests/README.md for expected answers and adding tests.
+No network is needed for the bundled HiGHS/OSQP source builds; installing external
+tooling and dependencies may require network access. Only source is shipped.

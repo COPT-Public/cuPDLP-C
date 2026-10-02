@@ -1,0 +1,12 @@
+The adapted files cupdlp/cupdlp_cs.c and cupdlp/cupdlp_cs.h are retained from the submitted
+upstream project snapshot. Their CSparse/SuiteSparse attribution (and the HDSDP
+header's explicit CXSparse origin) identifies the source family. They combine
+allocation, triplet/compressed-column and related utilities with project-prefixed
+names, project headers/macros and local formatting. No numerical change was made
+to these routines in this release. They are distributed as LGPL-2.1-or-later,
+with Timothy A. Davis's notice and the full license included here.
+Reference notices: SuiteSparse v7.11.0 CSparse/Doc/License.txt and
+CXSparse/Doc/License.txt. This reference tag identifies the verified license
+source; it is not a claim that the original adaptation was taken from that tag.
+The project-owned MIT license does not replace these component terms.
+Complete modified source is provided in this archive for rebuilding/relinking.

@@ -46,3 +46,35 @@ if (${BUILD_PYTHON} STREQUAL "ON")
 else ()
     set(CUDA_LIBRARY-NOTFOUND true)
 endif ()
+
+# Installation checks use small, bundled LPs with analytic solutions.
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
+include(GNUInstallDirs)
+set(_cupdlp_install_targets plc cupdlp wrapper_lp wrapper_highs)
+if(TARGET cudalin)
+    list(APPEND _cupdlp_install_targets cudalin)
+endif()
+get_filename_component(_cupdlp_highs_library_dir "${HiGHS_LIBRARY}" DIRECTORY)
+set(_cupdlp_install_rpath "$ORIGIN/../${CMAKE_INSTALL_LIBDIR};$ORIGIN;${_cupdlp_highs_library_dir}")
+if(BUILD_CUDA)
+    list(APPEND _cupdlp_install_rpath "${CMAKE_CUDA_PATH}/lib64")
+endif()
+set_target_properties(${_cupdlp_install_targets} PROPERTIES
+    INSTALL_RPATH "${_cupdlp_install_rpath}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS ${_cupdlp_install_targets}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(DIRECTORY cupdlp/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cupdlp
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
+install(FILES README.md AUTHORS INSTALL LICENSE CONTRIBUTING.md THIRD_PARTY_NOTICES
+    CITATION.cff SOURCE_PROVENANCE.json
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/cupdlp)
+install(DIRECTORY docs/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/cupdlp/docs)
+install(DIRECTORY tests/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cupdlp/tests
+    PATTERN "__pycache__" EXCLUDE PATTERN "logs" EXCLUDE)

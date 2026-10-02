@@ -1,0 +1,31 @@
+cuPDLP-C author record
+======================
+
+Reference-paper authors (publication order; verified 2026-10-01):
+
+Haihao Lu
+Jinwen Yang
+Haodong Hu
+Qi Huangfu
+Jinsong Liu
+Tianhao Liu
+Yinyu Ye
+Chuwen Zhang
+Dongdong Ge
+
+Primary reference:
+cuPDLP-C: A Strengthened Implementation of cuPDLP for Linear Programming by C language
+https://arxiv.org/abs/2312.14832
+
+The upstream README at commit 7b94c41efca42fa176a129a935b59718e1455fad
+contains the same nine names in a different order. The root AUTHORS file and
+package metadata use publication order.
+
+Project manager / submission contact: Tianhao Liu
+Email: tianhao.liu@sjtu.edu.cn
+GitHub: https://github.com/SkyLiu0
+
+Bundled pybind11 has its own contributors and LICENSE in pycupdlp/pybind11.
+See THIRD_PARTY_NOTICES for other dependency and source attribution notes.
+Authorship and copyright ownership are different; this list does not replace
+COIN-OR ownership and licensing forms.

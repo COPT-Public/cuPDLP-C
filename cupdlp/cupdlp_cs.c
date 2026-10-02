@@ -1,3 +1,7 @@
+/* Sparse routines/types derived from SuiteSparse CSparse/CXSparse.
+ * Copyright (c) 2006, Timothy A. Davis. LGPL-2.1-or-later.
+ * Project adaptations retain these terms. See LICENSES/ and THIRD_PARTY_NOTICES.
+ */
 #include "cupdlp_cs.h"
 
 /* CSparse routines for reading inputs. Referenced from Tim Davis Suite Sparse

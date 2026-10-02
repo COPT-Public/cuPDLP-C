@@ -1,0 +1,63 @@
+{
+  "project": "cuPDLP-C",
+  "release": "20261001-r2",
+  "date_local": "2026-10-01 Asia/Shanghai",
+  "build_and_install_exit": 0,
+  "analytic_checks": [
+    {
+      "case": "cpu",
+      "result": {
+        "project": "cuPDLP-C",
+        "timestamp_utc": "2026-09-30T17:48:49.253252+00:00",
+        "host": "gpu4090",
+        "primal_feasibility_tolerance": 1e-06,
+        "pass": true,
+        "mode": "cpu",
+        "solver_exit": 0,
+        "x": [
+          1.00000001069909,
+          1.99999998924495
+        ],
+        "objective": 7.9999999891330305,
+        "primal_residual": 1.081100986510819e-08,
+        "dual_residual": 4.987299462300143e-10,
+        "absolute_gap": 1.051363973658681e-08,
+        "run_directory": "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/cpu/run-58bj8edk"
+      }
+    },
+    {
+      "case": "gpu",
+      "result": {
+        "project": "cuPDLP-C",
+        "timestamp_utc": "2026-09-30T17:49:03.021941+00:00",
+        "host": "gpu4090",
+        "primal_feasibility_tolerance": 1e-06,
+        "pass": true,
+        "mode": "gpu",
+        "solver_exit": 0,
+        "x": [
+          1.00000001069912,
+          1.99999998924491
+        ],
+        "objective": 7.99999998913297,
+        "primal_residual": 1.0811059603099693e-08,
+        "dual_residual": 4.987401602818409e-10,
+        "absolute_gap": 1.0513749870710853e-08,
+        "run_directory": "/home/hkliu/codex-coinor-release-20261001-r2/cuPDLP-C-coinor-20261001-r2/tests/logs/gpu/run-80p7fp81"
+      }
+    }
+  ],
+  "all_checks_pass": true,
+  "source_integrity": {
+    "checked_build_source_files": 1062,
+    "match": true,
+    "differences": []
+  },
+  "additional_checks": {
+    "ctest_cpu": "4/4",
+    "installed_suite_cpu": "4/4",
+    "ctest_gpu": "4/4",
+    "installed_suite_gpu": "4/4",
+    "checker_negative_regressions": "2/2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "project": "cuPDLP-C",
+  "release": "20261001-r2",
+  "base_package": "cuPDLP-C-7b94c41-coinor",
+  "upstream": "https://github.com/COPT-Public/cuPDLP-C",
+  "reference_paper": "https://arxiv.org/abs/2312.14832",
+  "manager": {
+    "name": "Tianhao Liu",
+    "email": "tianhao.liu@sjtu.edu.cn"
+  },
+  "declared_project_owner": "Dongdong Ge",
+  "license": "MIT",
+  "declaration_date": "2026-10-01",
+  "numerical_source_scope": "Uses the earlier prepared package build/install/four-case framework, on the\nsame 7b94c41 upstream numerical source as the newer package. Bundles the newer\npackage HiGHS source and analytic tiny LP check. Adds CPU/GPU/all build modes,\ninstalled testing, strict residual checks and false-positive regressions.\nPreserves configurable CUDA architecture/includes and adds sparse license notices.",
+  "third_party_notice": "THIRD_PARTY_NOTICES",
+  "upstream_commit": "7b94c41efca42fa176a129a935b59718e1455fad",
+  "validation": "validation/SUMMARY.json"
+}

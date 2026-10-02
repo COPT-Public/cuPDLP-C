@@ -1,0 +1,16 @@
+Copyright ownership record — cuPDLP-C
+Date: 2026-10-01
+
+Declared owner of project-owned original code and submission material: Dongdong Ge.
+Source of declaration: explicit instruction from the submitting team in this
+preparation session. This records that declaration; it is not an independent
+legal determination or an executed copyright assignment.
+Project-owned license: MIT.
+
+Existing COPT-Public and individual copyright notices are preserved as historical
+upstream attribution. Incorporated third-party and inherited source retains its
+original owners and applicable licenses, as itemized in THIRD_PARTY_NOTICES.
+No third-party rights are claimed by Dongdong Ge through this declaration.
+
+Project manager: Tianhao Liu
+Email: tianhao.liu@sjtu.edu.cn

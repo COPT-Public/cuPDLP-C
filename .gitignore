@@ -16,6 +16,11 @@ __pycache__
 .ipynb_checkpoints
 .idea
 build/
+build-*/
+install/
+install-*/
+_deps/
+.venv/
 mps/
 # Prerequisites
 *.d

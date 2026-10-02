@@ -1,0 +1,23 @@
+cuPDLP-C
+
+Credits documented by upstream:
+Dongdong Ge, Haodong Hu, Qi Huangfu, Jinsong Liu, Tianhao Liu, Haihao Lu, Jinwen Yang, Yinyu Ye, Chuwen Zhang (upstream README).
+
+Public Git author identities (aliases may refer to the same person):
+COPT-Public <102135768+COPT-Public@users.noreply.github.com>
+Hannes Uppman <hannes.uppman@gmail.com>
+JinsongLiu6 <liujinsong@163.sufe.edu.cn>
+Oscar Dowson <odow@users.noreply.github.com>
+SkyLiu0 <sky_6th@163.com>
+Søren Fuglede Jørgensen <github@fuglede.dk>
+Tianhao Liu <38656352+SkyLiu0@users.noreply.github.com>
+Your Name <chuwen@shanshu.ai>
+cz <chuwzhang@gmail.com>
+tianhao <sky_6th@163.com>
+xd <yinxudong@shanshu.ai>
+yinxd15 <155597395+yinxd15@users.noreply.github.com>
+
+These identities are retained only as historical provenance and do not determine
+the package author list. The root AUTHORS file follows the reference-paper
+authors in publication order. This file is not a declaration of copyright
+ownership.
